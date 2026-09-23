@@ -1,184 +1,33 @@
+import Image from "next/image";
 import Link from "next/link";
-import { GraduationCap, Search } from "lucide-react";
-import { ArrowGlyph, Badge, FilterDisclosure, EmptyState, Eyebrow, VerificationBadge, cx } from "@/components/ui";
+import { GraduationCap, Search, Clock3, Bookmark, ArrowRight } from "lucide-react";
+import { ArrowGlyph, Badge, ButtonLink, FilterDisclosure, EmptyState, Eyebrow, VerificationBadge, cx } from "@/components/ui";
 import { levelLabelSafe } from "@/components/course-helpers";
 import { Reveal } from "@/components/reveal";
 import { getCourses, getFields } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Courses" };
-
 const levels = ["higher_secondary", "certificate", "diploma", "undergraduate", "postgraduate"];
+const levelTone: Record<string, "forest" | "green" | "amber" | "lavender" | "neutral"> = { higher_secondary: "neutral", certificate: "amber", diploma: "green", undergraduate: "forest", postgraduate: "lavender" };
+const courseImages: Record<string, string> = { bca: "/images/course-computing.png", "bsc-computer-science": "/images/course-computing.png", "diploma-computer-engineering": "/images/course-engineering.png", "bsc-nursing": "/images/course-nursing.png" };
 
-const levelTone: Record<string, "forest" | "green" | "amber" | "lavender" | "neutral"> = {
-  higher_secondary: "neutral",
-  certificate: "amber",
-  diploma: "green",
-  undergraduate: "forest",
-  postgraduate: "lavender",
-};
+function JourneyRail() { return <aside className="hidden min-h-[calc(100dvh-5rem)] w-[235px] shrink-0 border-r border-[#dce5f3] bg-[#eef4ff] px-6 py-10 lg:block"><div className="flex items-center gap-2 text-lg font-semibold text-forest-800"><span className="grid h-9 w-9 place-items-center rounded-xl bg-white"><GraduationCap className="h-5 w-5" /></span>CareerBridge</div><p className="mt-12 text-sm font-semibold text-ink-800">Your journey</p><ol className="mt-7">{[{n: 1, title: "Understand yourself", detail: ""}, {n: 2, title: "Explore possibilities", detail: ""}, {n: 3, title: "Find a route", detail: "Courses & options", current: true}, {n: 4, title: "Make a plan", detail: "Your next steps"}].map((step, index, list) => <li key={step.n} className="relative flex min-h-[88px] gap-3">{index < list.length - 1 ? <span className={`absolute left-3 top-7 h-16 w-px ${step.current ? "bg-[#66b9a0]" : "bg-ink-300"}`} /> : null}<span className={`relative z-10 grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 text-xs font-semibold ${step.current ? "border-forest-600 bg-forest-600 text-white" : "border-ink-300 bg-white text-ink-500"}`}>{step.n}</span><span className={step.current ? "font-semibold text-forest-800" : "text-ink-700"}><span className="block text-sm">{step.title}</span>{step.detail && <span className="mt-1 block text-xs text-ink-500">{step.detail}</span>}</span></li>)}</ol><div className="mt-16 overflow-hidden rounded-2xl"><div className="relative h-32"><Image src="/images/course-engineering.png" alt="" fill sizes="210px" className="object-cover opacity-75" /></div><div className="bg-white/70 p-3"><p className="text-sm font-semibold text-forest-800">Different paths. Brighter Nagaland.</p><p className="mt-1 text-xs text-ink-500">Your future, your way.</p></div></div></aside>; }
 
-export default async function CoursesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ level?: string; field?: string; q?: string }>;
-}) {
+export default async function CoursesPage({ searchParams }: { searchParams: Promise<{ level?: string; field?: string; q?: string }> }) {
   const params = await searchParams;
   const [allCourses, fields] = await Promise.all([getCourses({}), getFields()]);
-
   const q = params.q?.trim().toLowerCase() ?? "";
-  const courses = allCourses.filter((course) => {
-    if (params.level && course.level !== params.level) return false;
-    if (params.field && course.fieldSlug !== params.field) return false;
-    if (q && !`${course.name} ${(course.careerDirections ?? []).join(" ")}`.toLowerCase().includes(q)) return false;
-    return true;
-  });
-
-  const qs = (patch: Record<string, string | undefined>) => {
-    const merged = { ...params, ...patch };
-    const entries = Object.entries(merged).filter(([, v]) => v);
-    return entries.length ? `/courses?${new URLSearchParams(entries as [string, string][]).toString()}` : "/courses";
-  };
-
-  return (
-    <div className="cb-container cb-page">
-      <div className="flex flex-wrap items-end justify-between gap-6 rounded-2xl border border-lavender-ink/20 bg-lavender/25 p-6 sm:p-8">
-        <div className="max-w-lg">
-          <Eyebrow className="animate-rise">Courses</Eyebrow>
-          <h1 className="animate-rise delay-1 mt-4 text-[clamp(1.9rem,4.2vw,2.6rem)] font-semibold">
-            What you could study
-          </h1>
-          <p className="animate-rise delay-2 mt-3 text-[15px] text-ink-500">
-            Structure and eligibility for each route. Fees appear only when verified.
-          </p>
-        </div>
-
-        <form action="/courses" className="animate-rise delay-3 w-full max-w-sm">
-          {params.field ? <input type="hidden" name="field" value={params.field} /> : null}
-          {params.level ? <input type="hidden" name="level" value={params.level} /> : null}
-          <label htmlFor="q" className="sr-only">
-            Search courses
-          </label>
-          <div className="relative">
-            <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
-            <input
-              id="q"
-              name="q"
-              defaultValue={params.q ?? ""}
-              placeholder="BCA, nursing, diploma…"
-              className="w-full rounded-full border border-ink-200 bg-white py-3 pl-11 pr-24 text-sm outline-none transition-colors focus:border-forest-400"
-            />
-            <button
-              type="submit"
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-forest-700 px-4 py-2 text-[13px] font-medium text-white hover:bg-forest-800"
-            >
-              Search
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* --------------------------------------------------- level tabs */}
-      <div className="animate-rise delay-4 mt-8 flex flex-wrap gap-2">
-        <Link
-          href={qs({ level: undefined })}
-          className={cx(
-            "rounded-full border px-4 py-2 text-[13px] transition-all duration-200",
-            !params.level ? "border-forest-500 bg-forest-600 text-white" : "border-ink-200 bg-white text-ink-600 hover:-translate-y-0.5 hover:border-forest-300",
-          )}
-        >
-          All levels
-        </Link>
-        {levels.map((level) => (
-          <Link
-            key={level}
-            href={qs({ level })}
-            className={cx(
-              "rounded-full border px-4 py-2 text-[13px] transition-all duration-200",
-              params.level === level
-                ? "border-forest-500 bg-forest-600 text-white"
-                : "border-ink-200 bg-white text-ink-600 hover:-translate-y-0.5 hover:border-forest-300",
-            )}
-          >
-            {levelLabelSafe(level)}
-          </Link>
-        ))}
-      </div>
-
-      {/* ------------------------------------------------- field filter */}
-      <div className="mt-4 max-w-2xl">
-        <FilterDisclosure label="Filter by field" count={params.field ? 1 : 0}>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={qs({ field: undefined })}
-              className="rounded-full border border-ink-200 bg-white px-3.5 py-1.5 text-[13px] text-ink-600 hover:border-forest-300"
-            >
-              Any field
-            </Link>
-            {fields.map((field) => (
-              <Link
-                key={field.slug}
-                href={qs({ field: field.slug })}
-                className={cx(
-                  "rounded-full border px-3.5 py-1.5 text-[13px] transition-colors",
-                  params.field === field.slug
-                    ? "border-forest-500 bg-forest-50 text-forest-800"
-                    : "border-ink-200 bg-white text-ink-600 hover:border-forest-300",
-                )}
-              >
-                {field.name}
-              </Link>
-            ))}
-          </div>
-        </FilterDisclosure>
-      </div>
-
-      <p className="mt-7 text-sm text-ink-500">
-        <span className="font-semibold text-ink-900">{courses.length}</span> course{courses.length === 1 ? "" : "s"}
-      </p>
-
-      {/* -------------------------------------------------------- list */}
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        {courses.map((course, index) => (
-          <Reveal key={course.slug} delay={Math.min(index * 35, 320)}>
-            <article className="group flex h-full flex-col rounded-2xl border border-ink-100 bg-white p-5 transition-all duration-200 hover:-translate-y-1 hover:border-forest-300">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <Badge tone={levelTone[course.level] ?? "neutral"}>{levelLabelSafe(course.level)}</Badge>
-                  {course.durationLabel ? <Badge>{course.durationLabel}</Badge> : null}
-                </div>
-                <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-canvas-deep text-ink-500">
-                  <GraduationCap className="h-4 w-4" strokeWidth={1.7} />
-                </span>
-              </div>
-
-              <Link href={`/courses/${course.slug}`} className="mt-3 text-[15px] font-semibold text-ink-900 group-hover:text-forest-700">
-                {course.name}
-              </Link>
-
-              <p className="mt-2 line-clamp-2 flex-1 text-[13px] leading-relaxed text-ink-500">{course.eligibility}</p>
-
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 pt-3.5">
-                <VerificationBadge status={course.verificationStatus} lastVerifiedAt={course.lastVerifiedAt} />
-                <Link href={`/courses/${course.slug}`} className="cb-button cb-button-primary px-4 py-2 text-sm">
-                  Explore pathway
-                  <ArrowGlyph className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-            </article>
-          </Reveal>
-        ))}
-      </div>
-
-      {!courses.length ? (
-        <div className="mt-6 max-w-xl">
-          <EmptyState
-            icon={<GraduationCap className="h-4 w-4" />}
-            title="No courses match"
-            description="Try removing a filter, or browse all levels."
-          />
-        </div>
-      ) : null}
+  const courses = allCourses.filter((course) => { if (params.level && course.level !== params.level) return false; if (params.field && course.fieldSlug !== params.field) return false; return !q || `${course.name} ${(course.careerDirections ?? []).join(" ")}`.toLowerCase().includes(q); });
+  const qs = (patch: Record<string, string | undefined>) => { const merged = { ...params, ...patch }; const entries = Object.entries(merged).filter(([, v]) => v); return entries.length ? `/courses?${new URLSearchParams(entries as [string, string][]).toString()}` : "/courses"; };
+  const featured = ["bca", "bsc-computer-science", "diploma-computer-engineering", "bsc-nursing"].map((slug) => courses.find((course) => course.slug === slug)).filter((course): course is NonNullable<typeof course> => Boolean(course));
+  return <div className="flex min-w-0"><JourneyRail /><main className="min-w-0 flex-1"><div className="cb-container cb-page">
+    <div className="mb-6 flex items-center gap-3 text-sm text-ink-500"><Link href="/" className="hover:text-forest-700">Home</Link><span>/</span><span className="text-ink-800">Courses</span></div>
+    <header className="relative overflow-hidden rounded-2xl border border-[#dce6f4] bg-[#f3f6ff] px-6 py-7 sm:px-8 sm:py-9"><div className="relative z-10 max-w-2xl"><Eyebrow>Courses</Eyebrow><h1 className="mt-3 text-[clamp(2.2rem,5vw,4rem)] font-semibold leading-[1.03] tracking-[-.04em] text-[#073f36]">What could you study?</h1><p className="mt-3 text-base text-ink-500">Courses, diplomas and trades — with the details that help you compare.</p></div><div className="absolute -right-4 -top-10 hidden h-64 w-72 opacity-60 sm:block"><Image src="/images/courses-discovery.png" alt="" fill sizes="300px" className="object-contain" /></div><form action="/courses" className="relative z-10 mt-6 max-w-2xl"><input type="hidden" name="level" value={params.level ?? ""} /><input type="hidden" name="field" value={params.field ?? ""} /><label htmlFor="q" className="sr-only">Search courses</label><div className="relative"><Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-400" /><input id="q" name="q" defaultValue={params.q ?? ""} placeholder="Search courses, fields or institutions..." className="w-full rounded-xl border border-ink-200 bg-white py-3.5 pl-12 pr-24 text-sm outline-none focus:border-forest-400" /><button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg bg-forest-700 px-4 py-2 text-sm font-medium text-white hover:bg-forest-800">Search</button></div></form></header>
+    <div className="mt-6 flex flex-wrap gap-2">{[{ href: qs({ level: undefined }), label: "All levels", active: !params.level }, ...levels.map((level) => ({ href: qs({ level }), label: levelLabelSafe(level), active: params.level === level }))].map((tab) => <Link key={tab.href} href={tab.href} className={cx("rounded-full border px-4 py-2 text-[13px] transition-all", tab.active ? "border-forest-500 bg-forest-600 text-white" : "border-ink-200 bg-white text-ink-600 hover:border-forest-300")}>{tab.label}</Link>)}</div>
+    <div className="mt-4"><FilterDisclosure label="Filter by field" count={params.field ? 1 : 0}><div className="flex flex-wrap gap-2"><Link href={qs({ field: undefined })} className="rounded-full border border-ink-200 bg-white px-3.5 py-1.5 text-[13px] text-ink-600">Any field</Link>{fields.map((field) => <Link key={field.slug} href={qs({ field: field.slug })} className={cx("rounded-full border px-3.5 py-1.5 text-[13px]", params.field === field.slug ? "border-forest-500 bg-forest-50 text-forest-800" : "border-ink-200 bg-white text-ink-600")}>{field.name}</Link>)}</div></FilterDisclosure></div>
+    <div className="mt-8 grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_235px]"><section><div className="mb-4 flex items-center justify-between"><p className="text-sm text-ink-500"><span className="font-semibold text-ink-900">{courses.length}</span> course{courses.length === 1 ? "" : "s"}</p></div><div className="grid gap-4 md:grid-cols-2">{(featured.length && !params.q && !params.field && !params.level ? featured : courses).map((course, index) => <Reveal key={course.slug} delay={Math.min(index * 35, 280)}><article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white transition-all hover:-translate-y-1 hover:border-forest-300 hover:shadow-sm"><div className="relative h-32 bg-[#eef8f5]">{courseImages[course.slug] ? <Image src={courseImages[course.slug]} alt="" fill sizes="360px" className="object-cover" /> : <div className="grid h-full place-items-center"><GraduationCap className="h-9 w-9 text-forest-500" /></div>}</div><div className="flex flex-1 flex-col p-4"><div className="flex flex-wrap gap-1.5"><Badge tone={levelTone[course.level] ?? "neutral"}>{levelLabelSafe(course.level)}</Badge>{course.durationLabel ? <Badge><Clock3 className="mr-1 inline h-3 w-3" />{course.durationLabel}</Badge> : null}</div><Link href={`/courses/${course.slug}`} className="mt-3 text-lg font-semibold leading-snug text-forest-800 group-hover:text-forest-600">{course.name}</Link><p className="mt-2 flex-1 text-sm leading-relaxed text-ink-500">{course.eligibility}</p><Link href={`/courses/${course.slug}`} className="cb-button cb-button-primary mt-4 w-full justify-center">View course <ArrowRight className="h-4 w-4" /></Link><div className="mt-3 flex items-center gap-2 border-t border-ink-100 pt-3 text-xs text-ink-500"><Bookmark className="h-4 w-4" />Save for later <span className="ml-auto"><VerificationBadge status={course.verificationStatus} lastVerifiedAt={course.lastVerifiedAt} /></span></div></div></article></Reveal>)}</div>{!courses.length ? <div className="mt-6"><EmptyState icon={<GraduationCap className="h-4 w-4" />} title="No courses match" description="Try removing a filter, or browse all levels." /></div> : null}</section>
+      <aside className="hidden xl:block"><section className="sticky top-24 overflow-hidden rounded-2xl border border-[#dce6f4] bg-[#f5f8ff] p-4"><div className="relative h-32"><Image src="/images/courses-discovery.png" alt="Student exploring course possibilities" fill sizes="220px" className="object-contain" /></div><h2 className="mt-3 text-xl font-semibold leading-tight text-[#073f36]">Not sure yet?<br />Start with a few questions.</h2><p className="mt-3 text-sm leading-relaxed text-ink-500">We&apos;ll help you discover courses that match your interests and strengths.</p><ButtonLink href="/start" className="mt-5 w-full justify-center">Start now <ArrowRight className="h-4 w-4" /></ButtonLink><p className="mt-3 flex items-center justify-center gap-1 text-xs text-ink-500"><Clock3 className="h-3.5 w-3.5" />Takes 2–3 minutes</p></section></aside>
     </div>
-  );
+  </div></main></div>;
 }
