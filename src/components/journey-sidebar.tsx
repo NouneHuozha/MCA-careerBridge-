@@ -69,6 +69,17 @@ export function DetailJourneyShell({ children, current = 4 }: { children: ReactN
   return <div className="flex min-w-0"><DetailJourneySidebar current={current} /><div className="min-w-0 flex-1">{children}</div></div>;
 }
 
+const courseSteps: JourneyStep[] = [
+  { label: "Understand yourself", detail: "Who you are", href: "/profile" },
+  { label: "Explore possibilities", detail: "Options that fit you", href: "/explore" },
+  { label: "Find a route", detail: "Courses and pathways", href: "/courses" },
+  { label: "Make a plan", detail: "Plan your next steps", href: "/action-plan" },
+];
+
+export function CourseJourneyShell({ children, current = 2 }: { children: ReactNode; current?: number }) {
+  return <div className="flex min-w-0"><aside className="hidden lg:block lg:w-[245px] lg:shrink-0" aria-label="Your journey"><div className="sticky top-24 min-h-[calc(100vh-7rem)] overflow-hidden border-r border-[#dce9e5] bg-[#f1faf7] px-6 py-8"><p className="text-xl font-semibold tracking-[-.03em] text-forest-900">Your journey</p><ol className="mt-8">{courseSteps.map((step, index) => { const done = index < current; const active = index === current; return <li key={step.label} className="relative flex min-h-[92px] gap-3">{index < courseSteps.length - 1 && <span aria-hidden className="absolute left-[15px] top-8 h-[74px] w-px border-l border-dashed border-[#b8d2ca]" />}<span className={`relative z-10 mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 text-sm ${active ? "border-[#198b6e] bg-[#198b6e] text-white" : done ? "border-[#80bca9] bg-[#e5f4ee] text-[#287559]" : "border-[#cbded7] bg-white text-ink-500"}`}>{index + 1}</span><Link href={step.href} className={`-mt-0.5 block rounded-lg px-2 py-1 ${active ? "text-forest-900" : "text-ink-800 hover:bg-white/70"}`} aria-current={active ? "step" : undefined}><span className="block text-sm font-semibold">{step.label}</span><span className="mt-1 block text-xs text-ink-500">{step.detail}</span></Link></li>; })}</ol><div className="relative mt-14 -mx-6 min-h-[250px] overflow-hidden bg-[#dcefe9] px-8 py-8"><div aria-hidden className="absolute -bottom-12 -left-10 h-40 w-72 rounded-[50%] bg-[#b9ddd0]" /><p className="relative max-w-[150px] text-lg leading-tight text-[#47776b]">Different routes.<br />A brighter you.</p></div></div></aside><div className="min-w-0 flex-1">{children}</div></div>;
+}
+
 export function JourneyShell({ children, current = 0 }: { children: ReactNode; current?: number }) {
   return <div className="flex min-w-0"><JourneySidebar current={current} /><div className="min-w-0 flex-1"><div className="cb-container py-5 lg:hidden"><JourneyMobile current={current} /></div>{children}</div></div>;
 }
