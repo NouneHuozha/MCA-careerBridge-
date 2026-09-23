@@ -5,6 +5,7 @@ import { ButtonLink, Eyebrow, SectionHeading, accentSurface } from "@/components
 import { Reveal } from "@/components/reveal";
 import { GuidanceCompass } from "@/components/guidance-compass";
 import { FieldIcon, fieldVisual } from "@/components/field-visuals";
+import { JourneyShell } from "@/components/journey-sidebar";
 import { getFields } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ const steps = [
 
 export default async function HomePage() {
   const fields = await getFields();
-  return <>
+  return <JourneyShell current={0}>
     {/* Hero: one message, one action */}
     <section className="relative overflow-hidden border-b border-ink-200 bg-[#f4f7ef]">
       <div aria-hidden className="absolute -right-24 -top-28 h-96 w-96 rounded-full bg-mint/70 blur-3xl" />
@@ -66,5 +67,5 @@ export default async function HomePage() {
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{fields.slice(0, 8).map((field) => <Link href={`/explore/${field.slug}`} key={field.slug} className="cb-link-row group"><span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${accentSurface[fieldVisual(field.slug).accent]}`}><FieldIcon slug={field.slug} /></span><span className="text-sm font-semibold text-ink-800">{field.name}</span><ArrowRight aria-hidden className="link-arrow" /></Link>)}</div>
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-sky-ink/20 bg-sky/35 p-5"><p className="flex items-center gap-2 text-sm font-semibold text-sky-ink"><MessageCircle aria-hidden className="h-4 w-4" />Still unsure? You can talk it through before choosing anything.</p><ButtonLink href="/mentor" size="sm">Ask Mentor<ArrowRight aria-hidden className="h-4 w-4" /></ButtonLink></div>
     </section>
-  </>;
+  </JourneyShell>;
 }
