@@ -1,0 +1,25 @@
+import Link from "next/link";
+import { ArrowRight, BookOpen, Compass, PencilRuler, Sprout } from "lucide-react";
+import { Badge, ButtonLink, Disclosure, Eyebrow, FilterDisclosure, SourceLink, VerificationBadge } from "@/components/ui";
+import { SaveButton } from "@/components/save-button";
+import { getCareerSkills, getCareers, getFields, getOpportunities } from "@/services/catalog";
+import { getSessionState } from "@/services/profile";
+import { suggestFields } from "@/recommendation/engine";
+
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Skills & opportunities" };
+const types: Record<string, string> = { learning: "Learning", project: "Project idea", internship: "Experience", competition: "Competition", certification: "Certification", entry_role: "Entry role" };
+export default async function OpportunitiesPage({ searchParams }: { searchParams: Promise<{ field?: string }> }) {
+  const { field: selectedField } = await searchParams;
+  const [opportunities, fields, state] = await Promise.all([getOpportunities(selectedField ? { fieldSlug: selectedField } : {}), getFields(), getSessionState()]);
+  const suggestions = state ? await suggestFields(state.snapshot, 2) : [];
+  const focus = selectedField ?? suggestions[0]?.field.slug;
+  const careers = focus ? await getCareers(focus) : [];
+  const skills = (await Promise.all(careers.map((c) => getCareerSkills(c.slug)))).flat();
+  return <div className="cb-container cb-page"><header className="flex items-center justify-between gap-6 rounded-2xl border border-mint-ink/20 bg-mint/50 p-6 sm:p-8"><div><Eyebrow>Small steps, real learning</Eyebrow><h1 className="cb-page-title mt-3">Try something. Learn about yourself.</h1><p className="mt-3 max-w-xl text-sm text-ink-600">Build a skill or start a small project while you explore what comes next.</p></div><Sprout aria-hidden className="hidden h-16 w-16 shrink-0 text-forest-600 sm:block" strokeWidth={1.3} /></header>
+    <div className="my-6"><FilterDisclosure label={selectedField ? `Field: ${fields.find((f) => f.slug === selectedField)?.name ?? selectedField}` : "Filter by field"} count={selectedField ? 1 : 0}><div className="flex flex-wrap gap-2"><ButtonLink href="/opportunities" variant="secondary" size="sm">All fields</ButtonLink>{fields.map((f) => <Link key={f.slug} href={`/opportunities?field=${f.slug}`} className={`cb-choice ${selectedField === f.slug ? "border-forest-600 bg-mint" : ""}`}>{f.name}</Link>)}</div></FilterDisclosure></div>
+    {skills.length > 0 && <div className="mb-6"><Disclosure summary={`Skills to try in ${fields.find((f) => f.slug === focus)?.name ?? "this field"}`} hint={`${skills.length} starting points`}><div className="grid gap-4 md:grid-cols-2">{skills.map((skill) => <div key={`${skill.careerSlug}-${skill.skill}`} className="rounded-xl border border-butter-ink/20 bg-butter/30 p-4"><h3 className="flex items-center gap-2 font-semibold"><PencilRuler aria-hidden className="h-4 w-4 text-butter-ink" />{skill.skill}</h3><p className="mt-2 text-sm">{skill.howToBuild}</p><Link href={`/careers/${skill.careerSlug}`} className="cb-source mt-3 text-xs">See the related career<ArrowRight aria-hidden className="h-3 w-3" /></Link></div>)}</div></Disclosure></div>}
+    <div className="grid items-start gap-5 xl:grid-cols-2 2xl:grid-cols-3">{opportunities.map((o, i) => <article id={o.slug} key={o.slug} className="rounded-2xl border border-ink-200 bg-white p-5"><div className="mb-4 flex items-center gap-3"><span className={`grid h-10 w-10 place-items-center rounded-xl ${i % 2 ? "bg-peach text-peach-ink" : "bg-lavender text-lavender-ink"}`}><BookOpen aria-hidden className="h-5 w-5" /></span><Badge tone={i % 2 ? "red" : "lavender"}>{types[o.type] ?? o.type}</Badge></div><h2 className="text-lg font-semibold leading-snug">{o.title}</h2><p className="mt-2 text-xs text-ink-500">{o.provider}</p><div className="mt-3"><VerificationBadge status={o.verificationStatus} lastVerifiedAt={o.lastVerifiedAt} /></div><div className="mt-4 flex flex-wrap items-start gap-2.5">{o.url ? <SourceLink href={o.url}>Explore on official site</SourceLink> : <Badge>Project idea · not a current vacancy</Badge>}<SaveButton itemType="opportunity" itemRef={o.slug} label={o.title} /></div><div className="mt-4"><Disclosure summary="What does this involve?"><p>{o.description}</p><p className="mt-3"><strong>Cost note:</strong> {o.costNote ?? "Not verified"}. Check the current provider page before enrolling.</p><div className="mt-3 flex flex-wrap gap-1.5">{(o.skillTags ?? []).map((s) => <Badge key={s}>{s}</Badge>)}</div>{o.sourceUrl && <div className="mt-4"><SourceLink href={o.sourceUrl} variant="inline">View source</SourceLink></div>}</Disclosure></div></article>)}</div>
+    {!opportunities.length && <div className="rounded-xl border border-ink-200 p-6 text-sm">Nothing is listed for this field yet. <Link href="/opportunities" className="cb-source">Browse all opportunities<Compass aria-hidden className="h-4 w-4" /></Link></div>}
+  </div>;
+}
