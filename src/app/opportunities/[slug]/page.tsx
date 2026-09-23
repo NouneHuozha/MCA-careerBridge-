@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -103,7 +104,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
         <span className="font-medium text-ink-700">{opportunity.title}</span>
       </nav>
 
-      <main className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <main className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0">
           <section className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-center">
             <div>
@@ -123,7 +124,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
             </div>
             <div className="relative overflow-hidden rounded-2xl border border-[#dcefe7] bg-[#eefaf5] p-4 sm:p-6">
               <div className="relative h-48 overflow-hidden rounded-xl bg-[#e0f4ec] sm:h-56">
-                <img src="/images/possibilities-landscape.png" alt="Illustration for learning opportunities" className="h-full w-full object-cover opacity-70" />
+                <Image src="/images/possibilities-landscape.png" alt="Illustration for learning opportunities" fill sizes="390px" className="object-cover opacity-70" />
                 <div className="absolute inset-0 bg-gradient-to-br from-[#eefaf5]/20 to-[#b8e4d4]/30" />
                 <div className="absolute left-8 top-7 grid h-12 w-12 place-items-center rounded-full bg-white/80 text-forest-700 shadow-sm"><BookOpen className="h-6 w-6" /></div>
               </div>
@@ -156,7 +157,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
           </section>
         </div>
 
-        <aside className="space-y-5 xl:pt-1">
+        <aside className="space-y-5 xl:sticky xl:top-24 xl:pt-1">
           <section className="rounded-2xl border border-ink-200 bg-white p-6 shadow-[0_8px_30px_-24px_#1d4f4266]"><h2 className="text-2xl font-semibold text-[#071533]">Your next step</h2><p className="mt-3 text-sm leading-relaxed text-ink-600">Take a small step towards building your skills today.</p><ButtonLink href={primarySource ? primarySource : `/action-plan?focus=opportunity:${opportunity.slug}`} className="mt-5 w-full" {...(primarySource ? { target: "_blank", rel: "noreferrer" } : {})}>Start exploring <ArrowRight className="h-4 w-4" /></ButtonLink><div className="mt-6 border-t border-ink-100 pt-5"><h3 className="font-semibold text-[#071533]">Steps to get started</h3><ol className="mt-4 space-y-4">{steps.map((step, index) => <li key={step} className="flex gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#e1f4ed] font-semibold text-forest-800">{String(index + 1).padStart(2, "0")}</span><div><p className="text-sm font-semibold text-ink-800">{step}</p><p className="mt-1 text-xs leading-relaxed text-ink-500">{index === 0 ? "See how much time you can fit into your schedule." : index === 1 ? "Get a feel for the learning style and content." : "Note down anything you’d like to ask during your next chat."}</p></div></li>)}</ol></div></section>
           <section id="sources" className="rounded-2xl border border-ink-200 bg-white p-6"><div className="flex items-start justify-between gap-3"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-[#eef3ff] text-[#2877df]"><Globe2 className="h-5 w-5" /></span><h2 className="text-xl font-semibold text-[#071533]">About the source</h2></div><Badge tone={verified ? "green" : "amber"}>{verified ? "Information verified" : "Check current details"}</Badge></div><p className="mt-4 text-sm leading-relaxed text-ink-600">Provided by <strong>{opportunity.provider ?? "the listed provider"}</strong>. {opportunity.description ?? "Review the official page for the latest information."}</p><div className="mt-5 border-t border-ink-100 pt-4"><VerificationBadge status={opportunity.verificationStatus} lastVerifiedAt={opportunity.lastVerifiedAt} /></div>{primarySource ? <SourceLink href={primarySource} className="mt-5">Visit the official website</SourceLink> : <p className="mt-5 text-sm text-ink-500">This is a CareerBridge guidance idea rather than a current vacancy.</p>}</section>
           <ButtonLink href={`/action-plan?focus=opportunity:${opportunity.slug}`} variant="secondary" className="w-full"><Bookmark className="h-4 w-4" />Add to my action plan</ButtonLink>
