@@ -86,8 +86,8 @@ export default async function InstitutionsPage({ searchParams }: { searchParams:
 
             <div className="mt-4"><FilterDisclosure label="More filters" count={activeFilters} defaultOpen={activeFilters > 1}><AdvancedFilters params={params} fields={fields} courses={courses} districts={districts} /></FilterDisclosure></div>
 
-            <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(360px,.95fr)_minmax(0,1.15fr)]">
-              <div className="order-2 min-w-0 xl:order-1">
+            <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(400px,.98fr)_minmax(0,1.12fr)]">
+              <div className="order-2 min-w-0 xl:sticky xl:top-24 xl:order-1 xl:self-start">
                 <InstitutionMap pins={institutions.map((institution) => ({ code: institution.code, name: institution.name, district: institution.district, latitude: institution.latitude, longitude: institution.longitude }))} origin={origin} originLabel={originDistrict} />
                 <form action="/institutions" className="mt-4 rounded-2xl border border-ink-100 bg-white p-4">
                   <p className="text-sm font-semibold text-ink-900">Measure distance from</p><p className="mt-1 text-[12px] text-ink-400">A district is enough — never your address.</p>
