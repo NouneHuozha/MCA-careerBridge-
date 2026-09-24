@@ -23,21 +23,15 @@ export default async function HomePage() {
     <section className="relative overflow-hidden border-b border-ink-200 bg-[#f4f7ef]">
       <div aria-hidden className="absolute -right-24 -top-28 h-96 w-96 rounded-full bg-mint/70 blur-3xl" />
       <div aria-hidden className="absolute -bottom-40 left-[30%] h-80 w-80 rounded-full bg-butter/35 blur-3xl" />
-      <div className="cb-container relative grid items-center gap-12 py-12 lg:min-h-[620px] lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:py-16">
+      <div className="cb-container relative grid items-center gap-10 py-12 lg:min-h-[680px] lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:py-16">
         <div className="max-w-2xl">
-          <div className="animate-rise flex flex-wrap items-center gap-3"><Eyebrow>Career and education guidance · Nagaland</Eyebrow></div>
-          <h1 className="animate-rise delay-1 mt-6 max-w-[12ch] text-[clamp(2.7rem,5.4vw,5.6rem)] font-semibold leading-[1.03] tracking-[-.055em]">Start with <span className="text-forest-700">yourself.</span></h1>
-          <p className="animate-rise delay-2 mt-6 max-w-[46ch] text-lg leading-relaxed text-ink-600">Understand what interests you, what matters to you, and what options are actually available.</p>
-          <div className="animate-rise delay-3 mt-8 flex flex-wrap items-center gap-3"><ButtonLink href="/start" size="lg">Start here<ArrowRight aria-hidden className="h-5 w-5" /></ButtonLink><Link href="/how-it-works" className="cb-button cb-button-secondary px-5 py-3.5">See how it works</Link></div>
-          <p className="mt-4 flex items-center gap-2 text-sm text-ink-500"><ShieldCheck aria-hidden className="h-4 w-4 text-forest-600" />No right answer. No career chosen for you.</p>
+          <div className="animate-rise flex flex-wrap items-center gap-3"><Eyebrow>Start here</Eyebrow></div>
+          <h1 className="animate-rise delay-1 mt-6 max-w-[11ch] text-[clamp(2.7rem,5.4vw,5.6rem)] font-semibold leading-[1.01] tracking-[-.055em]">Find a direction that feels worth exploring.</h1>
+          <p className="animate-rise delay-2 mt-6 max-w-[46ch] text-xl leading-relaxed text-ink-500">You do not need to know your career yet.</p>
+          <div className="animate-rise delay-3 mt-8"><ButtonLink href="/start" size="lg">Start with a few questions<ArrowRight aria-hidden className="h-5 w-5" /></ButtonLink></div>
+          <div className="mt-10 grid max-w-[530px] grid-cols-3 gap-5 text-sm text-ink-600"><div><span className="grid h-10 w-10 place-items-center rounded-full bg-[#dff3eb] text-base font-semibold text-[#1e8267]">1</span><p className="mt-3">Answer a few questions</p></div><div><span className="grid h-10 w-10 place-items-center rounded-full bg-[#e9f1ff] text-base font-semibold text-[#4773bb]">2</span><p className="mt-3">See what fits</p></div><div><span className="grid h-10 w-10 place-items-center rounded-full bg-[#f0eaff] text-base font-semibold text-[#735bd1]">3</span><p className="mt-3">Take one next step</p></div></div>
         </div>
-        <div className="relative min-w-0 lg:pl-8">
-          <div aria-hidden className="absolute -left-2 top-6 hidden h-24 w-24 rounded-[2rem] bg-lavender sm:block" />
-          <div aria-hidden className="absolute -bottom-5 right-0 h-32 w-32 rounded-full bg-butter/80" />
-          <div className="relative mx-auto aspect-[1.08] max-w-[650px] overflow-hidden rounded-[2rem] border-8 border-white bg-white shadow-[0_24px_70px_-35px_#19382f70] sm:aspect-[1.25]">
-            <Image src="/images/hero-student.png" alt="A student taking a thoughtful pause at her study desk" fill priority sizes="(max-width: 1024px) 92vw, 48vw" className="object-cover" />
-          </div>
-        </div>
+        <div className="relative min-w-0 lg:pl-4"><div className="absolute -right-8 top-0 h-64 w-64 rounded-full bg-[#dfeeff]" /><div className="relative mx-auto aspect-[1.08] max-w-[720px] overflow-hidden rounded-[2rem] bg-transparent"><Image src="/images/home-journey.png" alt="A student exploring different paths with a map" fill priority sizes="(max-width: 1024px) 92vw, 48vw" className="object-contain" /></div></div>
       </div>
     </section>
 
