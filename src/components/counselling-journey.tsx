@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check, ChevronDown, Circle, LockKeyhole } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, Circle, LockKeyhole } from "lucide-react";
 import type { ReactNode } from "react";
 
 export type CounsellingStageKey = "about" | "interests" | "strengths" | "goals" | "practical" | "reflection";
@@ -52,9 +52,8 @@ export function CounsellingJourneySidebar({ currentSection, completedSections }:
     <div className="sticky top-24 min-h-[calc(100vh-7rem)] overflow-hidden border-r border-sky-200 bg-[#eaf4fb] px-6 py-8">
       <p className="text-xl font-semibold tracking-[-.03em] text-forest-900">Your journey</p>
       <p className="mt-2 text-sm leading-relaxed text-ink-500">A short conversation about you.</p>
-      <div className="mt-5 rounded-xl border border-sky-200 bg-white/65 px-3 py-2.5"><p className="text-xs font-bold uppercase tracking-[.14em] text-sky-ink">Step {Math.min(currentIndex + 1, 5)} of 5</p><p className="mt-1 text-sm font-semibold text-ink-800">{current.label}</p></div>
+      <div className="mt-5 rounded-xl border border-sky-200 bg-white/65 px-3 py-2.5"><p className="text-xs font-bold uppercase tracking-[.14em] text-sky-ink">Section {Math.min(currentIndex + 1, 5)} of 5</p><p className="mt-1 text-sm font-semibold text-ink-800">{current.label}</p></div>
       <StageList currentSection={currentSection} completedSections={completedSections} />
-      <div className="mt-7 border-t border-sky-200 pt-5"><p className="text-[11px] font-bold uppercase tracking-[.14em] text-ink-400">After your reflection</p><div className="mt-3 grid gap-2 text-sm text-ink-500"><span className="rounded-lg bg-white/45 px-3 py-2">Explore possibilities</span><span className="rounded-lg bg-white/45 px-3 py-2">Make a plan</span></div></div>
       <div className="mt-7 rounded-2xl border border-white/80 bg-[#d9eee2] p-4"><p className="text-sm font-semibold text-forest-900">No right answer needed.</p><p className="mt-1 text-xs leading-relaxed text-forest-800">You can change an answer later or choose “Not sure yet”.</p></div>
     </div>
   </aside>;
@@ -64,11 +63,11 @@ export function CounsellingJourneyMobile({ currentSection, completedSections }: 
   const current = counsellingStages.find((stage) => stage.key === currentSection) ?? counsellingStages[0];
   const currentIndex = counsellingStages.findIndex((stage) => stage.key === currentSection);
   return <details className="mb-5 overflow-hidden rounded-2xl border border-sky-200 bg-[#eaf4fb] lg:hidden">
-    <summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3.5"><span><span className="block text-[11px] font-bold uppercase tracking-[.14em] text-sky-ink">Step {Math.min(currentIndex + 1, 5)} of 5</span><span className="mt-1 block text-sm font-semibold text-ink-900">{current.label}</span></span><span className="grid h-8 w-8 place-items-center rounded-full border border-sky-200 bg-white text-sky-ink"><ChevronDown aria-hidden className="h-4 w-4" /></span></summary>
+    <summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3.5"><span><span className="block text-[11px] font-bold uppercase tracking-[.14em] text-sky-ink">Section {Math.min(currentIndex + 1, 5)} of 5</span><span className="mt-1 block text-sm font-semibold text-ink-900">{current.label}</span></span><span className="grid h-8 w-8 place-items-center rounded-full border border-sky-200 bg-white text-sky-ink"><ChevronDown aria-hidden className="h-4 w-4" /></span></summary>
     <div className="border-t border-sky-200"><StageList currentSection={currentSection} completedSections={completedSections} mobile /></div>
   </details>;
 }
 
 export function CounsellingJourneyShell({ children, currentSection, completedSections }: { children: ReactNode; currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[] }) {
-  return <div className="flex min-w-0"><CounsellingJourneySidebar currentSection={currentSection} completedSections={completedSections} /><div className="min-w-0 flex-1"><div className="cb-container pt-5 lg:hidden"><CounsellingJourneyMobile currentSection={currentSection} completedSections={completedSections} /></div>{children}</div></div>;
+  return <><header className="cb-counselling-header"><Link href="/profile" className="inline-flex items-center gap-2 text-sm font-semibold text-ink-600 hover:text-forest-800"><ArrowLeft aria-hidden className="h-4 w-4" />Save and leave</Link><span className="text-base font-semibold tracking-[-.03em] text-forest-900">CareerBridge</span><span className="w-28 text-right text-xs text-ink-400 sm:w-36">Your space to think</span></header><div className="flex min-w-0"><CounsellingJourneySidebar currentSection={currentSection} completedSections={completedSections} /><div className="min-w-0 flex-1"><div className="cb-container pt-4 lg:hidden"><CounsellingJourneyMobile currentSection={currentSection} completedSections={completedSections} /></div>{children}</div></div></>;
 }

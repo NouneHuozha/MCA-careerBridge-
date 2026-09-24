@@ -108,6 +108,10 @@
   .cb-chat-history { flex: 1 1 0%; min-height: 0; }
   .cb-counselling-shell { display: grid; grid-template-rows: auto minmax(7rem,1fr) minmax(0,auto); height: min(760px,calc(100dvh - 210px)); min-height: 570px; border: 1px solid #b7cdbd; border-radius: 1.25rem; overflow: hidden; background: white; }
   .cb-counselling-composer { max-height: min(48dvh, 430px); overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid #cbd8ce; background: white; }
+  .cb-counselling-header { position: sticky; top: 0; z-index: 45; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 64px; gap: 1rem; padding: .7rem clamp(1.1rem, 4vw, 5rem); border-bottom: 1px solid var(--color-ink-200); background: color-mix(in srgb, var(--color-canvas) 94%, transparent); backdrop-filter: blur(14px); }
+  .cb-counselling-question-header { position: sticky; top: 64px; z-index: 30; padding-top: 1.5rem; padding-bottom: 1rem; background: var(--color-canvas); }
+  .cb-counselling-form { padding-bottom: 1rem; }
+  .cb-counselling-actions { position: sticky; bottom: 0; z-index: 25; background: color-mix(in srgb, var(--color-canvas) 94%, transparent); backdrop-filter: blur(12px); }
   .cb-dialog { position: fixed; inset: 0; margin: auto; width: min(440px,calc(100vw - 2rem)); max-height: 90dvh; border: 1px solid var(--color-ink-200); border-radius: 1.3rem; padding: 1.75rem; background: #fff; color: var(--color-ink-800); box-shadow: 0 25px 100px #183d342b; }
   .cb-dialog::backdrop { background: #20382a60; }
   .cb-mentor-widget { position: fixed; z-index: 70; right: max(1.25rem,env(safe-area-inset-right)); bottom: max(1.25rem,env(safe-area-inset-bottom)); }
@@ -135,6 +139,10 @@
   .cb-counselling-shell { height: calc(100svh - 180px); min-height: 550px; }
   .cb-mentor-shell { height: calc(100svh - 195px); min-height: 450px; }
   .cb-mentor-widget { right: .8rem; bottom: max(.8rem,env(safe-area-inset-bottom)); }
+  .cb-counselling-header { min-height: 58px; grid-template-columns: 1fr auto; }
+  .cb-counselling-header > span:last-child { display: none; }
+  .cb-counselling-question-header { top: 58px; padding-top: 1rem; }
+  .cb-counselling-actions { margin-inline: -1.1rem; padding: .8rem 1.1rem max(.8rem, env(safe-area-inset-bottom)); }
 }
 
 @keyframes cb-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }

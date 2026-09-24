@@ -25,7 +25,7 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   const currentSection: CounsellingStageKey = question ? sectionStage[question.section] : "reflection";
   const coreQuestions = questionsForStage(state.stage);
   const completedSections = counsellingStages.filter((stage) => stage.key !== currentSection && stage.key !== "reflection" && coreQuestions.filter((item) => sectionStage[item.section] === stage.key).every((item) => state.snapshot.answeredKeys.includes(item.key))).map((stage) => stage.key);
-  return <CounsellingJourneyShell currentSection={currentSection} completedSections={completedSections}><main className="cb-container cb-page">
+  return <CounsellingJourneyShell currentSection={currentSection} completedSections={completedSections}><main className="cb-container cb-page cb-counselling-page">
     <CounsellingExperience key={params.edit ?? String(state.sessionId)} focusKey={focus?.key} initial={{ started: true, stage: state.stage, stageDetail: state.stageDetail, snapshot: state.snapshot, answers: state.answers, question, progress: progressFor(state.stage, state.snapshot.answeredKeys), sections: SECTIONS, completed: state.status === "completed" || !question }} />
   </main></CounsellingJourneyShell>;
 }
