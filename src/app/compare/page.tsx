@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { EmptyState, Eyebrow } from "@/components/ui";
 import { Reveal } from "@/components/reveal";
-import { getCareers, getCourses, getInstitutions, getPathways } from "@/services/catalog";
+import { getCareers, getCourses, getFields, getInstitutions, getPathways } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Compare" };
@@ -25,6 +25,7 @@ type Row = { label: string; icon: typeof Clock3; tone: "mint" | "lavender" | "sk
 type JourneyStep = { title: string; detail: string; state: "done" | "current" | "next" };
 
 const kinds = [
+  { value: "field", label: "Possibilities" },
   { value: "course", label: "Courses" },
   { value: "career", label: "Careers" },
   { value: "institution", label: "Institutions" },
@@ -32,6 +33,10 @@ const kinds = [
 ];
 
 const suggestedPairs: Record<string, { a: string; b: string; label: string }[]> = {
+  field: [
+    { a: "technology", b: "healthcare", label: "Technology vs Healthcare" },
+    { a: "engineering", b: "business", label: "Engineering vs Business" },
+  ],
   course: [
     { a: "bca", b: "bsc-computer-science", label: "BCA vs B.Sc Computer Science" },
     { a: "diploma-civil-engineering", b: "btech-civil", label: "Diploma vs B.Tech Civil" },
@@ -131,14 +136,24 @@ export default async function ComparePage({ searchParams }: { searchParams: Prom
   const fromPair = [params.a, params.b].filter((value): value is string => Boolean(value));
   const selected = (fromPair.length ? fromPair : (params.items ?? "").split(",").filter(Boolean)).slice(0, 2);
 
-  const [courses, careers, institutions, pathways] = await Promise.all([getCourses({}), getCareers(), getInstitutions({}), getPathways({})]);
-  const options = type === "course" ? courses.map((course) => ({ value: course.slug, label: course.name })) : type === "career" ? careers.map((career) => ({ value: career.slug, label: career.title })) : type === "institution" ? institutions.map((institution) => ({ value: institution.code, label: institution.name })) : pathways.map((pathway) => ({ value: pathway.slug, label: pathway.title }));
+  const [courses, careers, institutions, pathways, fields] = await Promise.all([getCourses({}), getCareers(), getInstitutions({}), getPathways({}), getFields()]);
+  const options = type === "field" ? fields.map((field) => ({ value: field.slug, label: field.name })) : type === "course" ? courses.map((course) => ({ value: course.slug, label: course.name })) : type === "career" ? careers.map((career) => ({ value: career.slug, label: career.title })) : type === "institution" ? institutions.map((institution) => ({ value: institution.code, label: institution.name })) : pathways.map((pathway) => ({ value: pathway.slug, label: pathway.title }));
 
   let headers: string[] = [];
   let headerDescriptions: string[] = [];
   let rows: Row[] = [];
 
-  if (type === "course") {
+  if (type === "field") {
+    const chosen = selected.map((slug) => fields.find((field) => field.slug === slug)).filter((field): field is (typeof fields)[number] => Boolean(field));
+    headers = chosen.map((field) => field.name);
+    headerDescriptions = chosen.map((field) => field.tagline ?? "Possibility to explore");
+    rows = [
+      { label: "In a nutshell", icon: BookOpen, tone: "sky", values: chosen.map((field) => field.overview) },
+      { label: "What people may do", icon: MessageCircle, tone: "mint", values: chosen.map((field) => (field.whatPeopleDo ?? []).slice(0, 3).join(" ") || null) },
+      { label: "Useful subjects", icon: GraduationCap, tone: "lavender", values: chosen.map((field) => (field.usefulSubjects ?? []).slice(0, 5).join(", ") || null) },
+      { label: "Things to consider", icon: Info, tone: "butter", values: chosen.map((field) => (field.challenges ?? []).slice(0, 2).join(" ") || null) },
+    ];
+  } else if (type === "course") {
     const chosen = selected.map((slug) => courses.find((course) => course.slug === slug)).filter((course): course is (typeof courses)[number] => Boolean(course));
     headers = chosen.map((course) => course.name);
     headerDescriptions = chosen.map((course) => course.level.replace(/_/g, " "));
@@ -193,8 +208,8 @@ export default async function ComparePage({ searchParams }: { searchParams: Prom
             <div className="mx-auto max-w-[1200px]">
               <div className="max-w-3xl">
                 <Eyebrow>Compare options</Eyebrow>
-                <h1 className="mt-3 text-[clamp(2rem,3.4vw,3rem)] font-semibold leading-tight">See two choices side by side.</h1>
-                <p className="mt-2 text-[15px] text-ink-500">There is no best option — look at what each one makes possible.</p>
+                <h1 className="mt-3 text-[clamp(2rem,3.4vw,3rem)] font-semibold leading-tight">{type === "field" ? "Compare two possibilities." : "See two choices side by side."}</h1>
+                <p className="mt-2 text-[15px] text-ink-500">{type === "field" ? "Compare the kind of work, useful subjects and things to consider for each direction." : "There is no best option — look at what each one makes possible."}</p>
               </div>
               <Reveal>
                 <section className="mt-5" aria-label="Comparison">
@@ -219,8 +234,8 @@ export default async function ComparePage({ searchParams }: { searchParams: Prom
       ) : (
         <>
           <div className="flex items-center gap-2"><Eyebrow className="animate-rise">Compare</Eyebrow><Scale aria-hidden className="h-3.5 w-3.5 text-forest-500" /></div>
-          <h1 className="animate-rise delay-1 mt-4 text-[clamp(1.9rem,4.2vw,2.6rem)] font-semibold">Two options, side by side</h1>
-          <p className="animate-rise delay-2 mt-3 max-w-lg text-[15px] text-ink-500">Similar-sounding choices often differ in duration, cost and what they keep open afterwards.</p>
+          <h1 className="animate-rise delay-1 mt-4 text-[clamp(1.9rem,4.2vw,2.6rem)] font-semibold">{type === "field" ? "Compare two possibilities." : "Two options, side by side"}</h1>
+          <p className="animate-rise delay-2 mt-3 max-w-lg text-[15px] text-ink-500">{type === "field" ? "Compare the kind of work, useful subjects and things to consider for each direction." : "Similar-sounding choices often differ in duration, cost and what they keep open afterwards."}</p>
           <div className="animate-rise delay-3 mt-8 inline-flex flex-wrap gap-1 rounded-full border border-ink-200 bg-white p-1">{kinds.map((kind) => <Link key={kind.value} href={`/compare?type=${kind.value}`} className={`rounded-full px-4 py-2 text-[13px] transition-colors ${type === kind.value ? "bg-forest-700 text-white" : "text-ink-600 hover:text-ink-900"}`}>{kind.label}</Link>)}</div>
           <form action="/compare" className="animate-rise delay-4 mt-6 grid items-end gap-3 rounded-2xl border border-forest-200 bg-mint/45 p-5 sm:grid-cols-[1fr_auto_1fr_auto]"><input type="hidden" name="type" value={type} />{(["a", "b"] as const).map((slot, index) => <div key={slot} className={index === 1 ? "sm:col-start-3 sm:row-start-1" : "sm:row-start-1"}><label htmlFor={`slot-${slot}`} className="mb-1.5 block text-[12px] font-medium text-ink-500">Option {index + 1}</label><select id={`slot-${slot}`} name={slot} defaultValue={selected[index] ?? ""} className="w-full rounded-xl border border-ink-200 bg-white px-3.5 py-3 text-sm outline-none focus:border-forest-400"><option value="">Choose…</option>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>)}<span aria-hidden className="hidden h-11 w-11 shrink-0 place-items-center self-end rounded-full border border-ink-200 bg-white text-ink-400 sm:col-start-2 sm:row-start-1 sm:grid"><ArrowLeftRight className="h-4 w-4" /></span><button type="submit" className="cb-button cb-button-primary px-6 py-3 text-sm sm:col-start-4 sm:row-start-1">Compare</button></form>
           <div className="mt-10 max-w-3xl space-y-5"><EmptyState icon={<Scale className="h-4 w-4" />} title="Pick two to begin" description="Choose any two options above, or start from a common comparison below." />{pairs.length ? <div className="flex flex-wrap gap-2">{pairs.map((pair) => <Link key={pair.label} href={`/compare?type=${type}&a=${pair.a}&b=${pair.b}`} className="group inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2.5 text-[13px] text-ink-700 transition-all hover:-translate-y-0.5 hover:border-forest-300">{pair.label}<ArrowRight className="h-3.5 w-3.5" /></Link>)}</div> : null}</div>

@@ -1,18 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Bookmark, Building2, ChevronDown, Compass, Flag, GraduationCap, History, Map, MapPin, Route } from "lucide-react";
+import { ArrowRight, BookOpen, Bookmark, Building2, Check, ChevronDown, Compass, Flag, GraduationCap, History, Map, MapPin, Route } from "lucide-react";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/logo";
 import type { Stage } from "@/data/counselling";
 
 const steps = [
-  { href: "/reflection", label: "My starting point", icon: Compass },
-  { href: "/my-journey/direction", label: "Possibility map", icon: Map },
-  { href: "/my-journey/routes", label: "Routes", icon: Route },
-  { href: "/my-journey/courses", label: "Courses", icon: GraduationCap },
-  { href: "/my-journey/institutions", label: "Institutions", icon: Building2 },
-  { href: "/my-journey/practical", label: "Practical details", icon: BookOpen },
-  { href: "/my-journey/plan", label: "My plan", icon: Flag },
+  { key: "reflection", href: "/reflection", label: "My starting point", icon: Compass },
+  { key: "direction", href: "/my-journey/direction", label: "Possibility map", icon: Map },
+  { key: "routes", href: "/my-journey/routes", label: "Routes", icon: Route },
+  { key: "courses", href: "/my-journey/courses", label: "Courses", icon: GraduationCap },
+  { key: "institutions", href: "/my-journey/institutions", label: "Institutions", icon: Building2 },
+  { key: "practical", href: "/my-journey/practical", label: "Practical details", icon: BookOpen },
+  { key: "plan", href: "/my-journey/plan", label: "My plan", icon: Flag },
 ];
 
 export function stageLabel(stage: Stage) {
@@ -24,18 +24,25 @@ function initials(name: string | null, email: string | null) {
   return source.split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("");
 }
 
-function StepLinks() {
-  return <ol className="space-y-1.5">{steps.map(({ href, label, icon: Icon }, index) => <li key={href}>
-    <Link href={href} aria-current={index === 0 ? "page" : undefined} className={`flex min-h-[46px] items-center gap-3 rounded-xl px-3 text-sm transition ${index === 0 ? "bg-[#eae6fa] font-semibold text-[#293954]" : "text-[#344a44] hover:bg-white/75"}`}>
-      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${index === 0 ? "text-[#644cc8]" : "text-[#536a62]"}`}><Icon aria-hidden className="h-5 w-5" strokeWidth={1.8} /></span>{label}
+function StepLinks({ currentStep }: { currentStep: "reflection" | "direction" }) {
+  const activeIndex = steps.findIndex((step) => step.key === currentStep);
+  return <ol className="space-y-1.5">{steps.map(({ key, href, label, icon: Icon }, index) => {
+    const active = index === activeIndex;
+    const completed = index < activeIndex;
+    return <li key={href}>
+    <Link href={href} aria-current={active ? "step" : undefined} className={`flex min-h-[46px] items-center gap-3 rounded-xl px-3 text-sm transition ${active ? "bg-[#eae6fa] font-semibold text-[#293954]" : completed ? "font-medium text-[#2d6651] hover:bg-white/75" : "text-[#536a62] hover:bg-white/75"}`}>
+      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${active ? "bg-[#eae6fa] text-[#644cc8]" : completed ? "bg-[#e6f3ed] text-[#2b8763]" : "text-[#536a62]"}`}>{completed ? <Check aria-label="Completed" className="h-4 w-4" /> : <Icon aria-hidden className="h-5 w-5" strokeWidth={1.8} />}</span>{label}
     </Link>
-  </li>)}</ol>;
+  </li>;
+  })}</ol>;
 }
 
-export function StartingPointShell({ children, stage, studentName, studentEmail, signedIn }: {
+export function StartingPointShell({ children, stage, studentName, studentEmail, signedIn, currentStep = "reflection" }: {
   children: ReactNode; stage: Stage; studentName: string | null; studentEmail: string | null; signedIn: boolean;
+  currentStep?: "reflection" | "direction";
 }) {
   const stageName = stageLabel(stage);
+  const activeIndex = steps.findIndex((step) => step.key === currentStep);
   return <div className="min-h-screen bg-[#fbfcfd] text-[#18342d]">
     <header className="sticky top-0 z-40 border-b border-[#dfe5e7] bg-white">
       <div className="flex min-h-[70px] items-center gap-5 px-4 sm:px-7 lg:px-8">
@@ -60,13 +67,13 @@ export function StartingPointShell({ children, stage, studentName, studentEmail,
     </header>
     <div className="grid min-h-[calc(100vh-70px)] lg:grid-cols-[304px_minmax(0,1fr)]">
       <aside className="hidden border-r border-[#dfe5e7] bg-[#f0f5fb] px-5 py-9 lg:flex lg:flex-col">
-        <div><h2 className="text-[19px] font-semibold tracking-[-.025em] text-[#183c32]">Your exploration</h2><p className="mt-1 text-sm text-[#687874]">Find what fits. Plan for your next step.</p></div>
-        <nav aria-label="Journey sections" className="mt-8"><StepLinks /></nav>
+        <div><h2 className="text-[19px] font-semibold tracking-[-.025em] text-[#183c32]">Your exploration</h2><p className="mt-1 text-sm text-[#687874]">Find what fits. Plan for your next step.</p><p className="mt-3 text-[11px] font-semibold uppercase tracking-[.08em] text-[#6b5abb]">Step {activeIndex + 1} of {steps.length}</p><div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#dbe5e7]"><div className="h-full rounded-full bg-[#765bdd] transition-all" style={{ width: `${((activeIndex + 1) / steps.length) * 100}%` }} /></div></div>
+        <nav aria-label="Journey sections" className="mt-6"><StepLinks currentStep={currentStep} /></nav>
         <div className="mt-8 rounded-2xl border border-[#d8e4ee] bg-[#e7f1fb] p-4"><span className="grid h-9 w-9 place-items-center rounded-xl bg-[#d6e9fa] text-[#2877c8]"><Compass aria-hidden className="h-4 w-4" /></span><h3 className="mt-3 text-sm font-semibold text-[#2c5272]">You’re on the right path</h3><p className="mt-1 text-xs leading-relaxed text-[#617c91]">Keep exploring at your own pace. Small steps lead to clarity.</p><Link href="/how-it-works" className="mt-3 inline-flex min-h-9 items-center gap-2 text-xs font-semibold text-[#286fae] underline decoration-[#94b9d7] underline-offset-4">How exploration works<ArrowRight aria-hidden className="h-3.5 w-3.5" /></Link></div>
         <div className="mt-auto flex items-center gap-3 border-t border-[#d8e3e8] pt-6 text-[#40564f]"><MapPin aria-hidden className="h-5 w-5 shrink-0" /><span><span className="block text-sm font-medium">Nagaland</span><span className="block text-xs text-[#71817c]">{stageName}</span></span><ChevronDown aria-hidden className="ml-auto h-4 w-4" /></div>
       </aside>
       <main className="min-w-0">
-        <div className="border-b border-[#e5eaec] bg-[#f7f9fa] px-4 py-3 lg:hidden"><div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold text-[#24473d]">My starting point</p><span className="text-xs text-[#71817c]">{stageName} · early exploration</span></div><nav aria-label="Journey sections" className="mt-2 flex gap-2 overflow-x-auto pb-1">{steps.map(({ href, label }, index) => <Link key={href} href={href} aria-current={index === 0 ? "page" : undefined} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium ${index === 0 ? "border-[#c9bee9] bg-[#eeeafd] text-[#5845a2]" : "border-[#dce5e5] bg-white text-[#536660]"}`}>{label}</Link>)}</nav></div>
+        <div className="border-b border-[#e5eaec] bg-[#f7f9fa] px-4 py-3 lg:hidden"><div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold text-[#24473d]">{steps[activeIndex]?.label}</p><span className="text-xs text-[#71817c]">Step {activeIndex + 1} of {steps.length} · {stageName}</span></div><div className="mt-2 h-1 overflow-hidden rounded-full bg-[#dbe5e7]"><div className="h-full rounded-full bg-[#765bdd]" style={{ width: `${((activeIndex + 1) / steps.length) * 100}%` }} /></div><nav aria-label="Journey sections" className="mt-2 flex gap-2 overflow-x-auto pb-1">{steps.map(({ key, href, label }, index) => { const active = index === activeIndex; const completed = index < activeIndex; return <Link key={href} href={href} aria-current={active ? "step" : undefined} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium ${active ? "border-[#c9bee9] bg-[#eeeafd] text-[#5845a2]" : completed ? "border-[#c9e4d5] bg-[#eaf5ee] text-[#376b51]" : "border-[#dce5e5] bg-white text-[#536660]"}`}>{completed ? "✓ " : ""}{label}</Link>; })}</nav></div>
         <div className="px-4 py-6 sm:px-7 lg:px-8 lg:py-7 xl:px-10">{children}</div>
       </main>
     </div>
