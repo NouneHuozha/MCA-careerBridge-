@@ -23,7 +23,7 @@ export function JourneyShell({ children, current, direction }: { children: React
   return <div className="min-h-screen bg-[#f8fbfd] text-[#16382e]">
     <header className="border-b border-[#dce6e8] bg-white">
       <div className="flex min-h-[70px] items-center justify-between gap-4 px-5 sm:px-8 lg:px-10">
-        <Link href="/" aria-label="CareerBridge home" className="shrink-0"><Logo /></Link>
+        <Logo />
         <div className="hidden items-center gap-6 text-sm text-[#557067] md:flex"><span>Explore today. A brighter tomorrow.</span>{direction && <span className="border-l border-[#dce6e8] pl-6 font-semibold text-[#1d634b]">Exploring {direction}</span>}</div>
         <div className="flex items-center gap-3"><Link href="/explore" className="hidden text-sm font-semibold text-[#557067] underline decoration-[#b6c6c0] underline-offset-4 sm:inline">Free Explore</Link><Link href="/" className="inline-flex items-center gap-2 rounded-xl border border-[#dce6e8] bg-white px-3 py-2 text-xs font-semibold text-[#557067] transition hover:border-[#72aa91]"><Save className="h-4 w-4" />Save and return</Link></div>
       </div>
