@@ -14,5 +14,7 @@ export function AppShell({ user, children }: { user: AppUser; children: ReactNod
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
   const isCounselling = pathname.startsWith("/counselling");
-  return <SavedProvider key={user?.email ?? "guest"} signedIn={Boolean(user)}><>{!isAdmin && !isCounselling && <SiteNav user={user ? { name: user.name, email: user.email } : null} />}<main id="main" className="min-w-0 flex-1">{!isAdmin && !isCounselling && <PageBack />}{children}</main>{!isAdmin && !isCounselling && <SiteFooter />}{!isAdmin && !isCounselling && <MentorWidget />}</></SavedProvider>;
+  const isStart = pathname.startsWith("/start");
+  const isGuidedFlow = isStart || isCounselling;
+  return <SavedProvider key={user?.email ?? "guest"} signedIn={Boolean(user)}><>{!isAdmin && !isGuidedFlow && <SiteNav user={user ? { name: user.name, email: user.email } : null} />}<main id="main" className="min-w-0 flex-1">{!isAdmin && !isGuidedFlow && <PageBack />}{children}</main>{!isAdmin && !isGuidedFlow && <SiteFooter />}{!isAdmin && !isGuidedFlow && <MentorWidget />}</></SavedProvider>;
 }
