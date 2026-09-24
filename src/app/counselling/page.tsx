@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { CounsellingExperience } from "@/components/counselling-experience";
-import { CounsellingJourneyShell, counsellingStages, type CounsellingStageKey } from "@/components/counselling-journey";
+import { CounsellingJourneyShell } from "@/components/counselling-journey";
+import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
 import { findQuestion, questionsForStage, SECTIONS, type CounsellingQuestion } from "@/data/counselling";
 import { getSessionState, nextQuestion, progressFor } from "@/services/profile";
 

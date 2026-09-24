@@ -4,9 +4,8 @@ import Link from "next/link";
 import { Check, ChevronDown, Circle, LockKeyhole } from "lucide-react";
 import { createContext, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Logo } from "@/components/logo";
+import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
 
-export type CounsellingStageKey = "about" | "interests" | "strengths" | "goals" | "practical" | "reflection";
-type CounsellingStage = { key: CounsellingStageKey; label: string; detail: string; editKey?: string };
 type QuestionProgress = { current: number; total: number };
 type JourneyState = { currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; progress: QuestionProgress };
 type JourneyContextValue = { journey: JourneyState; setJourney: Dispatch<SetStateAction<JourneyState>> };
@@ -18,14 +17,8 @@ export function useCounsellingJourney() {
   return context;
 }
 
-export const counsellingStages: CounsellingStage[] = [
-  { key: "about", label: "About you", detail: "Your study stage and subjects", editKey: "subjects_enjoy" },
-  { key: "interests", label: "What interests you", detail: "What naturally pulls you", editKey: "interests" },
-  { key: "strengths", label: "What you bring", detail: "Strengths and working style", editKey: "strengths" },
-  { key: "goals", label: "What matters to you", detail: "Goals and career values", editKey: "goals" },
-  { key: "practical", label: "Practical realities", detail: "Location, fees and access", editKey: "location_pref" },
-  { key: "reflection", label: "Your reflection", detail: "Review your answers" },
-];
+export { counsellingStages };
+export type { CounsellingStageKey };
 
 function StageList({ currentSection, completedSections, mobile = false }: { currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; mobile?: boolean }) {
   const currentIndex = counsellingStages.findIndex((stage) => stage.key === currentSection);
