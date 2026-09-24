@@ -5,11 +5,11 @@ import {
   BookOpen,
   Building2,
   Compass,
+  CircleHelp,
   GraduationCap,
   Map,
   MessageCircle,
   Search,
-  Sparkles,
   WalletCards,
 } from "lucide-react";
 import { Eyebrow, SectionHeading, accentSurface } from "@/components/ui";
@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 
 const startingPoints = [
   {
-    icon: Sparkles,
+    icon: CircleHelp,
     accent: "mint" as const,
     title: "I’m not sure yet",
     text: "Start with a few calm questions about your interests, strengths and goals.",
@@ -67,7 +67,7 @@ export default async function HomePage() {
     <section className="relative border-b border-forest-200/70 bg-[#f1f7f2]">
       <div aria-hidden className="absolute -left-40 top-10 h-[28rem] w-[28rem] rounded-full bg-mint/80 blur-3xl" />
       <div aria-hidden className="absolute right-[-12rem] top-[-12rem] h-[34rem] w-[34rem] rounded-full bg-[#dcecf7] blur-3xl" />
-      <div className="cb-container relative grid min-h-[650px] items-center gap-12 py-14 lg:grid-cols-[minmax(0,.88fr)_minmax(0,1.12fr)] lg:gap-4 lg:py-20">
+      <div className="cb-container relative grid min-h-[650px] items-center gap-12 py-14 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)] lg:gap-2 lg:py-20">
         <div className="relative z-10 max-w-2xl">
           <div className="animate-rise inline-flex items-center gap-2 rounded-full border border-forest-200 bg-white/75 px-3 py-1.5 text-xs font-bold uppercase tracking-[.14em] text-forest-700"><span className="h-2 w-2 rounded-full bg-[#46b7a1]" />For students in Nagaland</div>
           <h1 className="animate-rise delay-1 mt-7 max-w-[10ch] text-[clamp(3.2rem,6vw,6.6rem)] font-semibold leading-[.95] tracking-[-.07em] text-forest-900">Your next step starts with you.</h1>
@@ -78,7 +78,7 @@ export default async function HomePage() {
           </div>
           <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-600"><span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-forest-500" />No right answer required</span><span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#7256df]" />Go at your own pace</span></div>
         </div>
-        <div className="relative mx-auto w-full max-w-[720px] lg:-mr-16">
+        <div className="relative mx-auto w-full max-w-[860px] lg:-mr-24 lg:scale-[1.08]">
           <div aria-hidden className="absolute left-[16%] top-[10%] h-[68%] w-[68%] rounded-[45%] bg-[#b7dcca]" />
           <div aria-hidden className="absolute bottom-[9%] right-[1%] h-28 w-28 rounded-full bg-[#f6dfa5] blur-sm" />
           <Image src="/images/home-journey-reference.png" alt="Student exploring different education and career paths" width={1671} height={941} priority className="relative z-10 w-full object-contain drop-shadow-[0_26px_30px_rgba(25,73,51,.13)]" />
@@ -97,8 +97,6 @@ export default async function HomePage() {
 
     <section className="cb-container py-20 sm:py-24" aria-labelledby="explore-title"><div className="flex flex-wrap items-end justify-between gap-6"><SectionHeading eyebrow="A whole platform, in one place" title="Explore what could come next." description="Start with a question, a place, a course or a career field. Follow the thread that feels useful." /><Link href="/explore" className="cb-button cb-button-secondary shrink-0">Browse everything<ArrowRight aria-hidden className="h-4 w-4" /></Link></div><div id="explore-title" className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{platformLinks.map((item) => <Link href={item.href} key={item.href} className="group flex items-center gap-4 rounded-2xl border border-ink-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-forest-300 hover:bg-forest-50"><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${accentSurface[item.accent]}`}><item.icon aria-hidden className="h-5 w-5" /></span><span className="min-w-0"><span className="block font-semibold text-ink-900">{item.label}</span><span className="mt-1 block text-sm text-ink-500">{item.detail}</span></span><ArrowRight aria-hidden className="ml-auto h-4 w-4 shrink-0 text-forest-600 transition-transform group-hover:translate-x-1" /></Link>)}</div></section>
 
-    <section className="cb-container pb-20" aria-labelledby="fields-title"><div className="relative overflow-hidden rounded-[2rem] bg-[#eaf4fb] p-7 sm:p-10 lg:p-12"><div className="relative z-10 max-w-xl"><Eyebrow>Curious about a direction?</Eyebrow><h2 id="fields-title" className="mt-3 max-w-[15ch] text-[clamp(2rem,4vw,3.3rem)] font-semibold leading-tight tracking-[-.05em]">Begin with what catches your attention.</h2><p className="mt-4 max-w-[45ch] text-sm leading-relaxed text-ink-600">You do not need to know the job title. An interest, a subject or a question is enough to start exploring.</p><div className="mt-7 flex flex-wrap gap-3"><Link href="/explore" className="cb-button cb-button-primary">See all areas<ArrowRight aria-hidden className="h-4 w-4" /></Link><Link href="/mentor" className="cb-button border border-sky-ink/30 bg-white/75 text-sky-ink hover:bg-white"><MessageCircle aria-hidden className="h-4 w-4" />Talk it through</Link></div></div><Image src="/images/possibilities-landscape.png" alt="Illustration of different possibilities across the hills of Nagaland" width={1200} height={560} className="absolute bottom-0 right-[-4%] w-[54%] max-w-[680px] min-w-[330px] opacity-85 mix-blend-multiply" /></div><div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{fields.slice(0, 8).map((field) => <Link href={`/explore/${field.slug}`} key={field.slug} className="cb-link-row group"><span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${accentSurface[fieldVisual(field.slug).accent]}`}><FieldIcon slug={field.slug} /></span><span className="text-sm font-semibold text-ink-800">{field.name}</span><ArrowRight aria-hidden className="link-arrow" /></Link>)}</div></section>
-
-    <section className="cb-container pb-24"><div className="flex flex-col gap-6 rounded-[1.75rem] border border-forest-200 bg-mint/50 p-7 sm:flex-row sm:items-center sm:justify-between sm:p-10"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-forest-700">Your pace. Your questions. Your route.</p><h2 className="mt-2 max-w-[20ch] text-2xl font-semibold tracking-[-.04em] text-forest-900">Ready to see what fits?</h2></div><Link href="/start" className="cb-button cb-button-primary shrink-0">Start exploring<ArrowRight aria-hidden className="h-4 w-4" /></Link></div></section>
+    <section className="cb-container pb-20" aria-labelledby="fields-title"><div className="relative overflow-hidden rounded-[2rem] bg-[#eaf4fb] p-7 sm:p-10 lg:p-12"><div className="relative z-10 max-w-xl"><Eyebrow>Curious about a direction?</Eyebrow><h2 id="fields-title" className="mt-3 max-w-[15ch] text-[clamp(2rem,4vw,3.3rem)] font-semibold leading-tight tracking-[-.05em]">Begin with what catches your attention.</h2><p className="mt-4 max-w-[45ch] text-sm leading-relaxed text-ink-600">You do not need to know the job title. An interest, a subject or a question is enough to start exploring.</p><div className="mt-7 flex flex-wrap gap-3"><Link href="/explore" className="cb-button cb-button-primary">See all career areas<ArrowRight aria-hidden className="h-4 w-4" /></Link><Link href="/mentor" className="cb-button border border-sky-ink/30 bg-white/75 text-sky-ink hover:bg-white"><MessageCircle aria-hidden className="h-4 w-4" />Ask Mentor</Link></div></div><Image src="/images/possibilities-landscape.png" alt="Illustration of different possibilities across the hills of Nagaland" width={1200} height={560} className="absolute bottom-0 right-[-4%] w-[54%] max-w-[680px] min-w-[330px] opacity-85 mix-blend-multiply" /></div><div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{fields.slice(0, 6).map((field) => <Link href={`/explore/${field.slug}`} key={field.slug} className="cb-link-row group"><span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${accentSurface[fieldVisual(field.slug).accent]}`}><FieldIcon slug={field.slug} /></span><span className="text-sm font-semibold text-ink-800">{field.name}</span><ArrowRight aria-hidden className="link-arrow" /></Link>)}</div></section>
   </div>;
 }
