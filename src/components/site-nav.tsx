@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Award, Bookmark, Building2, ChevronDown, Compass, FileText, GraduationCap, LayoutDashboard, MessageCircle, Route, PencilRuler, User, Menu, X, ArrowRight, BookOpen, Info, Sparkles } from "lucide-react";
+import { Award, Bookmark, Building2, ChevronDown, CircleHelp, Compass, FileText, GraduationCap, LayoutDashboard, MessageCircle, Route, PencilRuler, User, Menu, X, ArrowRight, BookOpen, Info } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ButtonLink, cx } from "@/components/ui";
@@ -53,6 +53,7 @@ export function SiteNav({ user }: { user: NavUser }) {
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const closeAll = () => { setMobileOpen(false); setExploreOpen(false); };
+  const isHome = pathname === "/";
   const progressHref = user ? "/dashboard" : "/profile";
   const progressLabel = user ? "My plan" : "My journey";
 
@@ -61,9 +62,6 @@ export function SiteNav({ user }: { user: NavUser }) {
       <div className="flex min-w-0 items-center gap-6 2xl:gap-12">
         <Logo />
         <nav aria-label="Main" className="hidden items-center gap-1 xl:flex 2xl:gap-2">
-          <Link href="/start" aria-current={isActive("/start") ? "page" : undefined} className={cx("inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2 text-[15px] font-semibold transition-colors", isActive("/start") ? "border-forest-300 bg-mint text-forest-800" : "border-transparent text-ink-700 hover:border-forest-200 hover:bg-forest-50")}>
-            <Sparkles aria-hidden className="h-4 w-4" />Start here
-          </Link>
           <div ref={exploreRef} className="relative">
             <button ref={exploreButton} type="button" onClick={() => setExploreOpen((v) => !v)} aria-expanded={exploreOpen} aria-controls="explore-menu" className={cx("inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2 text-[15px] font-semibold transition-colors", exploreOpen || isActive("/explore") || isActive("/pathways") || isActive("/courses") || isActive("/institutions") ? "border-forest-300 bg-mint text-forest-800" : "border-transparent text-ink-700 hover:border-forest-200 hover:bg-forest-50")}>
               <Compass aria-hidden className="h-4 w-4" />Explore<ChevronDown aria-hidden className={cx("h-4 w-4 transition-transform", exploreOpen && "rotate-180")} />
@@ -74,7 +72,7 @@ export function SiteNav({ user }: { user: NavUser }) {
                 <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${item.color}`}><item.icon aria-hidden className="h-4 w-4" /></span>
                 <span><span className="block text-sm font-semibold text-ink-900">{item.label}</span><span className="mt-1 block text-xs leading-relaxed text-ink-500">{item.detail}</span></span>
               </Link>)}</div>
-              <Link href="/start" onClick={closeAll} className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-forest-200 bg-mint p-3 text-sm font-semibold text-forest-800">Not sure where to begin? Start with a conversation<ArrowRight aria-hidden className="h-4 w-4" /></Link>
+              <Link href="/mentor" onClick={closeAll} className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-forest-200 bg-mint p-3 text-sm font-semibold text-forest-800">Need help choosing a direction? Talk it through<ArrowRight aria-hidden className="h-4 w-4" /></Link>
             </div>}
           </div>
           <Link href={progressHref} aria-current={isActive(progressHref) ? "page" : undefined} className={cx("inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2 text-[15px] font-semibold transition-colors", isActive(progressHref) ? "border-forest-300 bg-mint text-forest-800" : "border-transparent text-ink-700 hover:border-forest-200 hover:bg-forest-50")}>
@@ -86,17 +84,17 @@ export function SiteNav({ user }: { user: NavUser }) {
         </nav>
       </div>
       <div className="hidden shrink-0 items-center gap-3 xl:flex">
-        {user ? <><Link href="/profile" className="cb-button border border-forest-200 bg-mint/60 px-3 py-2 text-sm text-forest-800"><User aria-hidden className="h-4 w-4" /><span className="max-w-24 truncate">{user.name?.split(" ")[0] ?? "My profile"}</span></Link><SignOutButton /></> : <><ButtonLink href="/sign-in" variant="ghost">Sign in</ButtonLink><ButtonLink href="/start">Start here<ArrowRight aria-hidden className="h-4 w-4" /></ButtonLink></>}
+        {user ? <><Link href="/profile" className="cb-button border border-forest-200 bg-mint/60 px-3 py-2 text-sm text-forest-800"><User aria-hidden className="h-4 w-4" /><span className="max-w-24 truncate">{user.name?.split(" ")[0] ?? "My profile"}</span></Link><SignOutButton /></> : <><ButtonLink href="/sign-in" variant="ghost">Sign in</ButtonLink>{!isHome && <ButtonLink href="/start">Begin your journey<ArrowRight aria-hidden className="h-4 w-4" /></ButtonLink>}</>}
       </div>
       <div className="flex items-center gap-2 xl:hidden">
-        {!user && <ButtonLink href="/start" size="sm" className="hidden sm:inline-flex">Start here</ButtonLink>}
+        {!user && !isHome && <ButtonLink href="/start" size="sm" className="hidden sm:inline-flex">Begin your journey</ButtonLink>}
         <button type="button" aria-expanded={mobileOpen} aria-controls="mobile-nav" aria-label={mobileOpen ? "Close navigation" : "Open navigation"} onClick={() => setMobileOpen((v) => !v)} className="cb-button cb-button-secondary h-11 w-11">{mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
       </div>
     </div>
     {mobileOpen && <div id="mobile-nav" className="animate-rise border-t border-ink-200 bg-white xl:hidden"><nav aria-label="Mobile" className="cb-container cb-scroll max-h-[75dvh] py-5">
       <p className="cb-eyebrow mb-3">Your next step</p>
       <div className="grid gap-2 sm:grid-cols-3">
-        <Link href="/start" onClick={closeAll} className="flex items-center gap-3 rounded-xl border border-forest-200 bg-mint p-3 text-sm font-semibold text-forest-800"><Sparkles aria-hidden className="h-4 w-4" />Start here</Link>
+        {!isHome && <Link href="/start" onClick={closeAll} className="flex items-center gap-3 rounded-xl border border-forest-200 bg-mint p-3 text-sm font-semibold text-forest-800"><CircleHelp aria-hidden className="h-4 w-4" />Begin your journey</Link>}
         <Link href={progressHref} onClick={closeAll} className="flex items-center gap-3 rounded-xl border border-ink-200 bg-ink-50 p-3 text-sm font-semibold"><Bookmark aria-hidden className="h-4 w-4 text-forest-700" />{progressLabel}</Link>
         <Link href="/mentor" onClick={closeAll} className="flex items-center gap-3 rounded-xl border border-ink-200 bg-ink-50 p-3 text-sm font-semibold"><MessageCircle aria-hidden className="h-4 w-4 text-forest-700" />Ask Mentor</Link>
       </div>
