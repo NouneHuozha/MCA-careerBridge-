@@ -31,7 +31,7 @@ export default async function HomePage() {
           <div className="animate-rise delay-3 mt-8"><ButtonLink href="/start" size="lg">Start with a few questions<ArrowRight aria-hidden className="h-5 w-5" /></ButtonLink></div>
           <div className="mt-10 grid max-w-[530px] grid-cols-3 gap-5 text-sm text-ink-600"><div><span className="grid h-10 w-10 place-items-center rounded-full bg-[#dff3eb] text-base font-semibold text-[#1e8267]">1</span><p className="mt-3">Answer a few questions</p></div><div><span className="grid h-10 w-10 place-items-center rounded-full bg-[#e9f1ff] text-base font-semibold text-[#4773bb]">2</span><p className="mt-3">See what fits</p></div><div><span className="grid h-10 w-10 place-items-center rounded-full bg-[#f0eaff] text-base font-semibold text-[#735bd1]">3</span><p className="mt-3">Take one next step</p></div></div>
         </div>
-        <div className="relative min-w-0 lg:pl-4"><div className="absolute -right-8 top-0 h-64 w-64 rounded-full bg-[#dfeeff]" /><div className="relative mx-auto aspect-[1.08] max-w-[720px] overflow-hidden rounded-[2rem] bg-transparent"><Image src="/images/home-journey.png" alt="A student exploring different paths with a map" fill priority sizes="(max-width: 1024px) 92vw, 48vw" className="object-contain" /></div></div>
+        <div className="relative min-w-0 lg:-mr-10 lg:pl-0"><div className="relative mx-auto aspect-[1.7758] w-full max-w-[780px] overflow-visible"><Image src="/images/home-journey-reference.png" alt="A student exploring different paths with a map" fill priority sizes="(max-width: 1024px) 96vw, 54vw" className="object-contain object-center lg:scale-[1.08]" /></div></div>
       </div>
     </section>
 
