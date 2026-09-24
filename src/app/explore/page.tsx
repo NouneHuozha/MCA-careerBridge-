@@ -11,12 +11,13 @@ export const metadata = { title: "Your possibilities" };
 const visualBySlug: Record<string, string> = { technology: "/images/field-technology.png", healthcare: "/images/field-healthcare.png", engineering: "/images/field-engineering.png", business: "/images/field-business.png" };
 const fallbackVisuals = ["/images/field-technology.png", "/images/field-healthcare.png", "/images/field-engineering.png", "/images/field-business.png"];
 const accents = ["bg-[#e6f3ff]", "bg-[#e7f7f0]", "bg-[#fff4df]", "bg-[#f0edff]"];
-export default async function ExplorePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function ExplorePage({ searchParams }: { searchParams: Promise<{ q?: string; mode?: string }> }) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
+  const personal = params.mode === "personal";
   const [fields, state] = await Promise.all([getFields(), getSessionState()]);
   const results = query ? await searchEverything(query) : [];
-  const suggestions = state ? await suggestFields(state.snapshot, 4) : [];
+  const suggestions = personal && state ? await suggestFields(state.snapshot, 4) : [];
   const cards = (suggestions.length ? suggestions.map((s) => s.field) : fields.slice(0, 4)).slice(0, 4);
   return <JourneyShell current={3}>
     <div className="bg-white">

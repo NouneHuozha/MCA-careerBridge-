@@ -27,6 +27,29 @@ import {
 } from "@/data/counselling";
 
 const ANON_COOKIE = "cb_journey";
+export const EXPLORATION_COOKIE = "cb_exploration";
+
+export type ExplorationState = {
+  directionSlug: string;
+  selectedAt: string;
+  completedSteps: string[];
+};
+
+export async function getExplorationState(): Promise<ExplorationState | null> {
+  try {
+    const value = (await cookies()).get(EXPLORATION_COOKIE)?.value;
+    if (!value) return null;
+    const parsed = JSON.parse(value) as Partial<ExplorationState>;
+    if (typeof parsed.directionSlug !== "string") return null;
+    return {
+      directionSlug: parsed.directionSlug,
+      selectedAt: typeof parsed.selectedAt === "string" ? parsed.selectedAt : new Date().toISOString(),
+      completedSteps: Array.isArray(parsed.completedSteps) ? parsed.completedSteps.filter((step): step is string => typeof step === "string") : ["reflection", "direction"],
+    };
+  } catch {
+    return null;
+  }
+}
 
 export type StudentSnapshot = {
   stage: Stage;
