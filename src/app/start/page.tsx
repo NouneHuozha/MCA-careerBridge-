@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { ArrowRight, Check, GraduationCap, HelpCircle, School, Sparkles } from "lucide-react";
 import { ArrowGlyph, Button, Eyebrow } from "@/components/ui";
+import { Logo } from "@/components/logo";
 import { startSession } from "@/services/profile";
 import { questionsForStage, type Stage } from "@/data/counselling";
 
@@ -32,8 +33,8 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
   }
 
   const error = params.error === "choose-options" ? "Choose your stage and current situation to continue." : params.error === "unavailable" ? "We could not save your starting point just now. Please try again in a moment." : null;
-  return <div className="min-h-[calc(100dvh-5rem)] bg-[#f5f8fb]">
-    <header className="cb-counselling-header"><span className="text-base font-semibold tracking-[-.03em] text-forest-900">CareerBridge</span><span className="hidden text-right text-xs text-ink-400 sm:block">Your space to think</span></header>
+  return <div className="min-h-[calc(100dvh-4rem)] bg-canvas">
+    <header className="cb-counselling-header"><Logo /><span className="hidden text-right text-xs leading-relaxed text-ink-400 sm:block">Your space to think<br /><span className="text-ink-300">One step at a time</span></span></header>
     <div className="cb-container py-8 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-[1110px]">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,245px)_minmax(0,1fr)] lg:gap-14">
