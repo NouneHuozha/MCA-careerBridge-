@@ -1,11 +1,22 @@
+"use client";
+
 import Link from "next/link";
 import { Check, ChevronDown, Circle, LockKeyhole } from "lucide-react";
-import type { ReactNode } from "react";
+import { createContext, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Logo } from "@/components/logo";
 
 export type CounsellingStageKey = "about" | "interests" | "strengths" | "goals" | "practical" | "reflection";
 type CounsellingStage = { key: CounsellingStageKey; label: string; detail: string; editKey?: string };
 type QuestionProgress = { current: number; total: number };
+type JourneyState = { currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; progress: QuestionProgress };
+type JourneyContextValue = { journey: JourneyState; setJourney: Dispatch<SetStateAction<JourneyState>> };
+const JourneyContext = createContext<JourneyContextValue | null>(null);
+
+export function useCounsellingJourney() {
+  const context = useContext(JourneyContext);
+  if (!context) throw new Error("useCounsellingJourney must be used inside CounsellingJourneyShell");
+  return context;
+}
 
 export const counsellingStages: CounsellingStage[] = [
   { key: "about", label: "About you", detail: "Your study stage and subjects", editKey: "subjects_enjoy" },
@@ -58,5 +69,6 @@ export function CounsellingJourneyMobile({ currentSection, completedSections, pr
 }
 
 export function CounsellingJourneyShell({ children, currentSection, completedSections, progress }: { children: ReactNode; currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; progress: QuestionProgress }) {
-  return <><header className="cb-counselling-header"><Logo /><span className="hidden text-right text-xs leading-relaxed text-ink-400 sm:block">Your space to think<br /><span className="text-ink-300">One step at a time</span></span></header><div className="flex min-w-0"><CounsellingJourneySidebar currentSection={currentSection} completedSections={completedSections} progress={progress} /><div className="min-w-0 flex-1"><div className="cb-container pt-4 lg:hidden"><CounsellingJourneyMobile currentSection={currentSection} completedSections={completedSections} progress={progress} /></div>{children}</div></div></>;
+  const [journey, setJourney] = useState<JourneyState>({ currentSection, completedSections, progress });
+  return <JourneyContext.Provider value={{ journey, setJourney }}><header className="cb-counselling-header"><Logo /><span className="hidden text-right text-xs leading-relaxed text-ink-400 sm:block">Your space to think<br /><span className="text-ink-300">One step at a time</span></span></header><div className="flex min-w-0"><CounsellingJourneySidebar {...journey} /><div className="min-w-0 flex-1"><div className="cb-container pt-4 lg:hidden"><CounsellingJourneyMobile {...journey} /></div>{children}</div></div></JourneyContext.Provider>;
 }

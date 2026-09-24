@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, BarChart3, Check, CircleHelp, Leaf, Monitor, Pal
 import { Button, Callout, cx } from "@/components/ui";
 import { questionsForStage, type CounsellingQuestion } from "@/data/counselling";
 import type { StudentSnapshot } from "@/services/profile";
+import { useCounsellingJourney, type CounsellingStageKey } from "@/components/counselling-journey";
 
 type Answer = { values: string[]; text: string | null };
 type State = { started: boolean; stage: "class10" | "class12"; stageDetail?: string | null; snapshot: StudentSnapshot; question: CounsellingQuestion | null; answers?: Record<string, Answer>; acknowledgement?: string; progress: { answered: number; total: number }; sections: { key: string; label: string }[]; completed: boolean };
@@ -31,6 +32,7 @@ const sectionLabels: Record<CounsellingQuestion["section"], string> = {
 
 export function CounsellingExperience({ initial, focusKey }: { initial: State; focusKey?: string }) {
   const router = useRouter();
+  const { setJourney } = useCounsellingJourney();
   const [state, setState] = useState(initial);
   const question = state.question;
   const initialAnswer = initial.question ? initial.answers?.[initial.question.key] : undefined;
@@ -44,9 +46,23 @@ export function CounsellingExperience({ initial, focusKey }: { initial: State; f
   const confirmReset = useRef<HTMLDialogElement>(null);
   const busy = useRef(false);
 
+  function syncJourney(next: State) {
+    const sectionByQuestion: Record<CounsellingQuestion["section"], CounsellingStageKey> = { academics: "about", interests: "interests", strengths: "strengths", goals: "goals", practical: "practical" };
+    const nextSection = next.question ? sectionByQuestion[next.question.section] : "reflection";
+    const coreQuestions = questionsForStage(next.stage);
+    const completedSections = (["about", "interests", "strengths", "goals", "practical"] as CounsellingStageKey[]).filter((section) => coreQuestions.filter((item) => sectionByQuestion[item.section] === section).every((item) => next.snapshot.answeredKeys.includes(item.key)));
+    setJourney({ currentSection: nextSection, completedSections, progress: { current: next.question ? Math.min(next.progress.answered + 1, next.progress.total) : next.progress.total, total: next.progress.total } });
+  }
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [question?.key]);
+
+  useEffect(() => {
+    syncJourney(state);
+    // The question state is the source of truth; the journey context mirrors it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.question?.key, state.progress.answered, state.completed]);
 
   async function submit(action: "answer" | "skip" | "reset" = "answer", unsure = false) {
     if (busy.current || (!question && action !== "reset")) return;
@@ -59,7 +75,7 @@ export function CounsellingExperience({ initial, focusKey }: { initial: State; f
       if (!response.ok || next.error) { setError(next.error ?? "Couldn’t save. Please try again."); return; }
       if (focusKey && action !== "reset") { router.push("/profile"); router.refresh(); return; }
       if (action === "reset") {
-        setState(next); setSelected([]); setOther(""); setText("");
+        setState(next); syncJourney(next); setSelected([]); setOther(""); setText("");
         return;
       }
       if (!next.question) {
@@ -67,13 +83,13 @@ export function CounsellingExperience({ initial, focusKey }: { initial: State; f
         if (!finished.ok) setError("Your answers are saved. You can open My possibilities below.");
         else {
           const completed = await finished.json() as State;
-          setState(completed); setSelected([]); setOther(""); setText("");
+          setState(completed); syncJourney(completed); setSelected([]); setOther(""); setText("");
         }
       } else if (historyKey) {
         const current = await fetch("/api/counselling").then((response) => response.json() as Promise<State>);
-        setState(current); setHistoryKey(null); setSelected([]); setOther(""); setText("");
+        setState(current); syncJourney(current); setHistoryKey(null); setSelected([]); setOther(""); setText("");
       } else {
-        setState(next); setSelected([]); setOther(""); setText("");
+        setState(next); syncJourney(next); setSelected([]); setOther(""); setText("");
       }
     } catch { setError("The connection was interrupted. Your earlier answers are safe—please try again."); }
     finally { busy.current = false; setPending(false); }
@@ -94,7 +110,7 @@ export function CounsellingExperience({ initial, focusKey }: { initial: State; f
       if (!response.ok) throw new Error();
       const next = await response.json() as State;
       const answer = next.answers?.[previousQuestion.key];
-      setState(next); setHistoryKey(previousQuestion.key); setSelected(answer?.values ?? []); setOther(""); setText(answer?.text ?? "");
+      setState(next); syncJourney(next); setHistoryKey(previousQuestion.key); setSelected(answer?.values ?? []); setOther(""); setText(answer?.text ?? "");
     } catch { setError("We couldn't go back just now. Please try again."); }
     finally { setPending(false); }
   }
