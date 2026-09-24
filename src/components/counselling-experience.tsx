@@ -20,6 +20,14 @@ function questionIntro(question: CounsellingQuestion) {
   return "Take a moment. Choose what feels closest to you.";
 }
 
+const sectionLabels: Record<CounsellingQuestion["section"], string> = {
+  academics: "About you",
+  interests: "What interests you",
+  strengths: "What you bring",
+  goals: "What matters to you",
+  practical: "Practical realities",
+};
+
 export function CounsellingExperience({ initial, focusKey }: { initial: State; focusKey?: string }) {
   const router = useRouter();
   const [state, setState] = useState(initial);
@@ -76,9 +84,18 @@ export function CounsellingExperience({ initial, focusKey }: { initial: State; f
   const descriptions: Record<string, string> = { technology: "Coding, software, AI, digital tools and new technologies", helping: "Teaching, healthcare, counselling, community service", engineering: "Engineering, construction, design, repairs, hands-on problem solving", business: "Management, finance, entrepreneurship, marketing, leadership", arts: "Visual arts, music, media, writing, crafts and creative expression", environment: "Biology, wildlife, agriculture, conservation, outdoor work" };
   const iconFor = (value: string) => value === "technology" ? <Monitor className="h-8 w-8" /> : value === "helping" ? <UsersRound className="h-8 w-8" /> : value === "engineering" ? <Wrench className="h-8 w-8" /> : value === "business" ? <BarChart3 className="h-8 w-8" /> : value === "arts" ? <Palette className="h-8 w-8" /> : <Leaf className="h-8 w-8" />;
   const iconTone = (index: number) => ["bg-[#e8e0ff] text-[#5e4aaa]", "bg-[#dff2e9] text-[#28775f]", "bg-[#ffefb5] text-[#87722b]", "bg-[#e8e0ff] text-[#6048b4]", "bg-[#d8f1e6] text-[#28775f]", "bg-[#ffefb5] text-[#87722b]"][index % 6];
+  const sectionLabel = question ? sectionLabels[question.section] : "Your reflection";
+  const progressPercent = Math.min(100, Math.max(8, (done / Math.max(total, 1)) * 100));
   return <div className="mx-auto max-w-[1110px]">
-    <header className="mb-6"><p className="text-sm font-bold uppercase tracking-[.17em] text-[#317966]">Personal profile</p><h1 className="mt-3 text-[clamp(2rem,4vw,3.3rem)] font-semibold leading-tight tracking-[-.04em] text-[#07352b]">{question?.prompt ?? "Your profile is ready to explore."}</h1><p className="mt-3 text-lg text-ink-500">{question ? "Choose what feels true today. You can change this later." : "You have given us a useful starting point."}</p></header>
-    <div className="relative mb-5 h-28 overflow-hidden rounded-2xl bg-[#eff8f4] lg:hidden"><img src="/images/home-journey-reference.png" alt="Student exploring a route forward" className="absolute inset-0 h-full w-full object-contain object-center" /></div>
+    <header className="mb-7">
+      <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-bold uppercase tracking-[.17em] text-[#317966]">{question ? `Question ${currentNumber} of ${total}` : "Your reflection is ready"}</p>{question && <span className="rounded-full border border-forest-200 bg-forest-50 px-3 py-1 text-xs font-semibold text-forest-700">About 5 minutes</span>}</div>
+      {question && <div className="mt-3 h-2 overflow-hidden rounded-full bg-ink-100"><div className="h-full rounded-full bg-[#7256df] transition-all duration-500" style={{ width: `${progressPercent}%` }} /></div>}
+      <p className="mt-7 text-sm font-bold uppercase tracking-[.16em] text-[#5e4aaa]">{sectionLabel}</p>
+      {question && <p className="mt-2 text-base font-medium text-ink-500">{questionIntro(question)}</p>}
+      <h1 className="mt-3 max-w-[28ch] text-[clamp(2rem,4vw,3.3rem)] font-semibold leading-tight tracking-[-.04em] text-[#07352b]">{question?.prompt ?? "Your profile is ready to explore."}</h1>
+      <p className="mt-3 text-base text-ink-500">{question ? "Choose what feels true today. You can change this later." : "You have given us a useful starting point."}</p>
+    </header>
+    {state.acknowledgement && question && <div className="mb-5 flex items-start gap-3 rounded-2xl border border-[#d2e9df] bg-[#effaf5] px-5 py-4 text-sm text-[#155b4d]" role="status"><Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2a8b6d]" /><p>{state.acknowledgement}</p></div>}
     {error && <div className="mb-5"><Callout tone="amber"><p role="alert">{error}</p></Callout></div>}
     {question ? <form onSubmit={(event) => { event.preventDefault(); void submit(); }}><fieldset disabled={pending}>
       <div className="mb-5 flex items-center gap-4 rounded-2xl border border-[#d2e9df] bg-[#effaf5] px-6 py-5"><Sprout className="h-9 w-9 shrink-0 text-[#2a8b6d]" /><div><p className="font-semibold text-[#155b4d]">There is no perfect answer here.</p><p className="mt-1 text-sm text-ink-500">Your interests can evolve, and that&apos;s a good thing.</p></div></div>
@@ -88,7 +105,7 @@ export function CounsellingExperience({ initial, focusKey }: { initial: State; f
       {question.allowOther && <div className="mt-4"><label htmlFor="counselling-other" className="sr-only">Something else</label><input id="counselling-other" value={other} onChange={(e) => setOther(e.target.value)} maxLength={80} placeholder="Something else? Add it here (optional)" className="w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#8065dc]" /></div>}
       <div className="mt-8 flex flex-col gap-4 border-t border-ink-100 pt-5 sm:flex-row sm:items-center"><div className="flex-1"><p className="text-sm text-ink-500">{currentNumber} of {total}</p><div className="mt-2 h-2 max-w-[460px] overflow-hidden rounded-full bg-ink-100"><div className="h-full rounded-full bg-[#8065dc] transition-all" style={{ width: `${Math.max(8, (done / Math.max(total, 1)) * 100)}%` }} /></div></div><button type="button" disabled={pending} onClick={() => void submit("answer", true)} className="text-sm font-semibold text-[#6048b4] underline underline-offset-4">I&apos;m not sure yet</button><Link href={focusKey ? "/profile" : "/profile#my-answers"} className="text-sm font-semibold text-ink-500 underline underline-offset-4">Save and leave</Link><Button type="submit" disabled={pending} size="lg" className="min-w-36">{pending ? "Saving…" : focusKey ? "Save changes" : done >= total - 1 ? "Continue" : "Continue"}<ArrowRight className="h-4 w-4" /></Button></div>
     </fieldset></form> : <div className="rounded-2xl bg-[#effaf5] p-8 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#198b6e] text-white"><Check className="h-7 w-7" /></span><h2 className="mt-5 text-2xl font-semibold">You&apos;ve given us a useful starting point.</h2><p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink-600">Now you can look through a few possibilities. You are not choosing a career today.</p><Button type="button" onClick={() => { router.push("/profile"); router.refresh(); }} className="mt-6">See my possibilities<ArrowRight className="h-4 w-4" /></Button></div>}
-    <footer className="mt-5 flex flex-wrap items-center justify-between gap-3 text-xs text-ink-500"><span className="flex items-center gap-1.5"><CircleHelp className="h-3.5 w-3.5 text-[#288b70]" />No marks. No right answer. No pressure.</span><button type="button" disabled={pending} onClick={() => confirmReset.current?.showModal()} className="flex items-center gap-1 font-semibold text-forest-700 underline underline-offset-4"><RotateCcw className="h-3 w-3" />Start again</button></footer>
+    <footer className="mt-6 flex flex-wrap items-center justify-between gap-3 text-xs text-ink-500"><span className="flex items-center gap-1.5"><CircleHelp className="h-3.5 w-3.5 text-[#288b70]" />No marks. No right answer. No pressure.</span><button type="button" disabled={pending} onClick={() => confirmReset.current?.showModal()} className="flex items-center gap-1 font-semibold text-forest-700 underline underline-offset-4"><RotateCcw className="h-3 w-3" />Start again</button></footer>
     <dialog ref={confirmReset} className="cb-dialog" aria-labelledby="restart-title"><h2 id="restart-title" className="text-xl font-semibold">Start the conversation again?</h2><p className="mt-3 text-sm text-ink-500">This clears your answers, not your saved items.</p><div className="mt-6 flex gap-3"><Button type="button" variant="secondary" onClick={() => confirmReset.current?.close()}>Keep my answers</Button><Button type="button" onClick={() => { confirmReset.current?.close(); void submit("reset"); }}>Start again</Button></div></dialog>
   </div>;
 }
