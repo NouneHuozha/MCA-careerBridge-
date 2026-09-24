@@ -22,6 +22,7 @@ export async function POST(request: Request) {
     return response;
   }
   const directionSlug = String(form.get("directionSlug") ?? "").trim();
+  const returnTo = String(form.get("returnTo") ?? "").trim();
   const field = directionSlug ? await getField(directionSlug) : null;
   if (!field) return redirectBack(request, "/profile", "That direction is not available right now.");
 
@@ -30,7 +31,8 @@ export async function POST(request: Request) {
     selectedAt: new Date().toISOString(),
     completedSteps: ["reflection", "direction"],
   };
-  const response = redirectBack(request, "/my-direction");
+  const safeReturn = returnTo.startsWith("/my-journey/") ? returnTo : "/my-direction";
+  const response = redirectBack(request, safeReturn);
   response.cookies.set(EXPLORATION_COOKIE, JSON.stringify(state), {
     httpOnly: true,
     sameSite: "lax",

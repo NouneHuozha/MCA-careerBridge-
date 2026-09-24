@@ -51,6 +51,7 @@ function IncompleteProfile({ state }: { state: NonNullable<Awaited<ReturnType<ty
 
 export default async function ProfilePage() {
   const state = await getSessionState();
+  if (state?.status === "completed") redirect("/my-journey");
   if (!state) return <div className="cb-container cb-page"><EmptyState icon={<Compass className="h-5 w-5" />} title="Let’s find your starting point." description="A few short questions help us understand what you want to explore." action={<ButtonLink href="/start">Start here<ArrowRight className="h-4 w-4" /></ButtonLink>} /></div>;
   const progress = progressFor(state.stage, state.snapshot.answeredKeys);
   if (state.status !== "completed" || progress.answered < progress.total) return <IncompleteProfile state={state} />;

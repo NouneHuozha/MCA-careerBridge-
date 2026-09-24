@@ -1,0 +1,8 @@
+import Link from "next/link";
+import { ArrowRight, RefreshCcw } from "lucide-react";
+import { redirect } from "next/navigation";
+import { getField } from "@/services/catalog";
+import { getExplorationState } from "@/services/profile";
+import { JourneyShell, JourneyIntro, PrimaryLink } from "@/components/journey";
+export const dynamic = "force-dynamic";
+export default async function DirectionConfirmPage({ params }: { params: Promise<{ slug: string }> }) { const { slug } = await params; const [field, selected] = await Promise.all([getField(slug), getExplorationState()]); if (!field || !selected || selected.directionSlug !== slug) redirect("/my-journey/direction"); return <JourneyShell current="direction" direction={field.name}><JourneyIntro eyebrow="Step 2 of 8 · Your choice" title={`You chose ${field.name}.`} description="We will now help you understand this direction step by step. You are not choosing a final career." /><section className="mt-9 max-w-2xl rounded-[1.75rem] border border-[#cfe8dc] bg-[#effaf5] p-6 sm:p-10"><div className="grid h-48 place-items-center rounded-2xl bg-[#b8dcca] text-7xl text-[#287d65]">{field.icon === "cpu" ? "⌘" : field.icon === "wrench" ? "＋" : "✦"}</div><div className="mt-7 flex flex-col gap-3 sm:flex-row"><PrimaryLink href={`/my-journey/direction/${field.slug}`}>Understand this direction</PrimaryLink><Link href="/my-journey/direction" className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white px-5 text-sm font-semibold text-ink-700"><RefreshCcw className="h-4 w-4" />Choose a different direction</Link></div></section></JourneyShell>; }
