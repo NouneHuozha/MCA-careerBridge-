@@ -14,7 +14,7 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   const requested = params.edit ? findQuestion(params.edit) : null;
   const focus = requested && (!requested.stages || requested.stages.includes(state.stage)) ? requested : null;
   const question = focus ?? nextQuestion(state.stage, state.snapshot.answeredKeys);
-  return <DetailJourneyShell current={1}><main className="cb-container cb-page">
+  return <DetailJourneyShell current={1} artwork="/images/home-journey-reference.png"><main className="cb-container cb-page">
     <CounsellingExperience key={params.edit ?? String(state.sessionId)} focusKey={focus?.key} initial={{ started: true, stage: state.stage, stageDetail: state.stageDetail, snapshot: state.snapshot, answers: state.answers, question, progress: progressFor(state.stage, state.snapshot.answeredKeys), sections: SECTIONS, completed: state.status === "completed" || !question }} />
   </main></DetailJourneyShell>;
 }
