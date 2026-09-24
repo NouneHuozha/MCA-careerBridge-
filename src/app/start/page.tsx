@@ -33,7 +33,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
   }
 
   const error = params.error === "choose-options" ? "Choose your stage and current situation to continue." : params.error === "unavailable" ? "We could not save your starting point just now. Please try again in a moment." : null;
-  return <div className="min-h-[calc(100dvh-4rem)] bg-canvas">
+  return <div className="min-h-[calc(100dvh-5rem)] bg-canvas">
     <header className="cb-counselling-header"><Logo /><span className="hidden text-right text-xs leading-relaxed text-ink-400 sm:block">Your space to think<br /><span className="text-ink-300">One step at a time</span></span></header>
     <div className="cb-container py-8 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-[1110px]">

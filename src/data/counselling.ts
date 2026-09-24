@@ -104,7 +104,6 @@ export const GOAL_OPTIONS: QuestionOption[] = [
   { value: "technology", label: "Working with technology" },
   { value: "outdoors", label: "Working outdoors" },
   { value: "international", label: "Opportunities outside the state or country" },
-  { value: "not-sure", label: "Not sure yet", hint: "That's a completely normal answer." },
 ];
 
 export const VALUE_OPTIONS: QuestionOption[] = [
@@ -167,7 +166,6 @@ export const QUESTIONS: CounsellingQuestion[] = [
       { value: "commerce", label: "Commerce" },
       { value: "arts", label: "Arts / Humanities" },
       { value: "vocational", label: "Vocational, ITI or polytechnic route" },
-      { value: "not-sure", label: "Not sure yet", hint: "Completely fine — that's what exploring is for." },
     ],
   },
   {
@@ -225,7 +223,6 @@ export const QUESTIONS: CounsellingQuestion[] = [
       { value: "hands-on", label: "Hands-on, practical work" },
       { value: "outdoors", label: "Outdoors and moving around" },
       { value: "mixed", label: "A mix — I'd like variety" },
-      { value: "not-sure", label: "Not sure yet" },
     ],
   },
   {
@@ -259,7 +256,6 @@ export const QUESTIONS: CounsellingQuestion[] = [
       { value: "home-district", label: "In or near my own district" },
       { value: "within-nagaland", label: "Anywhere within Nagaland" },
       { value: "outside-open", label: "Open to studying outside Nagaland" },
-      { value: "not-sure", label: "Not sure yet" },
     ],
   },
   {
@@ -323,7 +319,6 @@ export const QUESTIONS: CounsellingQuestion[] = [
       { value: "government", label: "Prefer government" },
       { value: "private", label: "Prefer private" },
       { value: "either", label: "Either is fine" },
-      { value: "not-sure", label: "Not sure" },
     ],
   },
   {
@@ -334,7 +329,6 @@ export const QUESTIONS: CounsellingQuestion[] = [
     options: [
       { value: "yes", label: "Yes, I'd need a hostel" },
       { value: "day-scholar", label: "No, I'd stay at home" },
-      { value: "not-sure", label: "Depends on where I study" },
     ],
   },
   {
