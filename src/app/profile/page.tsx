@@ -1,69 +1,24 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CircleHelp, Compass } from "lucide-react";
-import { JourneyShell } from "@/components/journey-sidebar";
-import { ButtonLink, EmptyState } from "@/components/ui";
+import { ArrowRight, CircleHelp, Compass, Edit3, Lightbulb, MapPin, Monitor, Radio, Target, Users, Search, CheckCircle2 } from "lucide-react";
+import { ButtonLink, EmptyState, cx } from "@/components/ui";
 import { FACTOR_LABELS, suggestFields } from "@/recommendation/engine";
-import { getSessionState } from "@/services/profile";
+import { getSessionState, labelFor } from "@/services/profile";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "My possibilities" };
-
-const visualBySlug: Record<string, string> = {
-  technology: "/images/field-technology.png",
-  healthcare: "/images/field-healthcare.png",
-  engineering: "/images/field-engineering.png",
-  business: "/images/field-business.png",
-};
+export const metadata = { title: "Your profile" };
+const visualBySlug: Record<string, string> = { technology: "/images/field-technology.png", healthcare: "/images/field-healthcare.png", engineering: "/images/field-engineering.png", business: "/images/field-business.png" };
 const fallbackVisuals = ["/images/field-technology.png", "/images/field-healthcare.png", "/images/field-engineering.png", "/images/field-business.png"];
-const accents = ["bg-[#e5f2ff]", "bg-[#e4f6ef]", "bg-[#fff4df]", "bg-[#f0edff]"];
-
+function JourneyRail() { return <aside className="hidden min-h-[calc(100dvh-4rem)] w-[285px] shrink-0 border-r border-[#dce5f3] bg-[#eef7ff] px-7 py-8 lg:block"><p className="text-xl font-semibold text-[#10264b]">Your journey</p><p className="mt-2 max-w-[190px] text-sm leading-relaxed text-ink-500">Step by step towards a brighter future.</p><ol className="mt-8">{[{n: 1, title: "About you", text: "Completed", done: true }, {n: 2, title: "Your interests", text: "Completed", done: true }, {n: 3, title: "Your strengths", text: "Completed", done: true }, {n: 4, title: "Goals & constraints", text: "Completed", done: true }, {n: 5, title: "Summary", text: "You are here", current: true }].map((step, index, list) => <li key={step.n} className="relative flex min-h-[78px] gap-3">{index < list.length - 1 ? <span className={`absolute left-4 top-8 h-[58px] w-px ${step.current ? "bg-[#7355d6]" : "bg-[#49ae91]"}`} /> : null}<span className={cx("relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border-2", step.current ? "border-[#7355d6] bg-[#7355d6] text-white" : "border-[#42a88c] bg-[#42a88c] text-white")}>{step.current ? step.n : <CheckCircle2 className="h-5 w-5" />}</span><span className={step.current ? "rounded-lg bg-[#eae5ff] px-2 py-1 text-[#6247bd]" : "px-2 py-1 text-ink-700"}><span className="block text-sm font-semibold">{step.n}. {step.title}</span><span className="mt-1 block text-xs text-ink-500">{step.text}</span></span></li>)}</ol><div className="relative mt-8 -mx-7 min-h-[210px] overflow-hidden bg-[#e0effa] px-8 py-8"><div className="absolute -bottom-14 -left-8 h-40 w-80 rounded-[50%] bg-[#b7d6e9]" /><p className="relative max-w-[170px] text-base leading-relaxed text-[#54738d]">Nagaland&apos;s youth.<br />Brighter futures.</p><span className="relative mt-4 block h-0.5 w-9 bg-[#68a2c6]" /></div></aside>; }
+function AnswerPill({ icon, children, tone }: { icon: React.ReactNode; children: React.ReactNode; tone: string }) { return <div className="flex items-center gap-3"><span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${tone}`}>{icon}</span><span className="text-sm text-ink-700">{children}</span></div>; }
 export default async function ProfilePage() {
   const state = await getSessionState();
-  if (!state) {
-    return <JourneyShell current={3}><div className="cb-container cb-page"><EmptyState icon={<Compass className="h-5 w-5" />} title="Let’s find your starting points." description="A few short questions help us show possibilities that may be worth exploring." action={<ButtonLink href="/start">Start here<ArrowRight className="h-4 w-4" /></ButtonLink>} /></div></JourneyShell>;
-  }
-  const suggestions = (await suggestFields(state.snapshot, 4)).slice(0, 4);
-
-  return <JourneyShell current={3}>
-    <div className="min-w-0 bg-white">
-      <div className="cb-container cb-page mx-auto max-w-[1320px]">
-        <header className="mb-6 flex items-end justify-between gap-5">
-          <div>
-            <p className="cb-eyebrow text-[#735bd1]">Your possibilities</p>
-            <h1 className="mt-2 text-[clamp(2rem,3.1vw,3.25rem)] font-semibold leading-[1.08] tracking-[-.045em] text-forest-900">Here are a few directions worth looking into.</h1>
-            <p className="mt-3 text-[17px] leading-relaxed text-ink-500">These are starting points, not final answers.</p>
-          </div>
-          <Link href="#why" className="cb-source mb-1 hidden shrink-0 text-sm md:inline-flex">Why am I seeing this? <CircleHelp className="h-4 w-4" /></Link>
-        </header>
-
-        <section className="relative h-[218px] overflow-hidden rounded-2xl border border-[#c1e2df] bg-[#dff5f1]" aria-label="Possibilities introduction">
-          <Image src="/images/possibilities-landscape.png" alt="A student looking at many paths across the hills of Nagaland" fill sizes="(max-width: 1100px) 100vw, 1100px" className="object-cover object-center" priority />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#dff5f1] via-[#dff5f1e8] via-32% to-transparent" />
-          <div className="relative z-10 flex h-full max-w-[400px] flex-col justify-center px-8 sm:px-11">
-            <h2 className="text-[27px] font-semibold leading-[1.08] tracking-[-.035em] text-forest-900">Many paths.<br />A brighter you.</h2>
-            <span className="mt-5 block h-0.5 w-10 bg-[#41a993]" />
-            <p className="mt-4 max-w-[220px] text-[15px] leading-relaxed text-ink-600">Nagaland’s tomorrow needs your unique journey.</p>
-          </div>
-        </section>
-
-        <section className="mt-5 grid gap-5 md:grid-cols-2" aria-label="Recommended possibilities">
-          {suggestions.map((suggestion, index) => {
-            const image = visualBySlug[suggestion.field.slug] ?? fallbackVisuals[index % fallbackVisuals.length];
-            const reason = suggestion.reasons[0];
-            return <article key={suggestion.field.slug} className={`grid h-[174px] min-w-0 grid-cols-[52%_48%] overflow-hidden rounded-2xl border border-white ${accents[index]} shadow-[0_1px_0_rgba(31,74,60,.03)]`}>
-              <div className="relative min-w-0 overflow-hidden"><Image src={image} alt="" fill sizes="(max-width: 768px) 52vw, 360px" className="object-cover object-left" /></div>
-              <div className="flex min-w-0 flex-col justify-center px-4 py-4 sm:px-6">
-                <h2 className="text-[18px] font-semibold leading-[1.12] tracking-[-.025em] text-forest-900">{suggestion.field.name}</h2>
-                <Link href={`/explore/${suggestion.field.slug}`} className="cb-source mt-5 w-fit text-sm">Explore this <ArrowRight className="h-4 w-4" /></Link>
-                {reason ? <p className="sr-only">{FACTOR_LABELS[reason.factor]}: {reason.detail}</p> : null}
-              </div>
-            </article>;
-          })}
-        </section>
-
-        <section id="why" className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#c1e2df] bg-[#eef9f5] px-6 py-4"><div><p className="text-sm font-semibold text-forest-900">Starting points, not predictions.</p><p className="mt-1 text-sm text-ink-500">We use what you shared to help you notice options. You remain in charge.</p></div><ButtonLink href="/counselling" variant="secondary">Change my answers<ArrowRight className="h-4 w-4" /></ButtonLink></section>
-      </div>
-    </div>
-  </JourneyShell>;
+  if (!state) return <div className="flex min-w-0"><JourneyRail /><main className="min-w-0 flex-1"><div className="cb-container cb-page"><EmptyState icon={<Compass className="h-5 w-5" />} title="Let’s find your starting points." description="A few short questions help us show possibilities that may be worth exploring." action={<ButtonLink href="/start">Start here<ArrowRight className="h-4 w-4" /></ButtonLink>} /></div></main></div>;
+  const snapshot = state.snapshot;
+  const suggestions = (await suggestFields(snapshot, 4)).slice(0, 3);
+  const stageLabel = snapshot.stage === "class10" ? "Class 10" : snapshot.stage === "class12" ? "Class 12" : "Graduate";
+  const interests = snapshot.interests.slice(0, 2).map((value) => labelFor("interest", value));
+  const strengths = snapshot.strengths.slice(0, 2).map((value) => labelFor("strength", value));
+  const goals = snapshot.goals.slice(0, 1).map((value) => labelFor("goal", value));
+  return <div className="flex min-w-0"><JourneyRail /><main className="min-w-0 flex-1"><div className="cb-container cb-page mx-auto max-w-[1320px]"><header className="flex items-start justify-between gap-5"><div><h1 className="text-[clamp(2.2rem,4.5vw,3.8rem)] font-semibold leading-[1.04] tracking-[-.05em] text-[#092b25]">This is what we understood about you.</h1><p className="mt-3 text-base text-ink-500">Your answers are starting points, not labels. You can edit them anytime.</p></div><Link href="/counselling?edit=interests" className="hidden shrink-0 items-center gap-2 pt-3 text-sm font-semibold text-[#6043bd] underline decoration-[#baa9ef] underline-offset-4 sm:inline-flex">Edit my answers <Edit3 className="h-4 w-4" /></Link></header><Link href="/counselling?edit=interests" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#6043bd] sm:hidden">Edit my answers <Edit3 className="h-4 w-4" /></Link><section className="mt-6 grid gap-5 rounded-2xl border border-[#d9e8e5] bg-[#f2faf8] p-6 md:grid-cols-[.9fr_1.15fr_1.15fr_1fr]"><div className="flex items-center gap-4 border-b border-ink-100 pb-5 md:border-b-0 md:border-r md:pb-0 md:pr-5"><span className="grid h-16 w-16 place-items-center rounded-full bg-[#e8e0ff] text-2xl font-semibold text-[#644bb5]">{(snapshot.stageDetail ?? "A").slice(0, 2).toUpperCase()}</span><div><p className="font-semibold text-ink-800">{stageLabel}</p><p className="mt-2 flex items-center gap-1 text-sm text-ink-600"><MapPin className="h-4 w-4 text-[#24846f]" />{snapshot.district ?? "Nagaland"}</p></div></div><div className="border-b border-ink-100 pb-5 md:border-b-0 md:border-r md:pb-0 md:pr-5"><p className="font-semibold text-[#155b4d]">Interests</p><div className="mt-4 space-y-3">{interests.length ? interests.map((item) => <AnswerPill key={item} icon={<Monitor className="h-5 w-5" />} tone="bg-[#e9e2ff] text-[#5e4aaa]">{item}</AnswerPill>) : <p className="text-sm text-ink-500">Not shared yet</p>}</div></div><div className="border-b border-ink-100 pb-5 md:border-b-0 md:border-r md:pb-0 md:pr-5"><p className="font-semibold text-[#155b4d]">Strengths</p><div className="mt-4 space-y-3">{strengths.length ? strengths.map((item, index) => <AnswerPill key={item} icon={index ? <Search className="h-5 w-5" /> : <Lightbulb className="h-5 w-5" />} tone={index ? "bg-[#e9e2ff] text-[#5e4aaa]" : "bg-[#d9f2e8] text-[#258b70]"}>{item}</AnswerPill>) : <p className="text-sm text-ink-500">Not shared yet</p>}</div></div><div><p className="font-semibold text-[#155b4d]">Goals</p><div className="mt-4 space-y-3">{goals.length ? goals.map((item) => <AnswerPill key={item} icon={<Target className="h-5 w-5" />} tone="bg-[#ffedb8] text-[#9b7617]">{item}</AnswerPill>) : <p className="text-sm text-ink-500">Not shared yet</p>}</div></div></section><section className="mt-5 flex items-start gap-3 rounded-2xl border border-[#d2e2f4] bg-[#eff7ff] px-5 py-4"><CircleHelp className="mt-0.5 h-5 w-5 shrink-0 text-[#2877df]" /><div><p className="text-sm font-semibold text-[#194b71]">These are directions worth exploring, not final answers.</p><p className="mt-1 text-sm text-ink-500">Your journey is unique. You can explore, learn, and change your mind as you grow.</p></div></section><section className="mt-6"><h2 className="text-2xl font-semibold tracking-[-.03em] text-[#092b25]">Your possibilities</h2><p className="mt-2 text-sm text-ink-500">Based on your interests and strengths, here are some paths you might enjoy exploring.</p><div className="mt-5 grid gap-4 xl:grid-cols-3">{suggestions.map((suggestion, index) => { const image = visualBySlug[suggestion.field.slug] ?? fallbackVisuals[index % fallbackVisuals.length]; const reason = suggestion.reasons[0]; return <article key={suggestion.field.slug} className="overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-[0_1px_3px_rgba(15,23,42,.04)]"><div className="relative h-32"><Image src={image} alt="" fill sizes="360px" className="object-cover object-center" /></div><div className="p-4"><h3 className="text-base font-semibold text-[#092b25]">{suggestion.field.name}</h3><p className="mt-2 line-clamp-2 text-sm leading-relaxed text-ink-500">{suggestion.field.overview}</p>{reason ? <p className="mt-3 text-sm font-semibold text-[#5f48b4] underline underline-offset-4">Why this? <span className="sr-only">{FACTOR_LABELS[reason.factor]}: {reason.detail}</span>ⓘ</p> : null}<ButtonLink href={`/explore/${suggestion.field.slug}`} className="mt-4">Explore <ArrowRight className="h-4 w-4" /></ButtonLink></div></article>; })}</div></section></div></main></div>;
 }
