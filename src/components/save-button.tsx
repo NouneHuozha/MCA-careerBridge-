@@ -27,9 +27,9 @@ export function SavedProvider({ signedIn, children }: { signedIn: boolean; child
   return <SavedContext.Provider value={{ keys, ready, signedIn, update }}>{children}</SavedContext.Provider>;
 }
 
-export function SaveButton({ itemType, itemRef, label, initiallySaved = false, className }: {
+export function SaveButton({ itemType, itemRef, label, initiallySaved = false, className, saveText = "Save for later", savedText = "Saved" }: {
   itemType: "field" | "career" | "course" | "institution" | "pathway" | "scholarship" | "exam" | "opportunity";
-  itemRef: string; label: string; initiallySaved?: boolean; className?: string;
+  itemRef: string; label: string; initiallySaved?: boolean; className?: string; saveText?: string; savedText?: string;
 }) {
   const context = useContext(SavedContext);
   const router = useRouter();
@@ -59,7 +59,7 @@ export function SaveButton({ itemType, itemRef, label, initiallySaved = false, c
   return <span className={cx("inline-flex flex-col items-start gap-2", className)}>
     <button type="button" onClick={toggle} disabled={pending || (context?.signedIn && !context.ready)} aria-pressed={saved} aria-label={`${saved ? "Unsave" : "Save"} ${label}`} className={cx("cb-button border px-4 py-2 text-sm", saved ? "border-forest-500 bg-mint text-forest-800" : "border-lavender-ink/30 bg-lavender text-lavender-ink hover:border-lavender-ink/60")}>
       {pending ? <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" /> : saved ? <BookmarkCheck aria-hidden className="h-4 w-4" /> : <Bookmark aria-hidden className="h-4 w-4" />}
-      {pending ? "Saving…" : saved ? "Saved" : "Save for later"}
+      {pending ? "Saving…" : saved ? savedText : saveText}
     </button>
     {needsAuth && <span role="status" className="rounded-lg border border-lavender-ink/20 bg-lavender/40 px-3 py-2 text-xs text-ink-700"><Link href={`/sign-in?next=${encodeURIComponent(pathname)}`} className="font-bold text-forest-700 underline underline-offset-4">Sign in</Link> to keep your shortlist.</span>}
     {notice && <span role="status" className="text-xs text-ink-600">{notice}{saved && <Link href="/saved" className="ml-2 font-semibold text-forest-700 underline underline-offset-4">View saved →</Link>}</span>}
