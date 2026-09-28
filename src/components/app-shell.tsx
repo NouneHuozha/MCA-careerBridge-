@@ -17,7 +17,8 @@ export function AppShell({ user, children }: { user: AppUser; children: ReactNod
   const isStart = pathname.startsWith("/start");
   const isProfile = pathname.startsWith("/profile");
   const isJourney = pathname.startsWith("/my-journey") || pathname.startsWith("/reflection");
-  const isGuidedFlow = isStart || isCounselling || isJourney;
+  const isGuidance = pathname.startsWith("/guidance");
+  const isGuidedFlow = isStart || isCounselling || isJourney || isGuidance;
   const showPageBack = !isAdmin && !isGuidedFlow && !isProfile;
   return <SavedProvider key={user?.email ?? "guest"} signedIn={Boolean(user)}><>{!isAdmin && !isGuidedFlow && <SiteNav user={user ? { name: user.name, email: user.email } : null} />}<main id="main" className="min-w-0 flex-1">{showPageBack && <PageBack />}{children}</main>{!isAdmin && !isGuidedFlow && <SiteFooter />}{!isAdmin && !isGuidedFlow && <MentorWidget />}</></SavedProvider>;
 }

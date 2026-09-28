@@ -84,6 +84,7 @@ export function CounsellingExperience({ initial, focusKey }: { initial: State; f
         else {
           const completed = await finished.json() as State;
           setState(completed); syncJourney(completed); setSelected([]); setOther(""); setText("");
+          router.push("/guidance/complete");
         }
       } else if (historyKey) {
         const current = await fetch("/api/counselling").then((response) => response.json() as Promise<State>);
