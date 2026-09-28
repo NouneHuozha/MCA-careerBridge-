@@ -232,6 +232,29 @@ export async function startSession(stage: Stage, stageDetail: string | null): Pr
   return created[0].id;
 }
 
+export async function updateSessionStartingPoint(stage: Stage, stageDetail: string): Promise<boolean> {
+  const existing = await findSession();
+  if (!existing) throw new Error("No counselling session is available to update");
+  const stageChanged = existing.stage !== stage;
+  await db
+    .update(counsellingSessions)
+    .set({
+      stage,
+      stageDetail,
+      status: stageChanged ? "in_progress" : existing.status,
+      completedAt: stageChanged ? null : existing.completedAt,
+      totalSteps: questionsForStage(stage).length,
+      stepIndex: stageChanged ? 0 : existing.stepIndex,
+      updatedAt: new Date(),
+    })
+    .where(eq(counsellingSessions.id, existing.id));
+  const user = await getCurrentUser();
+  if (user) await syncProfileStage(user.id, stage, stageDetail);
+  const refreshed = await getSessionState();
+  if (refreshed) await persistSnapshot(refreshed.snapshot);
+  return stageChanged;
+}
+
 async function syncProfileStage(userId: number, stage: Stage, stageDetail: string | null) {
   const profileId = await getOrCreateProfileId(userId);
   await db

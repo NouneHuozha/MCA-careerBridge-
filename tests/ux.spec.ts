@@ -39,23 +39,32 @@ test('animated guidance tiles can be selected and paused', async ({ page }) => {
 });
 
 test('completed counselling hands off to the transition and reflection', async ({ page }) => {
+  await page.goto('/start');
+  await page.getByText('I’m finishing or have completed Class 10').click();
+  await page.getByText('I’m still studying', { exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page).toHaveURL(/\/counselling$/);
   const answers: [string, string[]][] = [
     ['subjects_enjoy', ['mathematics']], ['stream_intent', ['science']],
     ['interests', ['technology']], ['strengths', ['problem-solving']],
     ['goals', ['technology']], ['values', ['learning']],
     ['location_pref', ['within-nagaland']], ['budget', ['low']],
   ];
-  for (const [questionKey, values] of answers) {
-    const response = await page.request.post('/api/counselling', { data: { action: 'answer', stage: 'class10', questionKey, values } });
-    expect(response.ok()).toBeTruthy();
-  }
-  const completion = await page.request.post('/api/counselling', { data: { action: 'complete' } });
-  expect(completion.ok()).toBeTruthy();
+  const completion = await page.evaluate(async (payload) => {
+    for (const [questionKey, values] of payload) {
+      const response = await fetch('/api/counselling', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'answer', questionKey, values }) });
+      const body = await response.json();
+      if (!response.ok) return { ok: false, status: response.status, questionKey, body };
+    }
+    const response = await fetch('/api/counselling', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'complete' }) });
+    return { ok: response.ok, status: response.status, body: await response.json() };
+  }, answers);
+  expect(completion.ok, JSON.stringify(completion)).toBeTruthy();
   await page.goto('/counselling/complete');
   await expect(page.getByRole('heading', { name: 'We’ve finished getting to know you' })).toBeVisible();
   await page.getByRole('link', { name: 'Review what we understood' }).click();
   await expect(page).toHaveURL(/\/reflection/);
-  await expect(page.getByRole('heading', { name: 'What we learned about you' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Here’s what we understood' })).toBeVisible();
 });
 
 test('field and pathway details reveal one topic at a time', async ({ page }) => {

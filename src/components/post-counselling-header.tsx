@@ -24,7 +24,7 @@ function BrandLink() {
   );
 }
 
-export function PostCounsellingHeader() {
+export function PostCounsellingHeader({ activeHref }: { activeHref?: string } = {}) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -50,7 +50,8 @@ export function PostCounsellingHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="inline-flex min-h-11 items-center rounded-lg px-3 text-[14px] font-medium text-[#314c42] transition-colors hover:bg-[#eef3eb] hover:text-[#124d3d] focus-visible:outline-offset-2"
+              aria-current={activeHref === item.href ? "page" : undefined}
+              className={`inline-flex min-h-11 items-center rounded-lg px-3 text-[14px] font-medium transition-colors hover:bg-[#eef3eb] hover:text-[#124d3d] focus-visible:outline-offset-2 ${activeHref === item.href ? "bg-[#eef3eb] text-[#124d3d]" : "text-[#314c42]"}`}
             >
               {item.label}
             </Link>
@@ -97,7 +98,8 @@ export function PostCounsellingHeader() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-[#314c42] hover:bg-[#eef3eb]"
+                aria-current={activeHref === item.href ? "page" : undefined}
+                className={`flex min-h-11 items-center rounded-lg px-3 text-sm font-medium hover:bg-[#eef3eb] ${activeHref === item.href ? "bg-[#eef3eb] text-[#124d3d]" : "text-[#314c42]"}`}
               >
                 {item.label}
               </Link>
