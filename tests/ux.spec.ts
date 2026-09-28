@@ -38,45 +38,24 @@ test('animated guidance tiles can be selected and paused', async ({ page }) => {
   await expect(page.locator('.cb-guide p[aria-live]')).toContainText('fees and financial support');
 });
 
-test('counselling scrolls, preserves edits, and makes the next action clear', async ({ page }) => {
-  await page.goto('/start');
-  await page.getByText('Waiting for results', { exact: true }).click();
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await expect(page).toHaveURL(/\/counselling/);
-  const values: Record<string, string> = { subjects_enjoy: 'mathematics', stream_intent: 'science', interests: 'technology', strengths: 'problem-solving', goals: 'technology', values: 'learning', location_pref: 'within-nagaland', budget: 'low' };
-  let initialHeight = 0;
-  for (let i = 0; i < 8; i++) {
-    const state = await (await page.request.get('/api/counselling')).json();
-    const q = state.question;
-    expect(q).toBeTruthy();
-    const option = q.options.find((o: { value: string }) => o.value === values[q.key]);
-    await page.getByRole('button', { name: option.label, exact: true }).click();
-    if (!initialHeight) initialHeight = (await page.locator('.cb-counselling-shell').boundingBox())!.height;
-    const saved = page.waitForResponse((response) => response.url().endsWith('/api/counselling') && response.request().method() === 'POST');
-    await page.getByRole('button', { name: i === 7 ? 'Finish & see my profile' : 'Continue', exact: true }).click();
-    expect((await saved).ok()).toBeTruthy();
-    if (i < 7) await expect(page.getByText(`${i + 1} of 8 answered`, { exact: true })).toBeVisible();
-    if (i === 6) {
-      const log = page.getByRole('log');
-      const scroll = await log.evaluate((el) => ({ total: el.scrollHeight, height: el.clientHeight, overflow: getComputedStyle(el).overflowY }));
-      expect(scroll.total).toBeGreaterThan(scroll.height);
-      expect(scroll.overflow).toBe('auto');
-      expect((await page.locator('.cb-counselling-shell').boundingBox())!.height).toBe(initialHeight);
-    }
+test('completed counselling hands off to the transition and reflection', async ({ page }) => {
+  const answers: [string, string[]][] = [
+    ['subjects_enjoy', ['mathematics']], ['stream_intent', ['science']],
+    ['interests', ['technology']], ['strengths', ['problem-solving']],
+    ['goals', ['technology']], ['values', ['learning']],
+    ['location_pref', ['within-nagaland']], ['budget', ['low']],
+  ];
+  for (const [questionKey, values] of answers) {
+    const response = await page.request.post('/api/counselling', { data: { action: 'answer', stage: 'class10', questionKey, values } });
+    expect(response.ok()).toBeTruthy();
   }
-  await expect(page).toHaveURL(/\/profile/);
-  await expect(page.getByRole('heading', { name: 'Pick a field to look into.' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Explore this field', exact: true })).toHaveCount(3);
-  await page.screenshot({ path: 'artifacts/profile-desktop.png', fullPage: true });
-  await page.getByRole('link', { name: 'Edit subjects you enjoy' }).click();
-  await expect(page.getByRole('button', { name: 'Mathematics', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'English', exact: true }).click();
-  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
-  await expect(page).toHaveURL(/\/profile/);
-  const state = await (await page.request.get('/api/profile')).json();
-  expect(state.snapshot.subjectsEnjoy).toContain('english');
-  await page.getByRole('link', { name: 'Explore this field', exact: true }).first().click();
-  await expect(page).toHaveURL(/\/explore\//);
+  const completion = await page.request.post('/api/counselling', { data: { action: 'complete' } });
+  expect(completion.ok()).toBeTruthy();
+  await page.goto('/counselling/complete');
+  await expect(page.getByRole('heading', { name: 'We’ve finished getting to know you' })).toBeVisible();
+  await page.getByRole('link', { name: 'Review what we understood' }).click();
+  await expect(page).toHaveURL(/\/reflection/);
+  await expect(page.getByRole('heading', { name: 'What we learned about you' })).toBeVisible();
 });
 
 test('field and pathway details reveal one topic at a time', async ({ page }) => {

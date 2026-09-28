@@ -30,7 +30,7 @@ const sectionLabels: Record<CounsellingQuestion["section"], string> = {
   practical: "Practical realities",
 };
 
-export function CounsellingExperience({ initial, focusKey }: { initial: State; focusKey?: string }) {
+export function CounsellingExperience({ initial, focusKey, returnTo = "/reflection" }: { initial: State; focusKey?: string; returnTo?: string }) {
   const router = useRouter();
   const { setJourney } = useCounsellingJourney();
   const [state, setState] = useState(initial);
@@ -73,18 +73,15 @@ export function CounsellingExperience({ initial, focusKey }: { initial: State; f
       const response = await fetch("/api/counselling", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, questionKey: question?.key, values: chosen, text: question?.answerType === "text" ? (unsure ? "Not sure yet" : text.trim()) : null, stage: state.stage }) });
       const next = await response.json() as State & { error?: string };
       if (!response.ok || next.error) { setError(next.error ?? "Couldn’t save. Please try again."); return; }
-      if (focusKey && action !== "reset") { router.push("/reflection"); router.refresh(); return; }
+      if (focusKey && action !== "reset") { router.push(returnTo); router.refresh(); return; }
       if (action === "reset") {
         setState(next); syncJourney(next); setSelected([]); setOther(""); setText("");
         return;
       }
       if (!next.question) {
         const finished = await fetch("/api/counselling", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "complete" }) });
-        if (!finished.ok) setError("Your answers are saved. You can open My possibilities below.");
-        else {
-          const completed = await finished.json() as State;
-          setState(completed); syncJourney(completed); setSelected([]); setOther(""); setText("");
-        }
+        if (!finished.ok) setError("Your answers are saved, but we couldn’t finish just now. Please try again.");
+        else { router.replace("/counselling/complete"); router.refresh(); return; }
       } else if (historyKey) {
         const current = await fetch("/api/counselling").then((response) => response.json() as Promise<State>);
         setState(current); syncJourney(current); setHistoryKey(null); setSelected([]); setOther(""); setText("");

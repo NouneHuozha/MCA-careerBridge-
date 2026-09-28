@@ -16,12 +16,13 @@ const sectionStage: Record<CounsellingQuestion["section"], CounsellingStageKey> 
   practical: "practical",
 };
 
-export default async function CounsellingPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
+export default async function CounsellingPage({ searchParams }: { searchParams: Promise<{ edit?: string; returnTo?: string }> }) {
   const params = await searchParams;
   const state = await getSessionState();
   if (!state) redirect("/start");
   const requested = params.edit ? findQuestion(params.edit) : null;
   const focus = requested && (!requested.stages || requested.stages.includes(state.stage)) ? requested : null;
+  if (state.status === "completed" && !focus) redirect("/counselling/complete");
   const question = focus ?? nextQuestion(state.stage, state.snapshot.answeredKeys);
   const currentSection: CounsellingStageKey = question ? sectionStage[question.section] : "reflection";
   const coreQuestions = questionsForStage(state.stage);
@@ -29,6 +30,6 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   const progress = progressFor(state.stage, state.snapshot.answeredKeys);
   const questionProgress = { current: progress.answered, total: progress.total };
   return <CounsellingJourneyShell currentSection={currentSection} completedSections={completedSections} progress={questionProgress}><main className="cb-container cb-page cb-counselling-page">
-    <CounsellingExperience key={params.edit ?? String(state.sessionId)} focusKey={focus?.key} initial={{ started: true, stage: state.stage, stageDetail: state.stageDetail, snapshot: state.snapshot, answers: state.answers, question, progress, sections: SECTIONS, completed: state.status === "completed" || !question }} />
+    <CounsellingExperience key={params.edit ?? String(state.sessionId)} focusKey={focus?.key} returnTo={params.returnTo === "/counselling/complete" ? params.returnTo : "/reflection"} initial={{ started: true, stage: state.stage, stageDetail: state.stageDetail, snapshot: state.snapshot, answers: state.answers, question, progress, sections: SECTIONS, completed: state.status === "completed" || !question }} />
   </main></CounsellingJourneyShell>;
 }
