@@ -21,7 +21,14 @@ test("completed counselling presents the transition and supports review, correct
 
   await page.goto("/counselling/complete");
   await expect(page.getByRole("heading", { name: "We’ve finished getting to know you" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Save and come back later" })).toHaveAttribute("href", "/");
+  await expect(page.getByRole("navigation", { name: "Personalized guidance" }).getByRole("link")).toHaveText([
+    "My Guidance",
+    "My Explorations",
+    "Explore Library",
+    "Help",
+    "Profile",
+  ]);
+  await expect(page.getByRole("link", { name: "Save and come back later" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Review what we understood" })).toHaveAttribute("href", "/reflection");
   await expect(page.getByText("This is a starting point, not a final judgement.")).toBeVisible();
   await page.screenshot({ path: "/tmp/cb-transition-desktop.png", fullPage: true });
@@ -34,6 +41,7 @@ test("completed counselling presents the transition and supports review, correct
   const mobileNav = page.getByRole("navigation", { name: "Mobile personalized guidance" });
   await expect(mobileNav.getByRole("link", { name: "My Guidance" })).toBeVisible();
   await expect(mobileNav.getByRole("link", { name: "Explore Library" })).toBeVisible();
+  await expect(mobileNav.getByRole("link", { name: "Save and come back later" })).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(mobileNav).toHaveCount(0);
 
@@ -49,5 +57,5 @@ test("completed counselling presents the transition and supports review, correct
 
   await page.getByRole("link", { name: "Review what we understood" }).click();
   await expect(page).toHaveURL(/\/reflection$/);
-  await expect(page.getByRole("heading", { name: "What we learned about you" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Here’s what we understood" })).toBeVisible();
 });

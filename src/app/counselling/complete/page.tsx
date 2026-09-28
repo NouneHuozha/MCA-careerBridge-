@@ -91,9 +91,6 @@ export default async function CounsellingCompletePage() {
 
           <div className="mt-7 w-full max-w-[500px] border-t border-[#e5e2d8] pt-5">
             <p className="font-serif text-[15px] text-[#77786f]">You can change your answers later.</p>
-            <p className="mt-2 text-xs leading-relaxed text-[#898a82]">
-              We’ll show what we understood first. You can correct anything before exploring possibilities.
-            </p>
           </div>
         </section>
       </div>

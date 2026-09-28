@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { BookmarkCheck, Menu, UserRound, X } from "lucide-react";
+import { Menu, UserRound, X } from "lucide-react";
 
 const destinations = [
   { href: "/my-journey", label: "My Guidance" },
@@ -58,16 +58,6 @@ export function PostCounsellingHeader({ activeHref }: { activeHref?: string } = 
           ))}
         </nav>
 
-        <div className="hidden shrink-0 items-center gap-4 lg:flex">
-          <Link
-            href="/"
-            className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[#35675b] underline decoration-[#a5c4b4] underline-offset-4 transition-colors hover:text-[#124d3d]"
-          >
-            <BookmarkCheck aria-hidden className="h-4 w-4" />
-            Save and come back later
-          </Link>
-        </div>
-
         <div className="flex items-center gap-2 lg:hidden">
           <Link
             href="/profile"
@@ -104,14 +94,6 @@ export function PostCounsellingHeader({ activeHref }: { activeHref?: string } = 
                 {item.label}
               </Link>
             ))}
-            <Link
-              href="/"
-              onClick={() => setMobileOpen(false)}
-              className="col-span-full mt-2 inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#dce4da] bg-white px-3 text-sm font-medium text-[#35675b]"
-            >
-              <BookmarkCheck aria-hidden className="h-4 w-4" />
-              Save and come back later
-            </Link>
           </div>
         </nav>
       )}
