@@ -20,20 +20,20 @@ import { getAdmissionInfo, getCourse, getField, getInstitution, getPathway } fro
 import { getSessionState } from "@/services/profile";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Application and requirements · BCA" };
+export const metadata = { title: "Application and requirements" };
 
 type CheckItem = { title: string; detail: string; icon: typeof CalendarDays };
 
 const checklist: CheckItem[] = [
   { title: "Current application dates", detail: "Check the start and end dates in the official notice.", icon: CalendarDays },
-  { title: "Course availability for this admission cycle", detail: "Confirm that BCA is offered in the current cycle.", icon: GraduationCap },
+  { title: "Course availability for this admission cycle", detail: "Confirm that this course is offered in the current cycle.", icon: GraduationCap },
   { title: "Current eligibility and required subjects", detail: "Review the latest eligibility criteria and subject requirements.", icon: FileText },
   { title: "Application fee and payment method", detail: "Check the applicable fee and the available payment method(s).", icon: CreditCard },
   { title: "Official contact for questions", detail: "Note the official contact details for any queries.", icon: Phone },
 ];
 
 const preparationCards = [
-  { title: "Review the current BCA programme notice", detail: "Read the latest information released by the institution for this admission cycle.", icon: FileText },
+  { title: "Review the current programme notice", detail: "Read the latest information released by the institution for this admission cycle.", icon: FileText },
   { title: "Check eligibility and admission method", detail: "Understand the eligibility criteria, required subjects, and admission method for this course at this institution.", icon: CheckCircle2 },
   { title: "Gather only the documents the official notice requests", detail: "Keep the documents ready as specified in the institution’s official notice.", icon: FolderOpen },
 ];
@@ -77,7 +77,7 @@ export default async function ApplicationRequirementsPage({ params }: { params: 
   ]);
   if (!state) redirect("/start");
   if (state.status !== "completed") redirect("/counselling");
-  if (!field || !route || !course || course.slug !== "bca" || !route.courseSlugs?.includes(course.slug) || !institution) notFound();
+  if (!field || !route || !course || !route.courseSlugs?.includes(course.slug) || !institution) notFound();
 
   const record = admissions.find((item) => item.courseSlug === course.slug) ?? admissions.find((item) => item.courseSlug == null);
   const detail = `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(pathwaySlug)}/courses/${encodeURIComponent(courseSlug)}/institutions/${encodeURIComponent(code)}`;
