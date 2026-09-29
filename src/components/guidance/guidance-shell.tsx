@@ -158,6 +158,15 @@ function ExplorationContextBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const sourceCheck = searchParams.get("view") === "source-check";
+  if (pathname === "/guidance/not-sure") return <div role="region" aria-label="Orientation context" className="border-b border-[#dfe8e1] bg-[#edf4ef]">
+    <div className="mx-auto grid max-w-[1500px] gap-2 px-5 py-3 sm:px-8 lg:min-h-[64px] lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-6 lg:px-12 lg:py-2">
+      <Link href="/guidance/possibilities" className="inline-flex min-h-9 w-fit items-center gap-2 text-sm font-medium text-[#35675b] underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[#174d42] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
+        <ArrowLeft aria-hidden className="h-4 w-4" />Back to possibilities
+      </Link>
+      <p className="m-0 font-serif text-[1rem] leading-snug text-[#394c44] lg:text-center">Exploring possibilities<span aria-hidden className="mx-2">·</span>Orientation</p>
+      <span aria-hidden className="hidden lg:block" />
+    </div>
+  </div>;
   const parts = pathname.split("/").filter(Boolean);
   if (parts[0] !== "guidance" || parts[1] !== "direction" || !parts[2]) return null;
 
