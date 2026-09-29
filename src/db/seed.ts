@@ -160,7 +160,7 @@ async function runSeed(): Promise<boolean> {
 export function ensureSeeded(): Promise<boolean> {
   if (!globalForSeed.__careerbridgeSeed) {
     globalForSeed.__careerbridgeSeed = runSeed().catch((error) => {
-      console.error("[careerbridge] seed failed", error);
+      console.warn("[careerbridge] database seed unavailable; using bundled catalogue content", error);
       globalForSeed.__careerbridgeSeed = undefined;
       return false;
     });

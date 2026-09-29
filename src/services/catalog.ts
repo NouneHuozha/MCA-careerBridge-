@@ -44,11 +44,12 @@ function asRows<T>(seeds: unknown[]): T[] {
 
 async function query<T>(run: () => Promise<T[]>, fallback: () => T[]): Promise<T[]> {
   try {
-    await ensureSeeded();
+    const seeded = await ensureSeeded();
+    if (!seeded) return fallback();
     const rows = await run();
     return rows.length ? rows : fallback();
   } catch (error) {
-    console.error("[careerbridge] catalog query failed, using bundled content", error);
+    console.warn("[careerbridge] catalog query unavailable, using bundled content", error);
     return fallback();
   }
 }
