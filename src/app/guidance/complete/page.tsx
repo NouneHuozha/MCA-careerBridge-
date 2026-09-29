@@ -24,7 +24,7 @@ export default async function GuidanceCompletionPage() {
   if (state.status !== "completed") redirect("/counselling");
 
   return (
-    <main className="min-h-[calc(100dvh-77px)] px-5 pb-12 pt-8 sm:px-8 sm:pt-10 lg:pt-11">
+    <main className="min-h-[calc(100dvh-100px)] px-5 pb-12 pt-8 sm:px-8 sm:pt-10 lg:pt-11">
       <section aria-labelledby="completion-title" className="mx-auto flex max-w-[900px] flex-col items-center text-center">
         <h1 id="completion-title" className="max-w-full font-serif text-[clamp(2.25rem,5vw,3.8rem)] leading-[1.08] tracking-[-.045em] text-[#202522]">We’ve finished getting to know you</h1>
         <p className="mt-4 max-w-[720px] font-serif text-[clamp(1.1rem,2vw,1.45rem)] leading-[1.42] text-[#454740]">Before we explore possible directions, let’s look at what you shared and make sure we understood you correctly.</p>
