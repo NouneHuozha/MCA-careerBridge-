@@ -128,7 +128,7 @@ export default async function ApplicationRequirementsPage({ params }: { params: 
           </aside>
         </div>
 
-        <section className="mt-5 flex flex-wrap items-center gap-4 rounded-lg bg-[#e5f4ef] px-6 py-4"><Flag aria-hidden className="h-6 w-6 text-[#176b5d]" /><h2 className="font-serif text-[1.25rem] font-semibold text-[#26312c]">After you apply</h2><p className="text-sm text-[#718078]">Save your confirmation, note next steps, and check the official source for updates.</p></section>
+        <section className="mt-5 flex flex-wrap items-center gap-4 rounded-lg bg-[#e5f4ef] px-6 py-4"><Flag aria-hidden className="h-6 w-6 text-[#176b5d]" /><div><h2 className="font-serif text-[1.25rem] font-semibold text-[#26312c]">After you apply</h2><p className="text-sm text-[#718078]">Save your confirmation, note next steps, and check the official source for updates.</p></div><Link href={`${detail.split("/institutions/")[0]}/exams-scholarships`} className="ml-auto inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#176b6b] px-4 text-sm font-semibold text-white transition hover:bg-[#105858]">Check exams and scholarships <span aria-hidden>→</span></Link></section>
         <footer className="flex flex-col gap-3 border-t border-[#e0e5df] pb-1 pt-4 text-xs text-[#6f7973] sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-3"><span aria-hidden className="text-xl text-[#25806a]">◢</span><span className="font-serif text-sm font-semibold text-[#26312c]">CareerBridge</span><span aria-hidden className="h-5 w-px bg-[#dfe5df]" /><span>Explore today. A brighter tomorrow.</span></div><p>General preparation guidance is not the same as institution-specific instructions.</p></footer>
       </section>
     </main>
