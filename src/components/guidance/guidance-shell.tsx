@@ -130,6 +130,7 @@ function currentContext(tail: string[], sourceCheck = false) {
   const courseTrail = courseIndex >= 0 && tail[courseIndex + 1]
     ? `Courses · ${titleForSlug(tail[courseIndex + 1])}`
     : null;
+  if (tail.at(-2) === "sources" && tail.at(-1) === "official" && courseTrail) return `${courseTrail} · Official source`;
   if (tail.at(-1) === "practical-checks" && courseIndex >= 0 && tail[courseIndex + 1]) return `Practical checks · ${tail[courseIndex + 1] === "bca" ? "BCA" : titleForSlug(tail[courseIndex + 1])}`;
   if (tail.at(-1) === "application") return `${courseTrail ? `${courseTrail} · ` : ""}Application and requirements`;
   if (tail.at(-1) === "exams-scholarships") return `${courseTrail ? `${courseTrail} · ` : ""}Entrance exams and scholarships`;
@@ -169,7 +170,8 @@ function ExplorationContextBar() {
   const courseSlug = courseIndex >= 0 ? tail[courseIndex + 1] : undefined;
   const courseName = courseSlug === "bca" ? "BCA" : titleForSlug(courseSlug ?? "");
   const isPracticalChecks = tail.at(-1) === "practical-checks" && routeIndex >= 0 && tail[routeIndex + 1] && courseSlug;
-  const courseDetailHref = isPracticalChecks
+  const isOfficialSource = tail.at(-2) === "sources" && tail.at(-1) === "official" && routeIndex >= 0 && courseSlug;
+  const courseDetailHref = isPracticalChecks || isOfficialSource
     ? `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(tail[routeIndex + 1])}/courses/${encodeURIComponent(courseSlug)}`
     : null;
   const routeCoursesHref = routeIndex >= 0 && tail[routeIndex + 1]
