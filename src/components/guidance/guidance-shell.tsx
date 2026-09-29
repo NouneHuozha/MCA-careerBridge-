@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeftRight, Compass, Leaf, Search, UserRound } from "lucide-react";
+import { ArrowLeftRight, Compass, Home, Leaf, Search, UserRound } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
@@ -25,9 +25,11 @@ function ExplorationHistoryTracker() {
 
 export function GuidanceHeader() {
   const pathname = usePathname();
+  const isGuidanceHome = pathname === "/guidance";
   const isExplorations = pathname === "/guidance/explorations";
+  const guidanceClass = isGuidanceHome ? "border-b-2 border-[#286b61] text-[#174d42]" : "text-[#26312c] hover:text-[#286b61]";
   const explorationsClass = isExplorations ? "border-b-2 border-[#286b61] text-[#174d42]" : "text-[#26312c] hover:text-[#286b61]";
-  return <header className="border-b border-[#e5e6e1] bg-white"><div className="mx-auto flex min-h-[62px] max-w-[1500px] items-center gap-5 px-5 sm:px-8 lg:px-12"><GuidanceBrand /><span aria-hidden className="hidden h-8 w-px bg-[#d9ddd7] sm:block" /><nav aria-label="Exploration navigation" className="hidden items-center gap-7 sm:flex"><Link href="/guidance/explorations" aria-current={isExplorations ? "page" : undefined} className={`inline-flex min-h-11 items-center gap-2 border-b-2 border-transparent text-sm font-medium ${explorationsClass}`}><Compass aria-hidden className="h-5 w-5" /><span>My explorations</span></Link><Link href="/guidance/possibilities" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[#26312c] hover:text-[#286b61]"><ArrowLeftRight aria-hidden className="h-5 w-5" />Switch exploration</Link></nav><div className="ml-auto flex items-center gap-3"><label className="hidden items-center gap-2 rounded-lg border border-[#dfe4df] bg-[#f7f9f7] px-3 sm:flex"><Search aria-hidden className="h-4 w-4 text-[#45645b]" /><span className="sr-only">Search</span><input aria-label="Search institutions, courses or careers" placeholder="Search institutions, courses or careers..." className="h-9 w-[275px] bg-transparent text-sm outline-none placeholder:text-[#929b94]" /></label><Link href="/profile" aria-label="Profile" className="grid h-10 w-10 place-items-center rounded-full bg-[#0d5b55] text-white"><UserRound aria-hidden className="h-5 w-5" /></Link></div></div></header>;
+  return <header className="border-b border-[#e5e6e1] bg-white"><div className="mx-auto flex min-h-[62px] max-w-[1500px] items-center gap-5 px-5 sm:px-8 lg:px-12"><GuidanceBrand /><span aria-hidden className="hidden h-8 w-px bg-[#d9ddd7] sm:block" /><nav aria-label="Guidance navigation" className="hidden items-center gap-6 sm:flex"><Link href="/guidance" aria-current={isGuidanceHome ? "page" : undefined} className={`inline-flex min-h-11 items-center gap-2 border-b-2 border-transparent text-sm font-medium ${guidanceClass}`}><Home aria-hidden className="h-5 w-5" /><span>My guidance</span></Link><Link href="/guidance/explorations" aria-current={isExplorations ? "page" : undefined} className={`inline-flex min-h-11 items-center gap-2 border-b-2 border-transparent text-sm font-medium ${explorationsClass}`}><Compass aria-hidden className="h-5 w-5" /><span>My explorations</span></Link><Link href="/guidance/possibilities" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[#26312c] hover:text-[#286b61]"><ArrowLeftRight aria-hidden className="h-5 w-5" />Switch exploration</Link></nav><div className="ml-auto flex items-center gap-3"><label className="hidden items-center gap-2 rounded-lg border border-[#dfe4df] bg-[#f7f9f7] px-3 sm:flex"><Search aria-hidden className="h-4 w-4 text-[#45645b]" /><span className="sr-only">Search</span><input aria-label="Search institutions, courses or careers" placeholder="Search institutions, courses or careers..." className="h-9 w-[275px] bg-transparent text-sm outline-none placeholder:text-[#929b94]" /></label><Link href="/profile" aria-label="Profile" className="grid h-10 w-10 place-items-center rounded-full bg-[#0d5b55] text-white"><UserRound aria-hidden className="h-5 w-5" /></Link></div></div></header>;
 }
 
 function TransitionHeader() {
