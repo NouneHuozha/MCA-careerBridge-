@@ -178,8 +178,12 @@ function ExplorationContextBar() {
     ? `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(tail[routeIndex + 1])}/courses`
     : null;
   const isCourseComparison = tail.at(-1) === "compare" && courseIndex >= 0 && Boolean(routeCoursesHref);
-  const backHref = sourceCheck ? pathname : isCourseComparison && routeCoursesHref ? routeCoursesHref : courseDetailHref ?? (isOverview ? "/guidance/possibilities" : `/guidance/direction/${encodeURIComponent(slug)}`);
-  const backLabel = sourceCheck ? "Back to institution details" : isCourseComparison ? "Back to courses in this route" : courseDetailHref ? `Back to ${courseName} course details` : isOverview ? "Back to possibilities" : `Back to ${direction} overview`;
+  const courseInstitutionsHref = routeIndex >= 0 && tail[routeIndex + 1] && courseSlug
+    ? `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(tail[routeIndex + 1])}/courses/${encodeURIComponent(courseSlug)}/institutions`
+    : null;
+  const isUnavailableCourseState = tail.includes("institutions") && tail.at(-1) === "unavailable" && courseSlug === "bca" && routeIndex >= 0;
+  const backHref = sourceCheck ? pathname : isUnavailableCourseState && courseInstitutionsHref ? courseInstitutionsHref : isCourseComparison && routeCoursesHref ? routeCoursesHref : courseDetailHref ?? (isOverview ? "/guidance/possibilities" : `/guidance/direction/${encodeURIComponent(slug)}`);
+  const backLabel = sourceCheck ? "Back to institution details" : isUnavailableCourseState ? `Back to ${courseName} institutions` : isCourseComparison ? "Back to courses in this route" : courseDetailHref ? `Back to ${courseName} course details` : isOverview ? "Back to possibilities" : `Back to ${direction} overview`;
 
   return <div role="region" aria-label="Exploration context" className="border-b border-[#dfe8e1] bg-[#edf4ef]">
     <div className="mx-auto grid max-w-[1500px] gap-2 px-5 py-3 sm:px-8 lg:min-h-[72px] lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-6 lg:px-12 lg:py-2">
