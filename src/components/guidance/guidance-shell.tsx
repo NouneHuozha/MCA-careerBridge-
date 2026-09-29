@@ -171,7 +171,8 @@ function ExplorationContextBar() {
   const courseName = courseSlug === "bca" ? "BCA" : titleForSlug(courseSlug ?? "");
   const isPracticalChecks = tail.at(-1) === "practical-checks" && routeIndex >= 0 && tail[routeIndex + 1] && courseSlug;
   const isOfficialSource = tail.at(-2) === "sources" && tail.at(-1) === "official" && routeIndex >= 0 && courseSlug;
-  const courseDetailHref = isPracticalChecks || isOfficialSource
+  const isInstitutionListing = tail.at(-1) === "institutions" && routeIndex >= 0 && courseSlug === "bca";
+  const courseDetailHref = isPracticalChecks || isOfficialSource || isInstitutionListing
     ? `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(tail[routeIndex + 1])}/courses/${encodeURIComponent(courseSlug)}`
     : null;
   const routeCoursesHref = routeIndex >= 0 && tail[routeIndex + 1]
