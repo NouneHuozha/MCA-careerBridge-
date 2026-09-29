@@ -28,6 +28,15 @@ import {
 
 const ANON_COOKIE = "cb_journey";
 export const EXPLORATION_COOKIE = "cb_exploration";
+export const EXPLORATION_HISTORY_COOKIE = "cb_exploration_history";
+
+export type ExplorationHistoryRecord = {
+  directionSlug: string;
+  selectedAt: string;
+  lastLocation: string | null;
+  lastMeaningfulAt: string | null;
+  completedSteps: string[];
+};
 
 export type ExplorationState = {
   directionSlug: string;
@@ -49,6 +58,41 @@ export async function getExplorationState(): Promise<ExplorationState | null> {
   } catch {
     return null;
   }
+}
+
+export async function getExplorationHistory(): Promise<ExplorationHistoryRecord[]> {
+  try {
+    const value = (await cookies()).get(EXPLORATION_HISTORY_COOKIE)?.value;
+    if (!value) return [];
+    const parsed = JSON.parse(value) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((record): record is Record<string, unknown> => Boolean(record && typeof record === "object"))
+      .filter((record) => typeof record.directionSlug === "string" && typeof record.selectedAt === "string")
+      .slice(0, 10)
+      .map((record) => ({
+        directionSlug: (record.directionSlug as string).slice(0, 80),
+        selectedAt: record.selectedAt as string,
+        lastLocation: typeof record.lastLocation === "string" ? record.lastLocation.slice(0, 280) : null,
+        lastMeaningfulAt: typeof record.lastMeaningfulAt === "string" ? record.lastMeaningfulAt : null,
+        completedSteps: Array.isArray(record.completedSteps)
+          ? record.completedSteps.filter((step): step is string => typeof step === "string").slice(0, 10)
+          : ["reflection", "direction"],
+      }));
+  } catch {
+    return [];
+  }
+}
+
+export async function saveExplorationHistory(records: ExplorationHistoryRecord[]) {
+  const jar = await cookies();
+  jar.set(EXPLORATION_HISTORY_COOKIE, JSON.stringify(records.slice(0, 10)), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
 }
 
 export type StudentSnapshot = {
