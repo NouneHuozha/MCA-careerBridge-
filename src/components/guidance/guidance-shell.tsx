@@ -136,6 +136,7 @@ function currentContext(tail: string[], sourceCheck = false) {
   const courseTrail = courseIndex >= 0 && tail[courseIndex + 1]
     ? `Courses · ${titleForSlug(tail[courseIndex + 1])}`
     : null;
+  if (tail.at(-1) === "map" && tail.includes("institutions")) return `${courseTrail ? `${courseTrail} · ` : ""}Map and directions`;
   if (tail.at(-2) === "sources" && tail.at(-1) === "official" && courseTrail) return `${courseTrail} · Official source`;
   if (tail.at(-1) === "practical-checks" && courseIndex >= 0 && tail[courseIndex + 1]) return `Practical checks · ${tail[courseIndex + 1] === "bca" ? "BCA" : titleForSlug(tail[courseIndex + 1])}`;
   if (tail.at(-1) === "application") return `${courseTrail ? `${courseTrail} · ` : ""}Application and requirements`;
@@ -296,8 +297,10 @@ function ExplorationContextBar() {
     : null;
   const isEntranceProcessDetail = tail.at(-2) === "exams-scholarships" && Boolean(examsScholarshipsHref);
   const isUnavailableCourseState = tail.includes("institutions") && tail.at(-1) === "unavailable" && courseSlug === "bca" && routeIndex >= 0;
-  const backHref = sourceCheck ? pathname : isEntranceProcessDetail && examsScholarshipsHref ? examsScholarshipsHref : isUnavailableCourseState && courseInstitutionsHref ? courseInstitutionsHref : isCourseComparison && routeCoursesHref ? routeCoursesHref : courseDetailHref ?? (isOverview ? "/guidance/possibilities" : `/guidance/direction/${encodeURIComponent(directionSlug)}`);
-  const backLabel = sourceCheck ? "Back to institution details" : isEntranceProcessDetail ? "Back to exams and scholarships" : isUnavailableCourseState ? `Back to ${courseName} institutions` : isCourseComparison ? "Back to courses in this route" : courseDetailHref ? `Back to ${courseName} course details` : isOverview ? "Back to possibilities" : `Back to ${direction} overview`;
+  const isInstitutionMap = tail.includes("institutions") && tail.at(-1) === "map" && Boolean(tail.at(-2));
+  const institutionDetailHref = isInstitutionMap ? pathname.replace(/\/map\/?$/, "") : null;
+  const backHref = sourceCheck ? pathname : isInstitutionMap && institutionDetailHref ? institutionDetailHref : isEntranceProcessDetail && examsScholarshipsHref ? examsScholarshipsHref : isUnavailableCourseState && courseInstitutionsHref ? courseInstitutionsHref : isCourseComparison && routeCoursesHref ? routeCoursesHref : courseDetailHref ?? (isOverview ? "/guidance/possibilities" : `/guidance/direction/${encodeURIComponent(directionSlug)}`);
+  const backLabel = sourceCheck ? "Back to institution details" : isInstitutionMap ? "Back to institution details" : isEntranceProcessDetail ? "Back to exams and scholarships" : isUnavailableCourseState ? `Back to ${courseName} institutions` : isCourseComparison ? "Back to courses in this route" : courseDetailHref ? `Back to ${courseName} course details` : isOverview ? "Back to possibilities" : `Back to ${direction} overview`;
   const saveNotice = savedSlug === directionSlug || savingSlug === directionSlug || saveErrorSlug === directionSlug;
   const savePending = savingSlug === directionSlug;
 
