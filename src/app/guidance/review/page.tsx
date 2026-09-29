@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { BookOpen, GraduationCap, MapPin, Pencil, Sprout, UserRound } from "lucide-react";
 import { findQuestion } from "@/data/counselling";
 import { getSessionState, labelFor } from "@/services/profile";
+import { ProfileCorrection } from "@/components/guidance/profile-correction";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Review what we understood" };
@@ -59,10 +60,13 @@ function ReviewCard({ section }: { section: ReviewSection }) {
   </article>;
 }
 
-export default async function ProfileReviewPage() {
+export default async function ProfileReviewPage({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
+  const params = await searchParams;
   const state = await getSessionState();
   if (!state) redirect("/start");
   if (state.status !== "completed") redirect("/counselling");
+
+  if (params.mode === "correct") return <ProfileCorrection stage={state.stage} stageDetail={state.stageDetail} answers={state.answers} />;
 
   const snapshot = state.snapshot;
   const stage = stageLabels[state.stage];

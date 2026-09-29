@@ -62,7 +62,7 @@ function ProfileMenu() {
       <ChevronDown aria-hidden className="hidden h-4 w-4 transition-transform group-open:rotate-180 lg:block" />
     </summary>
     <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border border-[#dfe5df] bg-white p-1.5 shadow-lg">
-      <Link href="/profile" className="block rounded-md px-3 py-2.5 text-sm text-[#26312c] hover:bg-[#f1f6f2]">Review profile</Link>
+      <Link href="/guidance/review?mode=correct" className="block rounded-md px-3 py-2.5 text-sm text-[#26312c] hover:bg-[#f1f6f2]">Review and edit profile</Link>
     </div>
   </details>;
 }
