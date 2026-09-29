@@ -126,6 +126,7 @@ function currentContext(tail: string[]) {
   const courseTrail = courseIndex >= 0 && tail[courseIndex + 1]
     ? `Courses · ${titleForSlug(tail[courseIndex + 1])}`
     : null;
+  if (tail.at(-1) === "practical-checks" && courseIndex >= 0 && tail[courseIndex + 1]) return `Practical checks · ${tail[courseIndex + 1] === "bca" ? "BCA" : titleForSlug(tail[courseIndex + 1])}`;
   if (tail.at(-1) === "application") return `${courseTrail ? `${courseTrail} · ` : ""}Application and requirements`;
   if (tail.at(-1) === "exams-scholarships") return `${courseTrail ? `${courseTrail} · ` : ""}Entrance exams and scholarships`;
   if (tail.at(-1) === "practical-checks") return `${courseTrail ? `${courseTrail} · ` : ""}Practical checks`;
@@ -157,8 +158,16 @@ function ExplorationContextBar() {
   const direction = titleForSlug(slug);
   const tail = parts.slice(3).map(decodeSegment);
   const isOverview = tail.length === 0;
-  const backHref = isOverview ? "/guidance/possibilities" : `/guidance/direction/${encodeURIComponent(slug)}`;
-  const backLabel = isOverview ? "Back to possibilities" : `Back to ${direction} overview`;
+  const routeIndex = tail.indexOf("routes");
+  const courseIndex = tail.indexOf("courses");
+  const courseSlug = courseIndex >= 0 ? tail[courseIndex + 1] : undefined;
+  const courseName = courseSlug === "bca" ? "BCA" : titleForSlug(courseSlug ?? "");
+  const isPracticalChecks = tail.at(-1) === "practical-checks" && routeIndex >= 0 && tail[routeIndex + 1] && courseSlug;
+  const courseDetailHref = isPracticalChecks
+    ? `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(tail[routeIndex + 1])}/courses/${encodeURIComponent(courseSlug)}`
+    : null;
+  const backHref = courseDetailHref ?? (isOverview ? "/guidance/possibilities" : `/guidance/direction/${encodeURIComponent(slug)}`);
+  const backLabel = courseDetailHref ? `Back to ${courseName} course details` : isOverview ? "Back to possibilities" : `Back to ${direction} overview`;
 
   return <div role="region" aria-label="Exploration context" className="border-b border-[#dfe8e1] bg-[#edf4ef]">
     <div className="mx-auto grid max-w-[1500px] gap-2 px-5 py-3 sm:px-8 lg:min-h-[72px] lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-6 lg:px-12 lg:py-2">
