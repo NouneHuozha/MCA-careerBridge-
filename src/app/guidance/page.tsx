@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import {
   ArrowLeftRight,
   ArrowRight,
+  Bookmark,
+  BookOpen,
   BriefcaseBusiness,
   Building2,
   Check,
@@ -11,9 +13,12 @@ import {
   GraduationCap,
   Leaf,
   Monitor,
+  Plus,
   Route as RouteIcon,
   Sprout,
+  UserRound,
   UsersRound,
+  Info,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getCurrentUser } from "@/auth";
@@ -221,10 +226,27 @@ export default async function MyGuidanceOverviewPage() {
   const interestQuestion = findQuestion("interests");
   const interestLabels = (sessionState.answers.interests?.values ?? []).map((value) => interestQuestion?.options?.find((option) => option.value === value)?.label ?? labelFor("interest", value)).slice(0, 2);
   const preference = getAnswerLabel(sessionState, "work_style") ?? getAnswerLabel(sessionState, "location_pref");
+  const mobileSignals = [
+    interestLabels[0] ?? getAnswerLabel(sessionState, "subjects_enjoy", "subject") ?? getAnswerLabel(sessionState, "strengths", "strength"),
+    getAnswerLabel(sessionState, "goals", "goal") ?? getAnswerLabel(sessionState, "values", "value") ?? preference,
+  ].filter((value, index, values): value is string => Boolean(value) && values.indexOf(value) === index).slice(0, 2);
   const resumeHref = primaryEntry ? safeResumeHref(primaryEntry.field.slug, primaryEntry.record) : "/guidance/possibilities";
   const lastLocation = primaryEntry ? locationLabel(primaryEntry.record) : null;
 
-  return <main className="min-h-[calc(100dvh-62px)] bg-[#fcfcfa] px-5 pb-8 pt-5 text-[#26312c] sm:px-8 lg:px-12"><section className="mx-auto max-w-[1380px]">
+  return <main className="min-h-[calc(100dvh-62px)] bg-[#fcfcfa] px-5 pb-8 pt-5 text-[#26312c] sm:px-8 lg:px-12">
+    <section className="mx-auto max-w-[700px] lg:hidden">
+      <header><p className="text-sm font-medium text-[#68756d]">My Guidance</p><h1 className="mt-2 font-sans text-[clamp(2.25rem,8vw,3rem)] font-bold leading-[1.05] tracking-[-.04em] text-[#103a37]">Your next steps</h1><p className="mt-2 font-sans text-[1.2rem] leading-snug text-[#6c7688]">A place to explore possibilities at your own pace.</p><p className="mt-3 font-sans text-[1rem] leading-[1.4] text-[#6c7688]">You can explore more than one direction and come back whenever you’re ready.</p></header>
+
+      <section className="mt-5 rounded-xl border border-[#e1eae6] bg-[#f3fbf7] px-4 py-4 shadow-[0_4px_16px_-16px_rgba(40,69,60,.45)]" aria-labelledby="mobile-starting-point-title"><div className="flex items-start gap-3"><span aria-hidden className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-[#dff4eb] text-[#075a58]"><UserRound className="h-9 w-9" strokeWidth={1.7} /></span><div className="min-w-0 flex-1"><h2 id="mobile-starting-point-title" className="font-sans text-[1.2rem] font-semibold leading-tight text-[#103a37]">Your starting point</h2>{mobileSignals.length ? <ul className="mt-2 space-y-2">{mobileSignals.map((signal, index) => <li key={signal} className="flex items-center gap-2.5 text-sm leading-snug text-[#68758a]"><span aria-hidden className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${index ? "bg-[#f1ebff] text-[#6750a4]" : "bg-[#e7f4eb] text-[#477a57]"}`}>{index ? <BookOpen className="h-4 w-4" /> : <Sprout className="h-4 w-4" />}</span>{signal}</li>)}</ul> : <p className="mt-2 text-sm leading-snug text-[#68758a]">Your starting point can change as you explore.</p>}<Link href="/guidance/review" className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#075a58]">Review your profile<ArrowRight aria-hidden className="h-4 w-4" /></Link></div></div></section>
+
+      {primaryEntry ? <article className="mt-3 rounded-xl border border-[#e6e8e2] bg-white p-4 shadow-[0_4px_18px_-18px_rgba(40,69,60,.5)]"><div className="flex items-start gap-3"><span aria-hidden className="grid h-[68px] w-[68px] shrink-0 place-items-center rounded-full bg-[#dff4eb] text-[#075a58]"><DirectionIcon slug={primaryEntry.field.slug} className="h-9 w-9" /></span><div className="min-w-0 flex-1"><h2 className="font-sans text-[1.2rem] font-bold leading-tight text-[#103a37]">{primaryEntry.field.name}</h2><span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#e4f5ed] px-3 py-1 text-sm text-[#286b61]">{primaryEntry.current ? <span aria-hidden className="h-3 w-3 rounded-full bg-[#218a48]" /> : <Bookmark aria-hidden className="h-4 w-4 fill-[#1c6b53] text-[#1c6b53]" />}{primaryEntry.current ? "In progress" : "Saved"}</span><p className="mt-2 text-sm leading-snug text-[#6c7688]">Pick up where you left off, or switch whenever you like.</p></div><Link href="/guidance/explorations" aria-label={`View My Explorations for ${primaryEntry.field.name}`} className="grid h-9 w-8 shrink-0 place-items-center rounded-md text-lg font-bold text-[#657383] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#286b61]">⋮</Link></div><Link href={resumeHref} className="mt-4 inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-lg bg-[#1c684f] px-4 text-center font-sans text-base font-semibold text-white transition hover:bg-[#15573f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Continue exploring {primaryEntry.field.name}<ArrowRight aria-hidden className="h-5 w-5" /></Link></article> : <article className="mt-3 rounded-xl border border-[#e6e8e2] bg-white p-4"><h2 className="font-sans text-[1.2rem] font-bold text-[#103a37]">Explore possibilities</h2><p className="mt-2 text-sm text-[#6c7688]">Choose a direction to begin. You can look at more than one.</p><Link href="/guidance/possibilities" className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#1c684f] px-4 text-center font-semibold text-white">See possibilities<ArrowRight aria-hidden className="h-5 w-5" /></Link></article>}
+
+      <Link href="/guidance/possibilities" className="mt-3 flex min-h-[64px] items-center justify-between gap-3 rounded-xl bg-[#eaf8f3] px-4 font-sans text-base font-semibold text-[#103a37] transition hover:bg-[#e0f3eb]"><span className="inline-flex items-center gap-3"><Plus aria-hidden className="h-9 w-9 rounded-full border-2 border-[#126b5b] p-1.5" />Explore another possibility</span><ArrowRight aria-hidden className="h-6 w-6 shrink-0" /></Link>
+      <Link href="/guidance/explorations" className="mt-3 flex min-h-[62px] items-center justify-between gap-3 rounded-xl border border-[#e6e8e2] bg-white px-4 font-sans text-base font-semibold text-[#103a37] transition hover:bg-[#f8faf8]"><span className="inline-flex items-center gap-3"><BookOpen aria-hidden className="h-10 w-10 rounded-full bg-[#f1ebff] p-2 text-[#6750a4]" />My Explorations</span><ArrowRight aria-hidden className="h-6 w-6 shrink-0 text-[#6c7688]" /></Link>
+      <div className="mt-3 flex items-start gap-3 rounded-xl bg-[#f2efff] px-4 py-4 text-[#31265f]"><Info aria-hidden className="mt-0.5 h-6 w-6 shrink-0 text-[#6750a4]" /><p className="text-sm leading-relaxed"><span className="font-semibold">You’re in control:</span><br />your profile and saved directions can be revisited.</p></div>
+    </section>
+
+    <section className="mx-auto hidden max-w-[1380px] lg:block">
     <header className="flex flex-wrap items-start justify-between gap-5"><div className="max-w-[800px]"><h1 className="font-serif text-[clamp(2.3rem,4vw,3.6rem)] leading-[1.03] tracking-[-.045em] text-[#102c43]">Welcome back.</h1><p className="mt-2 font-serif text-[1.15rem] leading-[1.4] text-[#4d5d55]">Your guidance space keeps your profile, saved explorations, and next checks together.</p></div><div className="flex flex-wrap items-center gap-3"><span className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#e8f2ec] px-4 text-sm text-[#355e53]"><span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-white text-[#176b62]"><UsersRound className="h-4 w-4" /></span>Profile confirmed</span><Link href="/guidance/possibilities" className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#075a58] px-5 text-sm font-semibold text-white transition hover:bg-[#064a49]"><ArrowLeftRight aria-hidden className="h-4 w-4" />Switch exploration</Link></div></header>
 
     <div className="mt-5 grid items-start gap-4 xl:grid-cols-[1.2fr_.9fr]">
