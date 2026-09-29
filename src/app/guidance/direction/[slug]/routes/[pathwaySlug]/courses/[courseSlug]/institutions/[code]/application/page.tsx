@@ -88,12 +88,7 @@ export default async function ApplicationRequirementsPage({ params }: { params: 
   return (
     <main className="min-h-[calc(100dvh-62px)] bg-[#fcfcfa] px-5 pb-8 pt-5 text-[#26312c] sm:px-8 lg:px-12">
       <section className="mx-auto max-w-[1500px]">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <nav aria-label="Application breadcrumb" className="flex flex-wrap items-center gap-3 text-sm text-[#7a837e]">
-            <span>Exploring {field.name}</span><span aria-hidden>›</span><span>Courses</span><span aria-hidden>›</span><span>{course.name}</span><span aria-hidden>›</span><span className="font-semibold text-[#26312c]">Application</span>
-          </nav>
-          <Link href={detail} className="inline-flex min-h-10 items-center gap-2 text-sm font-medium text-[#236b5d] underline decoration-[#9fc2b5] underline-offset-4"><span aria-hidden>←</span>Back to institution details</Link>
-        </div>
+
 
         <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,.95fr)] xl:items-start">
           <div className="min-w-0">
