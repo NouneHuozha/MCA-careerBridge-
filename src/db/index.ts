@@ -3,10 +3,6 @@ import { Pool } from "pg";
 
 const databaseUrl = process.env.DATABASE_URL;
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
-}
-
 const globalForDb = globalThis as typeof globalThis & {
   __arenaNextJsPostgresqlPool?: Pool;
 };
@@ -14,7 +10,10 @@ const globalForDb = globalThis as typeof globalThis & {
 export const pool =
   globalForDb.__arenaNextJsPostgresqlPool ??
   new Pool({
-    connectionString: databaseUrl,
+    // Catalogue services catch connection failures and use bundled seed data.
+    // Keeping the pool constructible lets local previews work without a DB.
+    connectionString: databaseUrl ?? "postgresql://localhost:5432/careerbridge",
+    connectionTimeoutMillis: 1000,
   });
 
 if (process.env.NODE_ENV !== "production") {
