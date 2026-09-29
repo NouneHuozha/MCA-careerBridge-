@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
@@ -35,8 +35,9 @@ const globalDestinations: GlobalDestination[] = [
 ];
 
 function isDestinationActive(pathname: string, href: string) {
-  if (href === "/guidance") return pathname === "/guidance" || (pathname.startsWith("/guidance/") && pathname !== "/guidance/explorations");
-  if (href === "/guidance/explorations") return pathname === href;
+  const isExplorationDetail = pathname.startsWith("/guidance/direction/");
+  if (href === "/guidance") return pathname === "/guidance" || (pathname.startsWith("/guidance/") && pathname !== "/guidance/explorations" && !isExplorationDetail);
+  if (href === "/guidance/explorations") return pathname === href || isExplorationDetail;
   if (href === "/explore") return pathname === "/explore" || pathname.startsWith("/explore/");
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -120,7 +121,8 @@ function titleForSlug(value: string) {
   return slug.split("-").filter(Boolean).map((word) => word[0]?.toUpperCase() + word.slice(1)).join(" ");
 }
 
-function currentContext(tail: string[]) {
+function currentContext(tail: string[], sourceCheck = false) {
+  if (sourceCheck && tail.includes("institutions")) return "Institutions · Source check";
   if (!tail.length) return "Overview";
   const courseIndex = tail.indexOf("courses");
   const courseTrail = courseIndex >= 0 && tail[courseIndex + 1]
@@ -151,6 +153,8 @@ function currentContext(tail: string[]) {
 
 function ExplorationContextBar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const sourceCheck = searchParams.get("view") === "source-check";
   const parts = pathname.split("/").filter(Boolean);
   if (parts[0] !== "guidance" || parts[1] !== "direction" || !parts[2]) return null;
 
@@ -166,15 +170,15 @@ function ExplorationContextBar() {
   const courseDetailHref = isPracticalChecks
     ? `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(tail[routeIndex + 1])}/courses/${encodeURIComponent(courseSlug)}`
     : null;
-  const backHref = courseDetailHref ?? (isOverview ? "/guidance/possibilities" : `/guidance/direction/${encodeURIComponent(slug)}`);
-  const backLabel = courseDetailHref ? `Back to ${courseName} course details` : isOverview ? "Back to possibilities" : `Back to ${direction} overview`;
+  const backHref = sourceCheck ? pathname : courseDetailHref ?? (isOverview ? "/guidance/possibilities" : `/guidance/direction/${encodeURIComponent(slug)}`);
+  const backLabel = sourceCheck ? "Back to institution details" : courseDetailHref ? `Back to ${courseName} course details` : isOverview ? "Back to possibilities" : `Back to ${direction} overview`;
 
   return <div role="region" aria-label="Exploration context" className="border-b border-[#dfe8e1] bg-[#edf4ef]">
     <div className="mx-auto grid max-w-[1500px] gap-2 px-5 py-3 sm:px-8 lg:min-h-[72px] lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-6 lg:px-12 lg:py-2">
       <Link href={backHref} className="inline-flex min-h-9 w-fit items-center gap-2 text-sm font-medium text-[#35675b] underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[#174d42] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
         <ArrowLeft aria-hidden className="h-4 w-4" />{backLabel}
       </Link>
-      <p className="m-0 font-serif text-[1rem] leading-snug text-[#394c44] lg:text-center">Exploring {direction}<span aria-hidden className="mx-2">·</span>{currentContext(tail)}</p>
+      <p className="m-0 font-serif text-[1rem] leading-snug text-[#394c44] lg:text-center">Exploring {direction}<span aria-hidden className="mx-2">·</span>{currentContext(tail, sourceCheck)}</p>
       <Link href="/guidance/possibilities" className="inline-flex min-h-10 w-fit items-center justify-center gap-2 rounded-lg bg-[#075a58] px-4 text-sm font-semibold text-white transition hover:bg-[#064a49] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] lg:ml-auto">
         <ArrowLeftRight aria-hidden className="h-4 w-4" />Switch exploration
       </Link>
