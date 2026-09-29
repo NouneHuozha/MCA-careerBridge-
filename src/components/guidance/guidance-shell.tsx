@@ -133,6 +133,7 @@ function currentContext(tail: string[], sourceCheck = false) {
   if (tail.at(-2) === "sources" && tail.at(-1) === "official" && courseTrail) return `${courseTrail} · Official source`;
   if (tail.at(-1) === "practical-checks" && courseIndex >= 0 && tail[courseIndex + 1]) return `Practical checks · ${tail[courseIndex + 1] === "bca" ? "BCA" : titleForSlug(tail[courseIndex + 1])}`;
   if (tail.at(-1) === "application") return `${courseTrail ? `${courseTrail} · ` : ""}Application and requirements`;
+  if (tail.at(-2) === "exams-scholarships") return `${courseTrail ? `${courseTrail} · ` : ""}Entrance exam`;
   if (tail.at(-1) === "exams-scholarships") return `${courseTrail ? `${courseTrail} · ` : ""}Entrance exams and scholarships`;
   if (tail.at(-1) === "practical-checks") return `${courseTrail ? `${courseTrail} · ` : ""}Practical checks`;
   if (tail.includes("institutions")) return `${courseTrail ? `${courseTrail} · ` : ""}${tail[tail.indexOf("institutions") + 1] ? "Institution details" : "Institutions"}`;
@@ -191,9 +192,13 @@ function ExplorationContextBar() {
   const courseInstitutionsHref = routeIndex >= 0 && tail[routeIndex + 1] && courseSlug
     ? `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(tail[routeIndex + 1])}/courses/${encodeURIComponent(courseSlug)}/institutions`
     : null;
+  const examsScholarshipsHref = routeIndex >= 0 && tail[routeIndex + 1] && courseSlug
+    ? `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(tail[routeIndex + 1])}/courses/${encodeURIComponent(courseSlug)}/exams-scholarships`
+    : null;
+  const isEntranceProcessDetail = tail.at(-2) === "exams-scholarships" && Boolean(examsScholarshipsHref);
   const isUnavailableCourseState = tail.includes("institutions") && tail.at(-1) === "unavailable" && courseSlug === "bca" && routeIndex >= 0;
-  const backHref = sourceCheck ? pathname : isUnavailableCourseState && courseInstitutionsHref ? courseInstitutionsHref : isCourseComparison && routeCoursesHref ? routeCoursesHref : courseDetailHref ?? (isOverview ? "/guidance/possibilities" : `/guidance/direction/${encodeURIComponent(slug)}`);
-  const backLabel = sourceCheck ? "Back to institution details" : isUnavailableCourseState ? `Back to ${courseName} institutions` : isCourseComparison ? "Back to courses in this route" : courseDetailHref ? `Back to ${courseName} course details` : isOverview ? "Back to possibilities" : `Back to ${direction} overview`;
+  const backHref = sourceCheck ? pathname : isEntranceProcessDetail && examsScholarshipsHref ? examsScholarshipsHref : isUnavailableCourseState && courseInstitutionsHref ? courseInstitutionsHref : isCourseComparison && routeCoursesHref ? routeCoursesHref : courseDetailHref ?? (isOverview ? "/guidance/possibilities" : `/guidance/direction/${encodeURIComponent(slug)}`);
+  const backLabel = sourceCheck ? "Back to institution details" : isEntranceProcessDetail ? "Back to exams and scholarships" : isUnavailableCourseState ? `Back to ${courseName} institutions` : isCourseComparison ? "Back to courses in this route" : courseDetailHref ? `Back to ${courseName} course details` : isOverview ? "Back to possibilities" : `Back to ${direction} overview`;
 
   return <div role="region" aria-label="Exploration context" className="border-b border-[#dfe8e1] bg-[#edf4ef]">
     <div className="mx-auto grid max-w-[1500px] gap-2 px-5 py-3 sm:px-8 lg:min-h-[72px] lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-6 lg:px-12 lg:py-2">

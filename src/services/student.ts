@@ -36,6 +36,7 @@ export function hrefForItem(type: string, ref: string) {
     case "exam":
       return `/exams#${ref}`;
     case "opportunity":
+      if (ref === "bca-institution-entrance-process") return "/guidance/direction/technology/routes/class12-any-bca/courses/bca/exams-scholarships/institution-entrance-process";
       return `/opportunities#${ref}`;
     default:
       return "/explore";
