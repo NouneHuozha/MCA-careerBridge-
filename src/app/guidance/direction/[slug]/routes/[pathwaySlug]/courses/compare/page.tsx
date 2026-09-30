@@ -30,8 +30,6 @@ export default async function CompareCoursesPage({ params }: { params: Promise<{
   }
 
   const coursesHref = `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(pathwaySlug)}/courses`;
-  const courseDetailsHref = (courseSlug: string) =>
-    `${coursesHref}/${encodeURIComponent(courseSlug)}`;
 
   return (
     <main id="main" className="min-h-[calc(100dvh-150px)] bg-[#fbfcf8] px-5 pb-16 pt-7 sm:px-8 sm:pt-9 lg:px-12 lg:pt-10">
@@ -52,7 +50,6 @@ export default async function CompareCoursesPage({ params }: { params: Promise<{
         <CourseComparison
           courses={courses}
           coursesHref={coursesHref}
-          courseDetailsHref={courseDetailsHref}
           signedIn={Boolean(user)}
         />
       </section>

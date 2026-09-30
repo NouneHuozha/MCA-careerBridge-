@@ -19,7 +19,6 @@ type Course = {
 type Props = {
   courses: Course[];
   coursesHref: string;
-  courseDetailsHref: (courseSlug: string) => string;
   signedIn: boolean;
 };
 
@@ -59,7 +58,7 @@ function courseIcon(course: Course) {
   return course.slug === "bsc-computer-science" ? <GraduationCap aria-hidden className="h-8 w-8" strokeWidth={1.5} /> : <Monitor aria-hidden className="h-8 w-8" strokeWidth={1.5} />;
 }
 
-export function CourseComparison({ courses, coursesHref, courseDetailsHref, signedIn }: Props) {
+export function CourseComparison({ courses, coursesHref, signedIn }: Props) {
   const [visibleSlugs, setVisibleSlugs] = useState(() => courses.map((course) => course.slug));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -115,7 +114,7 @@ export function CourseComparison({ courses, coursesHref, courseDetailsHref, sign
             <div className="min-w-0"><h2 className="font-serif text-[1.55rem] leading-tight text-[#122440]">{displayName(course)}</h2><p className="mt-1 font-serif text-[1rem] leading-relaxed text-[#5d697b]">{description(course)}</p></div>
           </div>
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            <Link href={courseDetailsHref(course.slug)} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#0b6966] px-4 text-sm font-semibold text-white transition hover:bg-[#075a58]">View course details <ArrowRight aria-hidden className="h-4 w-4" /></Link>
+            <Link href={`${coursesHref}/${encodeURIComponent(course.slug)}`} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#0b6966] px-4 text-sm font-semibold text-white transition hover:bg-[#075a58]">View course details <ArrowRight aria-hidden className="h-4 w-4" /></Link>
             <button type="button" onClick={() => removeCourse(course.slug)} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm text-[#286b61] underline decoration-[#9ebfb2] underline-offset-4 hover:text-[#174d42]"><Trash2 aria-hidden className="h-4 w-4" />Remove from comparison</button>
           </div>
         </article>)}
