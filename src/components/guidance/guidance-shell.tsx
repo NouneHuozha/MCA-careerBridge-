@@ -130,6 +130,7 @@ function titleForSlug(value: string) {
 function currentContext(tail: string[], sourceCheck = false) {
   if (sourceCheck && tail.includes("institutions")) return "Institutions · Source check";
   if (!tail.length) return "Overview";
+  if (tail.at(-1) === "explore-another") return "Explore another possibility";
   const routeIndex = tail.indexOf("routes");
   if (tail.at(-1) === "compare" && routeIndex >= 0 && tail[routeIndex + 2] === "courses") return "Courses · Compare courses";
   const courseIndex = tail.indexOf("courses");
@@ -275,6 +276,7 @@ function ExplorationContextBar() {
   if (!directionSlug) return null;
 
   const isOverview = tail.length === 0;
+  const isAnotherPossibilityPage = tail.at(-1) === "explore-another";
   const routeIndex = tail.indexOf("routes");
   const courseIndex = tail.indexOf("courses");
   const courseSlug = courseIndex >= 0 ? tail[courseIndex + 1] : undefined;
@@ -301,6 +303,7 @@ function ExplorationContextBar() {
   const institutionDetailHref = isInstitutionMap ? pathname.replace(/\/map\/?$/, "") : null;
   const backHref = sourceCheck ? pathname : isInstitutionMap && institutionDetailHref ? institutionDetailHref : isEntranceProcessDetail && examsScholarshipsHref ? examsScholarshipsHref : isUnavailableCourseState && courseInstitutionsHref ? courseInstitutionsHref : isCourseComparison && routeCoursesHref ? routeCoursesHref : courseDetailHref ?? (isOverview ? "/guidance/possibilities" : `/guidance/direction/${encodeURIComponent(directionSlug)}`);
   const backLabel = sourceCheck ? "Back to institution details" : isInstitutionMap ? "Back to institution details" : isEntranceProcessDetail ? "Back to exams and scholarships" : isUnavailableCourseState ? `Back to ${courseName} institutions` : isCourseComparison ? "Back to courses in this route" : courseDetailHref ? `Back to ${courseName} course details` : isOverview ? "Back to possibilities" : `Back to ${direction} overview`;
+  const contextHeading = isAnotherPossibilityPage ? "Exploring possibilities" : `Exploring ${direction}`;
   const saveNotice = savedSlug === directionSlug || savingSlug === directionSlug || saveErrorSlug === directionSlug;
   const savePending = savingSlug === directionSlug;
 
@@ -310,10 +313,10 @@ function ExplorationContextBar() {
         <Link href={backHref} className="inline-flex min-h-9 w-fit items-center gap-2 text-sm font-medium text-[#35675b] underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[#174d42] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
           <ArrowLeft aria-hidden className="h-4 w-4" />{backLabel}
         </Link>
-        <p className="m-0 font-serif text-[1rem] leading-snug text-[#394c44] lg:text-center">Exploring {direction}<span aria-hidden className="mx-2">·</span>{currentContext(tail, sourceCheck)}</p>
-        <button ref={triggerRef} type="button" aria-haspopup="dialog" aria-expanded={switchOpen} onClick={openPanel} className="inline-flex min-h-10 w-fit items-center justify-center gap-2 rounded-lg bg-[#075a58] px-4 text-sm font-semibold text-white transition hover:bg-[#064a49] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] lg:ml-auto">
+        <p className="m-0 font-serif text-[1rem] leading-snug text-[#394c44] lg:text-center">{contextHeading}<span aria-hidden className="mx-2">·</span>{currentContext(tail, sourceCheck)}</p>
+        {isAnotherPossibilityPage ? <span aria-hidden className="hidden lg:block" /> : <button ref={triggerRef} type="button" aria-haspopup="dialog" aria-expanded={switchOpen} onClick={openPanel} className="inline-flex min-h-10 w-fit items-center justify-center gap-2 rounded-lg bg-[#075a58] px-4 text-sm font-semibold text-white transition hover:bg-[#064a49] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] lg:ml-auto">
           <ArrowLeftRight aria-hidden className="h-4 w-4" />Switch exploration
-        </button>
+        </button>}
       </div>
     </div>
 
