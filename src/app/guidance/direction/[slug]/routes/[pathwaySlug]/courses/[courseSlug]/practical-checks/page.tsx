@@ -22,7 +22,19 @@ export default async function PracticalChecksPage({ params }: { params: Promise<
   if (!field || !route || !course || course.slug !== "bca" || !route.courseSlugs?.includes(course.slug)) notFound();
 
   const items = [
-    { title: `Confirm the current ${course.name} offering`, detail: "Check the institution programme page or latest notice.", icon: "document" as const },
+    {
+      title: "Confirm the current course and application information",
+      detail: "Check current course and application information against the official programme source and latest notice.",
+      icon: "document" as const,
+      startedDetail: {
+        description: "You have started this check. Review the official institution information before treating it as confirmed.",
+        steps: [
+          { title: "Open the official institution source", detail: "Use the verified programme page as a starting point; current admission details may need the latest notice." },
+          { title: "Compare the current course and application details", detail: "Review the latest information and make sure it matches what you are considering." },
+        ],
+        officialSourceHref: "https://www.ignou.ac.in/schools/programme/BCA_NEW",
+      },
+    },
     { title: "Review current entry requirements", detail: "Confirm subjects, eligibility, documents, and admission method from the official source.", icon: "graduation" as const },
     { title: "Compare study costs and support", detail: "Check current fees, scholarships, hostel or travel support where relevant.", icon: "coins" as const },
   ];
