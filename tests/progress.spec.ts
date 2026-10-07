@@ -12,7 +12,8 @@ test('completed counselling follows complete, review, confirmation, and possibil
   const completion = await page.request.post('/api/counselling', { data: { action: 'complete' } });
   expect(completion.ok()).toBe(true);
 
-  await page.goto('/guidance/complete');
+  await page.goto('/counselling');
+  await expect(page).toHaveURL(/\/guidance\/complete$/);
   await expect(page.getByRole('heading', { name: 'We’ve finished getting to know you' })).toBeVisible();
   await page.getByRole('link', { name: 'Review what we understood' }).click();
   await expect(page).toHaveURL(/\/guidance\/review$/);
