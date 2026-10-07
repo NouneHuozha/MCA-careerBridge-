@@ -22,6 +22,7 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   if (!state) redirect("/start");
   const requested = params.edit ? findQuestion(params.edit) : null;
   const focus = requested && (!requested.stages || requested.stages.includes(state.stage)) ? requested : null;
+  if (state.status === "completed" && !focus) redirect("/guidance/complete");
   const question = focus ?? nextQuestion(state.stage, state.snapshot.answeredKeys);
   const currentSection: CounsellingStageKey = question ? sectionStage[question.section] : "reflection";
   const coreQuestions = questionsForStage(state.stage);

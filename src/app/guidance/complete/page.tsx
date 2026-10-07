@@ -32,7 +32,7 @@ export default async function GuidanceCompletionPage() {
         <div className="mt-5 w-full" aria-hidden="true"><TransitionIllustration /></div>
         <div className="mt-2 flex w-full max-w-[430px] flex-col items-center">
           <Link href="/guidance/review" className="inline-flex min-h-[58px] w-full items-center justify-center rounded-xl bg-[#286b61] px-6 py-4 text-center font-serif text-[1.15rem] font-semibold text-white shadow-[0_4px_10px_-7px_#163c35] transition hover:bg-[#1f5b53] focus-visible:outline-offset-4">Review what we understood</Link>
-          <Link href="/counselling" className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-[15px] font-medium text-[#35675b] underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[#174d42]">I need to change something first</Link>
+          <Link href="/guidance/review?mode=correct" className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-[15px] font-medium text-[#35675b] underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[#174d42]">I need to change something first</Link>
         </div>
         <div className="mt-7 w-full max-w-[500px] border-t border-[#e5e2d8] pt-5"><p className="font-serif text-[15px] text-[#77786f]">You can change your answers later.</p></div>
       </section>
