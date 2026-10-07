@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Compass, FileCheck2, HeartHandshake, Lightbulb, LockKeyhole, MapPin, Route, ShieldCheck, UserRound } from "lucide-react";
 import { ButtonLink, Eyebrow } from "@/components/ui";
+import { Logo } from "@/components/logo";
 
 export const metadata = { title: "About" };
 
@@ -28,7 +29,7 @@ const beliefs = [
 export default function AboutPage() {
   return <div className="min-h-screen bg-white lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
     <aside className="hidden border-r border-[#dce9f5] bg-[#eff6ff] lg:flex lg:min-h-[calc(100vh-5rem)] lg:flex-col lg:justify-between lg:p-7 xl:p-9">
-      <div><Image src="/images/logo.png" alt="CareerBridge Nagaland" width={210} height={74} className="h-auto w-[185px]" /><p className="mt-5 max-w-[150px] text-sm leading-relaxed text-[#46627a]">Explore today.<br />A brighter tomorrow.</p><nav aria-label="About page journey" className="mt-16 space-y-4">{railItems.map(({ label, detail, href, icon: Icon }) => <Link key={label} href={href} className="group flex items-center gap-3 rounded-xl p-2 transition hover:bg-white/70"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-[#315776] shadow-sm group-hover:text-forest-700"><Icon className="h-5 w-5" /></span><span><span className="block text-sm font-semibold text-[#183b59]">{label}</span><span className="mt-1 block text-xs text-[#6b7e8e]">{detail}</span></span></Link>)}</nav></div>
+      <div><Logo size="sm" /><p className="mt-5 max-w-[150px] text-sm leading-relaxed text-[#46627a]">Explore today.<br />A brighter tomorrow.</p><nav aria-label="About page journey" className="mt-16 space-y-4">{railItems.map(({ label, detail, href, icon: Icon }) => <Link key={label} href={href} className="group flex items-center gap-3 rounded-xl p-2 transition hover:bg-white/70"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-[#315776] shadow-sm group-hover:text-forest-700"><Icon className="h-5 w-5" /></span><span><span className="block text-sm font-semibold text-[#183b59]">{label}</span><span className="mt-1 block text-xs text-[#6b7e8e]">{detail}</span></span></Link>)}</nav></div>
       <div><div className="relative -mx-9 mb-6 h-32 overflow-hidden bg-[#dcecf7]"><Image src="/images/nagaland-hills.jpg" alt="Nagaland landscape" fill className="object-cover opacity-80" sizes="250px" /></div><p className="text-sm leading-relaxed text-[#46627a]">For Nagaland’s<br />tomorrow.</p><p className="mt-5 text-[11px] text-[#7890a2]">Students&nbsp; · &nbsp;Communities&nbsp; · &nbsp;Opportunities</p></div>
     </aside>
 

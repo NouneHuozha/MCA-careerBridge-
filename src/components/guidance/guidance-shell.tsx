@@ -22,15 +22,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-
-function GuidanceBrand() {
-  return <Link href="/" aria-label="CareerBridge home" className="inline-flex shrink-0 items-center gap-2.5 rounded-md text-[#123f3b]">
-    <span aria-hidden className="relative grid h-9 w-9 place-items-center overflow-hidden rounded-t-[1.1rem] border-[5px] border-[#2f6d67] border-b-0 sm:h-10 sm:w-10">
-      <span className="absolute bottom-0 h-5 w-5 rounded-t-full border-[4px] border-[#b8c6bc] border-b-0" />
-    </span>
-    <span className="font-serif text-[1.35rem] font-semibold tracking-[-.045em] sm:text-[1.55rem]">CareerBridge</span>
-  </Link>;
-}
+import { Logo } from "@/components/logo";
 
 type GlobalDestination = { href: string; label: string; icon: LucideIcon };
 const globalDestinations: GlobalDestination[] = [
@@ -81,7 +73,7 @@ function GuidanceHeader() {
 
   return <header className="relative z-40 border-b border-[#e5e6e1] bg-white">
     <div className="mx-auto flex min-h-[62px] max-w-[1500px] items-center gap-4 px-5 sm:px-8 lg:min-h-[76px] lg:gap-7 lg:px-12">
-      <GuidanceBrand />
+      <Logo size="sm" />
       <span aria-hidden className="hidden h-8 w-px bg-[#d9ddd7] lg:block" />
       <nav aria-label="Primary" className="hidden min-w-0 flex-1 items-center justify-between gap-4 lg:flex">
         <DestinationLinks pathname={pathname} />

@@ -46,7 +46,7 @@ export function StartingPointShell({ children, stage, studentName, studentEmail,
   return <div className="min-h-screen bg-[#fbfcfd] text-[#18342d]">
     <header className="sticky top-0 z-40 border-b border-[#dfe5e7] bg-white">
       <div className="flex min-h-[70px] items-center gap-5 px-4 sm:px-7 lg:px-8">
-        <div className="shrink-0 [&_a]:gap-2 [&_img]:h-9 [&_img]:w-9 [&_img]:rounded-lg [&_img]:object-contain [&_span]:text-[19px]"><Logo /></div>
+        <Logo size="sm" />
         <span aria-hidden className="hidden h-8 w-px bg-[#e5e9eb] md:block" />
         <p className="hidden min-w-0 flex-1 truncate text-sm text-[#52635e] md:block">Explore today. A brighter tomorrow.</p>
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-4">
