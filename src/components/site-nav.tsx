@@ -61,9 +61,9 @@ export function SiteNav({ user }: { user: NavUser }) {
     <div className="cb-container flex h-[76px] items-center justify-between gap-5">
       <div className="flex min-w-0 items-center gap-6 2xl:gap-12">
         <Logo />
-        <nav aria-label="Main" className="hidden items-center gap-1 xl:flex 2xl:gap-2">
+        <nav aria-label="Main" className="hidden items-center gap-0.5 xl:flex">
           <div ref={exploreRef} className="relative">
-            <button ref={exploreButton} type="button" onClick={() => setExploreOpen((v) => !v)} aria-expanded={exploreOpen} aria-controls="explore-menu" className={cx("inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2 text-[15px] font-semibold transition-colors", exploreOpen || isActive("/explore") || isActive("/pathways") || isActive("/courses") || isActive("/institutions") ? "border-forest-300 bg-mint text-forest-800" : "border-transparent text-ink-700 hover:border-forest-200 hover:bg-forest-50")}>
+            <button ref={exploreButton} type="button" onClick={() => setExploreOpen((v) => !v)} aria-expanded={exploreOpen} aria-controls="explore-menu" className={cx("inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-[15px] font-semibold transition-colors", exploreOpen || isActive("/explore") || isActive("/pathways") || isActive("/courses") || isActive("/institutions") ? "border-forest-300 bg-mint text-forest-800" : "border-transparent text-ink-700 hover:border-forest-200 hover:bg-forest-50")}>
               <Compass aria-hidden className="h-4 w-4" />Explore<ChevronDown aria-hidden className={cx("h-4 w-4 transition-transform", exploreOpen && "rotate-180")} />
             </button>
             {exploreOpen && <div id="explore-menu" className="animate-rise absolute left-0 top-[calc(100%+1rem)] w-[34rem] rounded-2xl border border-forest-200 bg-white p-3 shadow-xl shadow-forest-900/10">
@@ -75,10 +75,10 @@ export function SiteNav({ user }: { user: NavUser }) {
               <Link href="/mentor" onClick={closeAll} className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-forest-200 bg-mint p-3 text-sm font-semibold text-forest-800">Need help choosing a direction? Talk it through<ArrowRight aria-hidden className="h-4 w-4" /></Link>
             </div>}
           </div>
-          <Link href={progressHref} aria-current={isActive(progressHref) ? "page" : undefined} className={cx("inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2 text-[15px] font-semibold transition-colors", isActive(progressHref) ? "border-forest-300 bg-mint text-forest-800" : "border-transparent text-ink-700 hover:border-forest-200 hover:bg-forest-50")}>
+          <Link href={progressHref} aria-current={isActive(progressHref) ? "page" : undefined} className={cx("inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-[15px] font-semibold transition-colors", isActive(progressHref) ? "border-forest-300 bg-mint text-forest-800" : "border-transparent text-ink-700 hover:border-forest-200 hover:bg-forest-50")}>
             {user ? <LayoutDashboard aria-hidden className="h-4 w-4" /> : <Bookmark aria-hidden className="h-4 w-4" />}{progressLabel}
           </Link>
-          <Link href="/mentor" aria-current={isActive("/mentor") ? "page" : undefined} className={cx("inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2 text-[15px] font-semibold transition-colors", isActive("/mentor") ? "border-forest-300 bg-mint text-forest-800" : "border-transparent text-ink-700 hover:border-forest-200 hover:bg-forest-50")}>
+          <Link href="/mentor" aria-current={isActive("/mentor") ? "page" : undefined} className={cx("inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-[15px] font-semibold transition-colors", isActive("/mentor") ? "border-forest-300 bg-mint text-forest-800" : "border-transparent text-ink-700 hover:border-forest-200 hover:bg-forest-50")}>
             <MessageCircle aria-hidden className="h-4 w-4" />Ask Mentor
           </Link>
         </nav>

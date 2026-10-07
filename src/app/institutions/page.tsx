@@ -67,7 +67,7 @@ export default async function InstitutionsPage({ searchParams }: { searchParams:
       <div className="flex min-w-0 flex-col lg:flex-row">
         <JourneyRail />
         <main className="min-w-0 flex-1 px-[clamp(1.1rem,3vw,3.5rem)] py-7 lg:py-8">
-          <div className="mx-auto max-w-[1260px]">
+          <div className="mx-auto max-w-[1600px]">
             <section className="relative overflow-hidden rounded-2xl border border-[#d9e8e6] bg-[#f3fbf9] px-5 py-7 sm:px-8 sm:py-8">
               <Image src="/images/possibilities-landscape.png" alt="" fill sizes="100vw" className="object-cover object-[45%_45%] opacity-25" />
               <div className="relative z-10 max-w-2xl">

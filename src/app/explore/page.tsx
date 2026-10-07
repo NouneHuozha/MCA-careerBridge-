@@ -21,7 +21,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
   const cards = (suggestions.length ? suggestions.map((s) => s.field) : fields.slice(0, 4)).slice(0, 4);
   return <JourneyShell current={3}>
     <div className="bg-white">
-      <div className="cb-container cb-page max-w-[1260px]">
+      <div className="cb-container cb-page max-w-[1600px]">
         <header className="mb-5 flex flex-wrap items-end justify-between gap-4">
           <div><p className="cb-eyebrow text-[#735bd1]">Your possibilities</p><h1 className="mt-2 max-w-4xl text-[clamp(2rem,3.8vw,3.5rem)] font-semibold leading-tight tracking-[-.04em] text-forest-900">Here are a few directions worth looking into.</h1><p className="mt-2 text-lg text-ink-500">These are starting points, not final answers.</p></div>
           <Link href="#why" className="cb-source text-sm">Why am I seeing this? <CircleHelp className="h-4 w-4" /></Link>
