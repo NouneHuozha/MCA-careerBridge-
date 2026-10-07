@@ -6,13 +6,13 @@ import { Logo } from "@/components/logo";
 import type { Stage } from "@/data/counselling";
 
 const steps = [
-  { key: "reflection", href: "/reflection", label: "My starting point", icon: Compass },
-  { key: "direction", href: "/my-journey/direction", label: "Possibility map", icon: Map },
-  { key: "routes", href: "/my-journey/routes", label: "Routes", icon: Route },
-  { key: "courses", href: "/my-journey/courses", label: "Courses", icon: GraduationCap },
-  { key: "institutions", href: "/my-journey/institutions", label: "Institutions", icon: Building2 },
-  { key: "practical", href: "/my-journey/practical", label: "Practical details", icon: BookOpen },
-  { key: "plan", href: "/my-journey/plan", label: "My plan", icon: Flag },
+  { key: "reflection", href: "/guidance/review", label: "My starting point", icon: Compass },
+  { key: "direction", href: "/guidance/possibilities", label: "Possibility map", icon: Map },
+  { key: "routes", href: "/guidance", label: "Routes", icon: Route },
+  { key: "courses", href: "/guidance", label: "Courses", icon: GraduationCap },
+  { key: "institutions", href: "/guidance", label: "Institutions", icon: Building2 },
+  { key: "practical", href: "/guidance", label: "Practical details", icon: BookOpen },
+  { key: "plan", href: "/guidance/action-plan", label: "My plan", icon: Flag },
 ];
 
 export function stageLabel(stage: Stage) {
@@ -50,7 +50,7 @@ export function StartingPointShell({ children, stage, studentName, studentEmail,
         <span aria-hidden className="hidden h-8 w-px bg-[#e5e9eb] md:block" />
         <p className="hidden min-w-0 flex-1 truncate text-sm text-[#52635e] md:block">Explore today. A brighter tomorrow.</p>
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-4">
-          <Link href="/my-journey/plan" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-[#33453f] transition hover:bg-[#f5f7f8] sm:px-3" aria-label="Open your journey plan"><History aria-hidden className="h-5 w-5" /><span className="hidden sm:inline">History</span></Link>
+          <Link href="/guidance/action-plan" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-[#33453f] transition hover:bg-[#f5f7f8] sm:px-3" aria-label="Open your journey plan"><History aria-hidden className="h-5 w-5" /><span className="hidden sm:inline">History</span></Link>
           <span aria-hidden className="hidden h-8 w-px bg-[#e5e9eb] sm:block" />
           <Link href="/" title="Your progress is saved as you go. Return to the homepage." className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-[#33453f] transition hover:bg-[#f5f7f8] sm:px-3"><Bookmark aria-hidden className="h-5 w-5" /><span className="hidden sm:inline">Save and return</span></Link>
           <span aria-hidden className="hidden h-8 w-px bg-[#e5e9eb] sm:block" />
@@ -60,7 +60,7 @@ export function StartingPointShell({ children, stage, studentName, studentEmail,
               <span className="hidden min-w-0 text-left sm:block"><span className="block max-w-28 truncate text-sm font-medium text-[#273c35]">{signedIn ? studentName?.trim().split(/\s+/)[0] || "Student" : "Guest"}</span><span className="block text-xs text-[#6d7d78]">{stageName} · early exploration</span></span>
               <ChevronDown aria-hidden className="h-4 w-4 text-[#536660] transition group-open:rotate-180" />
             </summary>
-            <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-56 rounded-xl border border-[#dfe7e4] bg-white p-2 shadow-lg shadow-[#18342d]/10"><p className="px-3 py-2 text-xs text-[#71817c]">{signedIn ? studentEmail : "Your progress is saved on this device."}</p><Link href={signedIn ? "/profile" : "/sign-in"} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-[#29483d] hover:bg-[#f3f8f5]">{signedIn ? "Review my profile" : "Sign in to keep progress"}</Link></div>
+            <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-56 rounded-xl border border-[#dfe7e4] bg-white p-2 shadow-lg shadow-[#18342d]/10"><p className="px-3 py-2 text-xs text-[#71817c]">{signedIn ? studentEmail : "Your progress is saved on this device."}</p><Link href={signedIn ? "/guidance/review" : "/sign-in"} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-[#29483d] hover:bg-[#f3f8f5]">{signedIn ? "Review my profile" : "Sign in to keep progress"}</Link></div>
           </details>
         </div>
       </div>

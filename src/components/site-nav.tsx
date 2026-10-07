@@ -54,8 +54,8 @@ export function SiteNav({ user }: { user: NavUser }) {
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const closeAll = () => { setMobileOpen(false); setExploreOpen(false); };
   const isHome = pathname === "/";
-  const progressHref = user ? "/dashboard" : "/profile";
-  const progressLabel = user ? "My plan" : "My journey";
+  const progressHref = user ? "/guidance" : "/guidance/review";
+  const progressLabel = user ? "My Guidance" : "My journey";
 
   return <header className="sticky top-0 z-50 border-b border-ink-200 bg-canvas shadow-[0_2px_8px_#23453305]">
     <div className="cb-container flex h-[76px] items-center justify-between gap-5">
@@ -84,7 +84,7 @@ export function SiteNav({ user }: { user: NavUser }) {
         </nav>
       </div>
       <div className="hidden shrink-0 items-center gap-3 xl:flex">
-        {user ? <><Link href="/profile" className="cb-button border border-forest-200 bg-mint/60 px-3 py-2 text-sm text-forest-800"><User aria-hidden className="h-4 w-4" /><span className="max-w-24 truncate">{user.name?.split(" ")[0] ?? "My profile"}</span></Link><SignOutButton /></> : <><ButtonLink href="/sign-in" variant="ghost">Sign in</ButtonLink>{!isHome && <ButtonLink href="/start">Begin your journey<ArrowRight aria-hidden className="h-4 w-4" /></ButtonLink>}</>}
+        {user ? <><Link href="/guidance/review" className="cb-button border border-forest-200 bg-mint/60 px-3 py-2 text-sm text-forest-800"><User aria-hidden className="h-4 w-4" /><span className="max-w-24 truncate">{user.name?.split(" ")[0] ?? "My profile"}</span></Link><SignOutButton /></> : <><ButtonLink href="/sign-in" variant="ghost">Sign in</ButtonLink>{!isHome && <ButtonLink href="/start">Begin your journey<ArrowRight aria-hidden className="h-4 w-4" /></ButtonLink>}</>}
       </div>
       <div className="flex items-center gap-2 xl:hidden">
         {!user && !isHome && <ButtonLink href="/start" size="sm" className="hidden sm:inline-flex">Begin your journey</ButtonLink>}

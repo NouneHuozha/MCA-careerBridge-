@@ -37,7 +37,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const form = await request.formData();
   if (form.get("clear") === "true") {
-    const response = redirectBack(request, "/profile");
+    const response = redirectBack(request, "/guidance/possibilities");
     response.cookies.delete(EXPLORATION_COOKIE);
     return response;
   }
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     selectedAt,
     completedSteps: previous?.directionSlug === field.slug ? previous.completedSteps : known?.completedSteps ?? ["reflection", "direction"],
   };
-  const safeReturn = returnTo.startsWith("/my-journey/") ? returnTo : "/my-direction";
+  const safeReturn = returnTo.startsWith("/guidance/") ? returnTo : "/guidance/possibilities";
   const response = redirectBack(request, safeReturn);
   response.cookies.set(EXPLORATION_COOKIE, JSON.stringify(state), cookieOptions);
   return response;
@@ -146,7 +146,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const response = redirectBack(request, "/profile");
+  const response = redirectBack(request, "/guidance/possibilities");
   response.cookies.delete(EXPLORATION_COOKIE);
   return response;
 }

@@ -10,7 +10,7 @@ const railItems = [
   { label: "Start here", detail: "Begin your journey", href: "/start", icon: Compass },
   { label: "Tell us about you", detail: "Your interests and strengths", href: "/start", icon: UserRound },
   { label: "See possibilities", detail: "Careers and pathways", href: "/explore", icon: Route },
-  { label: "Make a plan", detail: "Your next steps", href: "/action-plan", icon: FileCheck2 },
+  { label: "Make a plan", detail: "Your next steps", href: "/guidance/action-plan", icon: FileCheck2 },
 ];
 
 const promises = [

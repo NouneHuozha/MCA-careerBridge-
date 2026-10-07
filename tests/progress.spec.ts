@@ -1,27 +1,29 @@
 import { test, expect } from '@playwright/test';
-
 const answers: [string, string[]][] = [
   ['subjects_enjoy', ['mathematics']], ['stream_intent', ['science']], ['interests', ['technology']],
   ['strengths', ['problem-solving']], ['goals', ['technology']], ['values', ['learning']],
   ['location_pref', ['within-nagaland']], ['budget', ['low']],
 ];
-
-test('mobile profile puts the next step ahead of optional reading', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+test('completed counselling follows complete, review, confirmation, and possibilities', async ({ page }) => {
   for (const [questionKey, values] of answers) {
     const response = await page.request.post('/api/counselling', { data: { action: 'answer', stage: 'class10', questionKey, values } });
     expect(response.ok()).toBe(true);
   }
-  await page.goto('/profile');
-  const exploration = await page.locator('#starting-points').boundingBox();
-  const summary = await page.locator('#my-answers').boundingBox();
-  expect(exploration!.y).toBeLessThan(summary!.y);
-  await expect(page.getByRole('link', { name: 'Explore this field', exact: true }).first()).toBeInViewport();
-  await page.screenshot({ path: 'artifacts/profile-mobile.png', fullPage: true });
-  await page.getByRole('link', { name: 'Review my answers', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Here’s what we understood.' })).toBeInViewport();
-});
+  const completion = await page.request.post('/api/counselling', { data: { action: 'complete' } });
+  expect(completion.ok()).toBe(true);
 
+  await page.goto('/guidance/complete');
+  await expect(page.getByRole('heading', { name: 'We’ve finished getting to know you' })).toBeVisible();
+  await page.getByRole('link', { name: 'Review what we understood' }).click();
+  await expect(page).toHaveURL(/\/guidance\/review$/);
+  await expect(page.getByRole('heading', { name: 'Here’s what we understood' })).toBeVisible();
+  await page.getByRole('link', { name: 'This looks right — continue' }).click();
+  await expect(page).toHaveURL(/\/guidance\/confirm$/);
+  await expect(page.getByRole('heading', { name: 'Your starting picture is confirmed' })).toBeVisible();
+  await page.getByRole('link', { name: 'Explore possible directions' }).click();
+  await expect(page).toHaveURL(/\/guidance\/possibilities$/);
+  await expect(page.getByRole('heading', { name: 'Here are a few directions to explore' })).toBeVisible();
+});
 test('mobile counselling keeps progress and composer visible', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   for (const [questionKey, values] of answers.slice(0, 3)) {
@@ -60,10 +62,14 @@ test('account keeps the journey but sign-out hides it on a shared device', async
 });
 
 test('action checklist persists checked tasks', async ({ page }) => {
+  for (const [questionKey, values] of answers) {
+    expect((await page.request.post('/api/counselling', { data: { action: 'answer', stage: 'class10', questionKey, values } })).ok()).toBe(true);
+  }
+  expect((await page.request.post('/api/counselling', { data: { action: 'complete' } })).ok()).toBe(true);
   const email = `cb-ux-plan-${Date.now()}@example.test`;
   const password = 'TestOnly-Strong-2026!';
   expect((await page.request.post('/api/auth/sign-up', { form: { fullName: 'Plan UX Test', email, password, confirm: password } })).ok()).toBe(true);
-  await page.goto('/action-plan?focus=course:bca');
+  await page.goto('/guidance/action-plan?focus=course:bca');
   await page.getByRole('button', { name: 'Complete Check eligibility', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Uncheck Check eligibility', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await page.reload();
