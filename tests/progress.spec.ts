@@ -24,6 +24,12 @@ test('completed counselling follows complete, review, confirmation, and possibil
   await page.getByRole('link', { name: 'Explore possible directions' }).click();
   await expect(page).toHaveURL(/\/guidance\/possibilities$/);
   await expect(page.getByRole('heading', { name: 'Here are a few directions to explore' })).toBeVisible();
+  await expect(page.getByText('The order is not a ranking')).toBeVisible();
+  await expect(page.getByText('Why it may connect', { exact: true }).first()).toBeVisible();
+  await page.goto('/guidance');
+  await expect(page.getByRole('heading', { name: 'Welcome back.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Continue where you left off' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your explorations' })).toBeVisible();
 });
 test('mobile counselling keeps progress and composer visible', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

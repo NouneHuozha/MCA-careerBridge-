@@ -18,6 +18,7 @@ import {
 import { SaveButton } from "@/components/save-button";
 import { Logo } from "@/components/logo";
 import { getAdmissionInfo, getCourse, getField, getInstitution, getPathway } from "@/services/catalog";
+import { formatDate } from "@/components/ui";
 import { getSessionState } from "@/services/profile";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +86,7 @@ export default async function ApplicationRequirementsPage({ params }: { params: 
   const officialHref = record?.sourceUrl ?? institution.officialWebsite ?? institution.sourceUrl;
   const status = statusLabel(record?.verificationStatus);
   const documents = record?.documents ?? [];
+  const retrievedAt = formatDate(record?.retrievedAt);
 
   return (
     <main className="min-h-[calc(100dvh-62px)] bg-[#fcfcfa] px-5 pb-8 pt-5 text-[#26312c] sm:px-8 lg:px-12">
@@ -120,7 +122,7 @@ export default async function ApplicationRequirementsPage({ params }: { params: 
             <div className="mt-3">{checklist.map((item) => <CheckRow key={item.title} item={item} />)}</div>
             {officialHref ? <a href={officialHref} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#b5c8d1] px-4 text-sm font-semibold text-white transition hover:bg-[#9fb8c4]"><ExternalLink className="h-4 w-4" />Open official application instructions</a> : <span className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#b5c8d1] px-4 text-sm font-semibold text-white/90"><ExternalLink className="h-4 w-4" />Official link not connected in this sample</span>}
             <SaveButton itemType="institution" itemRef={`${code}:application`} label={`${course.name} application checklist at ${institution.name}`} saveText="Save this checklist" savedText="Checklist saved" className="mt-2 w-full [&>button]:min-h-11 [&>button]:w-full [&>button]:justify-center [&>button]:rounded-lg [&>button]:border-[#2d7c78] [&>button]:bg-white [&>button]:text-[#28645d]" />
-            <section className="mt-4 rounded-xl border border-[#e6e8dd] bg-[#fcfcf6] p-4"><div className="flex items-start gap-3"><span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#dff2e9] text-[#176b5d]"><FileText className="h-5 w-5" /></span><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-serif text-[1.02rem] font-semibold text-[#26312c]">Official application source</h3><span className="rounded-full bg-[#fff0cb] px-2.5 py-1 text-[.68rem] font-semibold text-[#735b25]">{status}</span></div><p className="mt-2 text-xs leading-relaxed text-[#6d7772]">Refer to the institution’s official website for the latest information.</p></div></div></section>
+            <section className="mt-4 rounded-xl border border-[#e6e8dd] bg-[#fcfcf6] p-4"><div className="flex items-start gap-3"><span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#dff2e9] text-[#176b5d]"><FileText className="h-5 w-5" /></span><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-serif text-[1.02rem] font-semibold text-[#26312c]">Official application source</h3><span className="rounded-full bg-[#fff0cb] px-2.5 py-1 text-[.68rem] font-semibold text-[#735b25]">{status}</span></div><p className="mt-2 text-xs leading-relaxed text-[#6d7772]">Refer to the institution’s official website for the latest information.</p><p className="mt-2 text-xs text-[#6d7772]">Source record retrieved: {retrievedAt ?? "date not recorded"}.</p></div></div></section>
           </aside>
         </div>
 
