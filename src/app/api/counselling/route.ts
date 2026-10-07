@@ -43,7 +43,15 @@ export async function POST(request: Request) {
     }
     if (action === "answer" && !values.length && !text) return NextResponse.json({ error: "Choose an option or ‘Not sure yet’." }, { status: 400 });
     await saveAnswer({ sessionId: state.sessionId, questionKey, values: action === "skip" ? [] : values, text: action === "skip" ? null : text });
-    const refreshed = await getSessionState(); if (refreshed) await persistSnapshot(refreshed.snapshot);
+    const refreshed = await getSessionState();
+    if (refreshed) {
+      await persistSnapshot(refreshed.snapshot);
+      // Save completion together with the final answer so the reflection route
+      // never sees all answers present while the session is still in progress.
+      if (!nextQuestion(refreshed.stage, refreshed.snapshot.answeredKeys)) {
+        await completeSession(refreshed.sessionId);
+      }
+    }
     return NextResponse.json(await currentState(null, action === "skip" ? "No problem." : values.includes("not-sure") ? "Not sure is completely okay." : acknowledgementFor(questionKey)));
   } catch (error) { console.error("[careerbridge] counselling update failed", error); return NextResponse.json({ error: "We couldn't save that just now. Your earlier answers are safe — please try again." }, { status: 503 }); }
 }

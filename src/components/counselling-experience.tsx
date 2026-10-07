@@ -81,14 +81,7 @@ export function CounsellingExperience({ initial, focusKey }: { initial: State; f
         setState(next); syncJourney(next); setSelected([]); setOther(""); setText("");
         return;
       }
-      if (!next.question) {
-        const finished = await fetch("/api/counselling", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "complete" }) });
-        if (!finished.ok) setError("Your answers are saved. You can open My possibilities below.");
-        else {
-          const completed = await finished.json() as State;
-          setState(completed); syncJourney(completed); setSelected([]); setOther(""); setText("");
-        }
-      } else if (historyKey) {
+      if (historyKey) {
         const current = await fetch("/api/counselling").then((response) => response.json() as Promise<State>);
         setState(current); syncJourney(current); setHistoryKey(null); setSelected([]); setOther(""); setText("");
       } else {
