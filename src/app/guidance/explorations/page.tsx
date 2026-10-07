@@ -283,7 +283,7 @@ export default async function MyExplorationsPage() {
     }
   }
   activities.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
-  const savedHref = user ? "/saved" : "/sign-in?next=%2Fsaved";
+  const savedHref = user ? "/guidance/saved" : "/sign-in?next=%2Fguidance%2Fsaved";
 
   return <main className="min-h-[calc(100dvh-62px)] bg-[#fcfcfa] px-5 pb-8 pt-5 text-[#26312c] sm:px-8 lg:px-12"><section className="mx-auto max-w-[1380px]">
     <header className="flex flex-wrap items-start justify-between gap-5"><div className="max-w-[780px]"><h1 className="font-serif text-[clamp(2.25rem,4vw,3.55rem)] leading-[1.04] tracking-[-.045em] text-[#102c43]">My explorations</h1><p className="mt-2 font-serif text-[1.18rem] leading-[1.4] text-[#4d5d55]">Pick up where you left off, revisit a direction, or return to something you saved.</p><p className="mt-2 text-sm leading-relaxed text-[#6f7771]">Your counselling profile is shared across explorations. Each direction keeps its own saved work.</p></div><div className="flex flex-wrap items-center gap-3"><span className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#e8f2ec] px-4 text-sm text-[#355e53]"><span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-white text-[#176b62]"><UsersRound className="h-4 w-4" /></span>Profile confirmed</span><Link href="/guidance/possibilities" className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#075a58] px-5 text-sm font-semibold text-white transition hover:bg-[#064a49]"><ArrowLeftRight aria-hidden className="h-4 w-4" />Switch exploration</Link></div></header>

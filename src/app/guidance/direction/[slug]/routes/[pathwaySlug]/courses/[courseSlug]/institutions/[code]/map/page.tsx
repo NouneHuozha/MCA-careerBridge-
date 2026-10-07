@@ -80,7 +80,7 @@ export default async function InstitutionMapAndDirectionsPage({ params }: { para
     && Boolean(verifiedAt);
 
   const detailHref = `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(pathwaySlug)}/courses/${encodeURIComponent(courseSlug)}/institutions/${encodeURIComponent(institution.code)}`;
-  const compareHref = `/compare?type=institution&a=${encodeURIComponent(institution.code)}`;
+  const compareHref = `/guidance/compare?type=institution&a=${encodeURIComponent(institution.code)}&course=${encodeURIComponent(courseSlug)}&field=${encodeURIComponent(slug)}&returnTo=${encodeURIComponent(detailHref)}`;
   const verifiedSourceUrl = secureHttpsUrl(locationSource?.url);
   const linkedOfficialSource = verifiedSourceUrl
     ?? secureHttpsUrl(institution.officialWebsite)

@@ -61,7 +61,7 @@ export default async function OrientationPage() {
         </article>)}
       </div>
 
-      <Link href="/compare?type=field" className="mx-auto mt-6 inline-flex min-h-[58px] w-full max-w-[445px] items-center justify-center rounded-xl bg-[#075a58] px-6 py-4 font-serif text-[1.13rem] font-semibold text-white shadow-[0_5px_15px_-10px_#163c35] transition hover:bg-[#064a49] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#286b61]">See a few directions side by side</Link>
+      <Link href="/guidance/compare?type=field&returnTo=%2Fguidance%2Fnot-sure" className="mx-auto mt-6 inline-flex min-h-[58px] w-full max-w-[445px] items-center justify-center rounded-xl bg-[#075a58] px-6 py-4 font-serif text-[1.13rem] font-semibold text-white shadow-[0_5px_15px_-10px_#163c35] transition hover:bg-[#064a49] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#286b61]">See a few directions side by side</Link>
       <div className="mt-3 flex flex-col items-center justify-center gap-2 font-serif text-[1rem] text-[#35675b] sm:flex-row sm:gap-5">
         <Link href="/guidance/review" className="min-h-10 inline-flex items-center underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[#174d42] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Review what we understood</Link>
         <span aria-hidden className="hidden h-5 w-px bg-[#c9d8cf] sm:block" />
