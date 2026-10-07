@@ -72,7 +72,7 @@ function GuidanceHeader() {
   const mobileOpen = openPathname === pathname;
 
   return <header className="relative z-40 border-b border-[#e5e6e1] bg-white">
-    <div className="mx-auto flex min-h-[62px] max-w-[1500px] items-center gap-4 px-5 sm:px-8 lg:min-h-[76px] lg:gap-7 lg:px-12">
+    <div className="mx-auto flex w-full min-h-[62px] items-center gap-4 px-5 sm:px-8 lg:min-h-[76px] lg:gap-7 lg:px-12">
       <Logo size="sm" />
       <span aria-hidden className="hidden h-8 w-px bg-[#d9ddd7] lg:block" />
       <nav aria-label="Primary" className="hidden min-w-0 flex-1 items-center justify-between gap-4 lg:flex">
