@@ -23,8 +23,8 @@ const columns = [
   {
     title: "Account",
     links: [
-      { href: "/dashboard", label: "Dashboard" },
-      { href: "/saved", label: "Saved" },
+      { href: "/guidance", label: "Dashboard" },
+      { href: "/guidance/saved", label: "Saved" },
       { href: "/mentor", label: "Mentor" },
       { href: "/about", label: "About" },
     ],

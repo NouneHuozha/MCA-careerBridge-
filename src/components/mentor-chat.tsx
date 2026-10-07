@@ -94,7 +94,7 @@ export function MentorChat({ initialMessages = [], initialQuestion, providerConf
     {conversation}
     <aside className="space-y-4"><section className="rounded-2xl border border-lavender-ink/15 bg-lavender/35 p-5"><h2 className="mb-4 flex items-center gap-2 text-base font-semibold"><Compass aria-hidden className="h-4 w-4 text-lavender-ink" />A few starting points</h2><div className="space-y-2">{STARTERS.map((starter) => <button type="button" key={starter} disabled={pending} onClick={() => void ask(starter)} className="cb-link-row w-full text-left text-sm font-semibold">{starter}<ArrowRight aria-hidden className="link-arrow" /></button>)}</div></section>
       <Callout icon={<ShieldCheck className="h-4 w-4" />} title="No pressure. No predictions." tone="forest"><p>Ask why, explore alternatives, or change your mind.</p></Callout>
-      <Link href="/profile" className="cb-source text-sm">Revisit your profile<ArrowRight className="h-4 w-4" /></Link>
+      <Link href="/guidance/review" className="cb-source text-sm">Revisit your profile<ArrowRight className="h-4 w-4" /></Link>
     </aside>
   </div>;
 }

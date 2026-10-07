@@ -64,21 +64,19 @@ test('counselling scrolls, preserves edits, and makes the next action clear', as
       expect((await page.locator('.cb-counselling-shell').boundingBox())!.height).toBe(initialHeight);
     }
   }
-  await expect(page).toHaveURL(/\/profile/);
-  await expect(page.getByRole('heading', { name: 'Pick a field to look into.' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Explore this field', exact: true })).toHaveCount(3);
-  await page.screenshot({ path: 'artifacts/profile-desktop.png', fullPage: true });
-  await page.getByRole('link', { name: 'Edit subjects you enjoy' }).click();
-  await expect(page.getByRole('button', { name: 'Mathematics', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'English', exact: true }).click();
-  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
-  await expect(page).toHaveURL(/\/profile/);
-  const state = await (await page.request.get('/api/profile')).json();
-  expect(state.snapshot.subjectsEnjoy).toContain('english');
-  await page.getByRole('link', { name: 'Explore this field', exact: true }).first().click();
-  await expect(page).toHaveURL(/\/explore\//);
+  await expect(page).toHaveURL(/\/guidance\/complete/);
+  await expect(page.getByRole('heading', { name: 'We’ve finished getting to know you' })).toBeVisible();
+  await page.getByRole('link', { name: 'Review what we understood' }).click();
+  await expect(page).toHaveURL(/\/guidance\/review$/);
+  await expect(page.getByRole('heading', { name: 'Here’s what we understood' })).toBeVisible();
+  await page.getByRole('link', { name: 'This looks right — continue' }).click();
+  await expect(page).toHaveURL(/\/guidance\/confirm$/);
+  await expect(page.getByRole('heading', { name: 'Your starting picture is confirmed' })).toBeVisible();
+  await page.getByRole('link', { name: 'Explore possible directions' }).click();
+  await expect(page).toHaveURL(/\/guidance\/possibilities$/);
+  await expect(page.getByRole('heading', { name: 'Here are a few directions to explore' })).toBeVisible();
+  await page.screenshot({ path: 'artifacts/guidance-possibilities.png', fullPage: true });
 });
-
 test('field and pathway details reveal one topic at a time', async ({ page }) => {
   await page.goto('/explore/technology');
   await expect(page.getByRole('tabpanel').filter({ visible: true })).toHaveCount(1);
@@ -156,6 +154,15 @@ test('compare controls align and show the chosen pair', async ({ page }) => {
 });
 
 test('saved state persists and sign-out requires confirmation', async ({ page }) => {
+  const answers: [string, string[]][] = [
+    ['subjects_enjoy', ['mathematics']], ['stream_intent', ['science']], ['interests', ['technology']],
+    ['strengths', ['problem-solving']], ['goals', ['technology']], ['values', ['learning']],
+    ['location_pref', ['within-nagaland']], ['budget', ['low']],
+  ];
+  for (const [questionKey, values] of answers) {
+    expect((await page.request.post('/api/counselling', { data: { action: 'answer', stage: 'class10', questionKey, values } })).ok()).toBe(true);
+  }
+  expect((await page.request.post('/api/counselling', { data: { action: 'complete' } })).ok()).toBe(true);
   await createUser(page);
   await page.goto('/courses/bca');
   const save = page.getByRole('button', { name: /^Save BCA/ });
@@ -163,7 +170,7 @@ test('saved state persists and sign-out requires confirmation', async ({ page })
   await expect(page.getByRole('button', { name: /^Unsave BCA/ })).toHaveAttribute('aria-pressed', 'true');
   await page.reload();
   await expect(page.getByRole('button', { name: /^Unsave BCA/ })).toHaveAttribute('aria-pressed', 'true');
-  await page.goto('/saved');
+  await page.goto('/guidance/saved');
   await expect(page.getByRole('main')).toContainText('BCA');
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   const confirm = page.getByRole('dialog', { name: 'Sign out for now?' });

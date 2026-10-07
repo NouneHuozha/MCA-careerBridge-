@@ -62,6 +62,6 @@ export function SaveButton({ itemType, itemRef, label, initiallySaved = false, c
       {pending ? "Saving…" : saved ? savedText : saveText}
     </button>
     {needsAuth && <span role="status" className="rounded-lg border border-lavender-ink/20 bg-lavender/40 px-3 py-2 text-xs text-ink-700"><Link href={`/sign-in?next=${encodeURIComponent(pathname)}`} className="font-bold text-forest-700 underline underline-offset-4">Sign in</Link> to keep your shortlist.</span>}
-    {notice && <span role="status" className="text-xs text-ink-600">{notice}{saved && <Link href={pathname.startsWith("/guidance") ? "/guidance/saved" : "/saved"} className="ml-2 font-semibold text-forest-700 underline underline-offset-4">View saved →</Link>}</span>}
+    {notice && <span role="status" className="text-xs text-ink-600">{notice}{saved && <Link href="/guidance/saved" className="ml-2 font-semibold text-forest-700 underline underline-offset-4">View saved →</Link>}</span>}
   </span>;
 }
