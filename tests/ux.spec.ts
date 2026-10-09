@@ -38,9 +38,28 @@ test('animated guidance tiles can be selected and paused', async ({ page }) => {
   await expect(page.locator('.cb-guide p[aria-live]')).toContainText('fees and financial support');
 });
 
+test('counselling orientation explains the journey and continues to current position', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/start');
+  await expect(page.getByRole('heading', { name: 'Your counselling journey' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Let’s find a useful starting point.' })).toBeVisible();
+  await expect(page.getByText('This is your progress through the conversation, not a score.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Save and return later' })).toHaveCount(2);
+  await expect(page.getByRole('link', { name: 'Start counselling' })).toBeVisible();
+  await noOverflow(page);
+  await page.getByRole('link', { name: 'Start counselling' }).click();
+  await expect(page).toHaveURL('/start/current-position');
+  await expect(page.getByText('Which stage sounds like you?')).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/start');
+  await noOverflow(page);
+});
+
 test('counselling scrolls, preserves edits, and makes the next action clear', async ({ page }) => {
   await page.goto('/start');
-  await page.getByText('Waiting for results', { exact: true }).click();
+  await page.getByRole('link', { name: 'Start counselling' }).click();
+  await page.getByText('I’m finishing or have completed Class 10', { exact: true }).click();
+  await page.getByText('I’m waiting for results', { exact: true }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page).toHaveURL(/\/counselling/);
   const values: Record<string, string> = { subjects_enjoy: 'mathematics', stream_intent: 'science', interests: 'technology', strengths: 'problem-solving', goals: 'technology', values: 'learning', location_pref: 'within-nagaland', budget: 'low' };
