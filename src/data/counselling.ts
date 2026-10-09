@@ -10,6 +10,13 @@
 
 export type Stage = "class10" | "class12";
 
+export const STAGE_DETAIL_VALUES = ["studying", "completed", "awaiting_results", "deciding"] as const;
+export type StageDetail = (typeof STAGE_DETAIL_VALUES)[number];
+
+export function isStageDetail(value: string): value is StageDetail {
+  return STAGE_DETAIL_VALUES.includes(value as StageDetail);
+}
+
 export type QuestionOption = {
   value: string;
   label: string;

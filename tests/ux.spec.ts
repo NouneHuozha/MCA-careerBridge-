@@ -55,10 +55,43 @@ test('counselling orientation explains the journey and continues to current posi
   await noOverflow(page);
 });
 
+test('current position supports Class 10 and 12, preserves choices on Back, and fits mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/start');
+  await page.getByRole('link', { name: 'Start counselling' }).click();
+  const class10 = page.getByRole('radio', { name: 'I’m currently in Class 10' });
+  const class12 = page.getByRole('radio', { name: 'I’m currently in Class 12' });
+  const deciding = page.getByRole('radio', { name: 'I’m taking some time to decide what comes next' });
+  await expect(class10).toBeVisible();
+  await expect(class12).toBeVisible();
+  await expect(page.getByRole('radio')).toHaveCount(6);
+  await page.getByText('I’m currently in Class 12', { exact: true }).click();
+  await deciding.focus();
+  await page.keyboard.press('Space');
+  await expect(class12).toBeChecked();
+  await expect(deciding).toBeChecked();
+  await page.reload();
+  await expect(page.getByRole('radio', { name: 'I’m currently in Class 12' })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'I’m taking some time to decide what comes next' })).toBeChecked();
+  await page.getByRole('link', { name: 'Back', exact: true }).click();
+  await page.getByRole('link', { name: 'Start counselling' }).click();
+  await expect(page.getByRole('radio', { name: 'I’m currently in Class 12' })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'I’m taking some time to decide what comes next' })).toBeChecked();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await noOverflow(page);
+  await page.getByRole('button', { name: 'Save and return later' }).click();
+  await expect(page).toHaveURL(/\/start(?:\?counsellingSaved=1|\/current-position\?error=unavailable)/);
+  if (new URL(page.url()).pathname === '/start') {
+    await expect(page.getByRole('status')).toContainText('Your starting point is saved.');
+  } else {
+    await expect(page.locator('p[role="alert"]')).toContainText('We couldn’t save your starting point');
+  }
+});
+
 test('counselling scrolls, preserves edits, and makes the next action clear', async ({ page }) => {
   await page.goto('/start');
   await page.getByRole('link', { name: 'Start counselling' }).click();
-  await page.getByText('I’m finishing or have completed Class 10', { exact: true }).click();
+  await page.getByText('I’m currently in Class 10', { exact: true }).click();
   await page.getByText('I’m waiting for results', { exact: true }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page).toHaveURL(/\/counselling/);

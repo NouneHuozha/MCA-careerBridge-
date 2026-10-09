@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { findQuestion, type Stage } from "@/data/counselling";
+import { findQuestion, isStageDetail, type Stage } from "@/data/counselling";
 import { getSessionState, persistSnapshot, saveAnswer, startSession } from "@/services/profile";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,6 @@ const editableKeys = new Set([
   "location_pref",
 ]);
 const stages = new Set<Stage>(["class10", "class12"]);
-const stageDetails = new Set(["studying", "completed", "awaiting_results"]);
 
 type CorrectionBody = { stage?: unknown; stageDetail?: unknown; answers?: unknown };
 
@@ -32,7 +31,7 @@ export async function POST(request: Request) {
 
   const stage = body.stage;
   const stageDetail = body.stageDetail;
-  if (typeof stage !== "string" || !stages.has(stage as Stage) || typeof stageDetail !== "string" || !stageDetails.has(stageDetail)) {
+  if (typeof stage !== "string" || !stages.has(stage as Stage) || typeof stageDetail !== "string" || !isStageDetail(stageDetail)) {
     return NextResponse.json({ error: "Choose an available study stage and results status." }, { status: 400 });
   }
   if (!body.answers || typeof body.answers !== "object" || Array.isArray(body.answers)) {

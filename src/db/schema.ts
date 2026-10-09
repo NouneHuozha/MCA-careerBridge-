@@ -97,7 +97,7 @@ export const studentProfiles = pgTable(
     userId: integer("user_id").notNull(),
     displayName: varchar("display_name", { length: 120 }),
     stage: varchar("stage", { length: 32 }), // class10 | class12
-    stageDetail: varchar("stage_detail", { length: 32 }), // studying | completed | awaiting_results
+    stageDetail: varchar("stage_detail", { length: 32 }), // studying | completed | awaiting_results | deciding
     districtCode: varchar("district_code", { length: 40 }),
     townName: varchar("town_name", { length: 120 }),
     completion: integer("completion").notNull().default(0),
@@ -232,7 +232,7 @@ export const counsellingSessions = pgTable(
     profileId: integer("profile_id"),
     anonymousKey: varchar("anonymous_key", { length: 64 }),
     stage: varchar("stage", { length: 32 }).notNull().default("class10"),
-    stageDetail: varchar("stage_detail", { length: 32 }),
+    stageDetail: varchar("stage_detail", { length: 32 }), // studying | completed | awaiting_results | deciding
     status: varchar("status", { length: 24 }).notNull().default("in_progress"),
     stepIndex: integer("step_index").notNull().default(0),
     totalSteps: integer("total_steps").notNull().default(10),

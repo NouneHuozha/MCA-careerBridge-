@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { acknowledgementFor, completeSession, emptySnapshot, getSessionState, nextQuestion, persistSnapshot, progressFor, resetSession, saveAnswer, startSession } from "@/services/profile";
-import { findQuestion, questionsForStage, SECTIONS, type Stage } from "@/data/counselling";
+import { findQuestion, isStageDetail, questionsForStage, SECTIONS, type Stage } from "@/data/counselling";
 
 export const dynamic = "force-dynamic";
 async function currentState(focusKey?: string | null, acknowledgement?: string) {
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   if (!["answer", "skip", "reset", "complete"].includes(action)) return NextResponse.json({ error: "That action is unavailable." }, { status: 400 });
   try {
     let state = await getSessionState();
-    if (!state) { await startSession(body.stage === "class12" ? "class12" : "class10", ["studying", "completed", "awaiting_results"].includes(String(body.stageDetail)) ? String(body.stageDetail) : "studying"); state = await getSessionState(); }
+    if (!state) { const detail = String(body.stageDetail ?? ""); await startSession(body.stage === "class12" ? "class12" : "class10", isStageDetail(detail) ? detail : "studying"); state = await getSessionState(); }
     if (!state) throw new Error("Session unavailable");
     if (action === "reset") { await resetSession(state.sessionId); const reset = await getSessionState(); if (reset) await persistSnapshot(reset.snapshot); return NextResponse.json(await currentState()); }
     if (action === "complete") {

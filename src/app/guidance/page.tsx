@@ -48,7 +48,7 @@ const directionIcons: Record<string, LucideIcon> = {
 };
 
 const stageLabels = { class10: "Class 10", class12: "Class 12" } as const;
-const stageDetails: Record<string, string> = { studying: "currently studying", completed: "course completed", awaiting_results: "waiting for results" };
+const stageDetails: Record<string, string> = { studying: "currently studying", completed: "course completed", awaiting_results: "waiting for results", deciding: "taking some time to decide what comes next" };
 const savedTypeLabels: Record<string, string> = {
   field: "direction",
   career: "career",

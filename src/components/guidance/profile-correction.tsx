@@ -47,6 +47,7 @@ function answerSummary(data: CorrectionData, keys: string[]) {
 function stageDetailLabel(stage: Stage, detail: string) {
   if (detail === "studying") return "Currently studying";
   if (detail === "awaiting_results") return "Awaiting results";
+  if (detail === "deciding") return "Taking some time to decide";
   return stage === "class12" ? "Results available" : "Course completed";
 }
 
@@ -130,7 +131,7 @@ function CorrectionCard({ section, draft, staged, setDraft, setStaged, stagedSec
     <div className="min-w-0 border-t border-[#e7e3da] pt-3 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
       {section.key === "where" ? <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-xs font-medium text-[#69736b]">Current class<select value={sectionData.stage} onChange={(event) => setDraft({ ...draft, stage: event.target.value as Stage })} className="mt-1.5 min-h-11 w-full rounded-lg border border-[#d9ded7] bg-white px-3 text-sm text-[#26312c] outline-none focus:border-[#6e9d8d] focus:ring-2 focus:ring-[#dcebe3]"><option value="class10">Class 10</option><option value="class12">Class 12</option></select></label>
-        <label className="block text-xs font-medium text-[#69736b]">Results status<select value={sectionData.stageDetail} onChange={(event) => setDraft({ ...draft, stageDetail: event.target.value })} className="mt-1.5 min-h-11 w-full rounded-lg border border-[#d9ded7] bg-white px-3 text-sm text-[#26312c] outline-none focus:border-[#6e9d8d] focus:ring-2 focus:ring-[#dcebe3]"><option value="studying">Currently studying</option><option value="completed">{sectionData.stage === "class12" ? "Results available" : "Class completed"}</option><option value="awaiting_results">Awaiting results</option></select></label>
+        <label className="block text-xs font-medium text-[#69736b]">Current situation<select value={sectionData.stageDetail} onChange={(event) => setDraft({ ...draft, stageDetail: event.target.value })} className="mt-1.5 min-h-11 w-full rounded-lg border border-[#d9ded7] bg-white px-3 text-sm text-[#26312c] outline-none focus:border-[#6e9d8d] focus:ring-2 focus:ring-[#dcebe3]"><option value="studying">Currently studying</option><option value="completed">{sectionData.stage === "class12" ? "Results available" : "Class completed"}</option><option value="awaiting_results">Awaiting results</option><option value="deciding">Taking some time to decide</option></select></label>
       </div> : <div className="max-h-[250px] space-y-3 overflow-y-auto pr-1 sm:max-h-[300px]">
         {section.questions.map((key) => <QuestionChoices key={key} questionKey={key} data={draft} setData={setDraft} />)}
       </div>}

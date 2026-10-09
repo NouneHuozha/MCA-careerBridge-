@@ -9,7 +9,7 @@ export const metadata = { title: "Routes to explore" };
 
 function stageLabel(stage: string, detail?: string | null) {
   const label = stage === "class10" ? "Class 10" : "Class 12";
-  const detailLabels: Record<string, string> = { studying: "currently studying", completed: "results available", awaiting_results: "awaiting results" };
+  const detailLabels: Record<string, string> = { studying: "currently studying", completed: "results available", awaiting_results: "awaiting results", deciding: "taking some time to decide" };
   return `${label}${detail && detailLabels[detail] ? ` · ${detailLabels[detail]}` : ""}`;
 }
 

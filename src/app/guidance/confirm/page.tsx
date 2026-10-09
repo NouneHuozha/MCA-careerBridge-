@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Your starting picture is confirmed" };
 
 const stageLabels = { class10: "Class 10", class12: "Class 12" } as const;
-const stageDetails: Record<string, string> = { studying: "currently studying", completed: "course completed", awaiting_results: "results available" };
+const stageDetails: Record<string, string> = { studying: "currently studying", completed: "course completed", awaiting_results: "results available", deciding: "taking some time to decide what comes next" };
 const preferenceLabels: Record<string, string> = {
   "home-district": "prefer staying near my district",
   "within-nagaland": "prefer studying within Nagaland",
