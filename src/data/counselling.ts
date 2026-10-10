@@ -145,7 +145,7 @@ export const VALUE_OPTIONS: QuestionOption[] = [
   { value: "recognition", label: "Recognition and respect" },
   { value: "learning", label: "Continuous learning" },
   { value: "location", label: "Staying close to home" },
-  { value: "family", label: "Family considerations" },
+  { value: "family", label: "Family and personal responsibilities" },
 ];
 
 export const QUESTIONS: CounsellingQuestion[] = [
@@ -274,10 +274,11 @@ export const QUESTIONS: CounsellingQuestion[] = [
     core: true,
     section: "goals",
     prompt: "Which of these matter most to you in a career?",
-    helper: "Pick up to three so we can see what you'd prioritise if you had to choose.",
+    helper: "Pick up to three. There is no right combination.",
     answerType: "multi",
     options: VALUE_OPTIONS,
     maxSelections: 3,
+    allowOther: true,
   },
   {
     key: "location_pref",
