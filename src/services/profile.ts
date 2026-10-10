@@ -316,37 +316,51 @@ export async function getSessionState(): Promise<SessionState | null> {
   };
 }
 
-export async function saveAnswer(input: {
-  sessionId: number;
-  questionKey: string;
-  values: string[];
-  text?: string | null;
-}) {
-  const question = findQuestion(input.questionKey);
-  if (!question) throw new Error("Unknown question");
+type AnswerInput = { questionKey: string; values: string[]; text?: string | null };
 
-  await db
-    .delete(counsellingResponses)
-    .where(
-      and(
-        eq(counsellingResponses.sessionId, input.sessionId),
-        eq(counsellingResponses.questionKey, input.questionKey),
-      ),
-    );
-
-  await db.insert(counsellingResponses).values({
-    sessionId: input.sessionId,
-    questionKey: input.questionKey,
-    questionText: question.prompt,
-    answerType: question.answerType,
-    answerValues: input.values,
-    answerText: input.text ?? null,
+export async function saveAnswers(input: { sessionId: number; answers: AnswerInput[]; stage?: Stage; stageDetail?: string }) {
+  const resolved = input.answers.map((answer) => {
+    const question = findQuestion(answer.questionKey);
+    if (!question) throw new Error("Unknown question");
+    return { answer, question };
   });
 
-  await db
-    .update(counsellingSessions)
-    .set({ updatedAt: new Date() })
-    .where(eq(counsellingSessions.id, input.sessionId));
+  await db.transaction(async (transaction) => {
+    for (const { answer, question } of resolved) {
+      await transaction
+        .delete(counsellingResponses)
+        .where(
+          and(
+            eq(counsellingResponses.sessionId, input.sessionId),
+            eq(counsellingResponses.questionKey, answer.questionKey),
+          ),
+        );
+
+      await transaction.insert(counsellingResponses).values({
+        sessionId: input.sessionId,
+        questionKey: answer.questionKey,
+        questionText: question.prompt,
+        answerType: question.answerType,
+        answerValues: answer.values,
+        answerText: answer.text ?? null,
+      });
+    }
+
+    if (resolved.length || input.stage !== undefined || input.stageDetail !== undefined) {
+      await transaction
+        .update(counsellingSessions)
+        .set({
+          ...(input.stage !== undefined ? { stage: input.stage } : {}),
+          ...(input.stageDetail !== undefined ? { stageDetail: input.stageDetail } : {}),
+          updatedAt: new Date(),
+        })
+        .where(eq(counsellingSessions.id, input.sessionId));
+    }
+  });
+}
+
+export async function saveAnswer(input: AnswerInput & { sessionId: number }) {
+  return saveAnswers({ sessionId: input.sessionId, answers: [input] });
 }
 
 export function nextQuestion(stage: Stage, answeredKeys: string[]): CounsellingQuestion | null {

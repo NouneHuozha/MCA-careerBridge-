@@ -4,7 +4,6 @@ import { ArrowLeft, ArrowRight, Info, Pencil } from "lucide-react";
 import { findQuestion } from "@/data/counselling";
 import { getSessionState, labelFor } from "@/services/profile";
 import { ProfileCorrection } from "@/components/guidance/profile-correction";
-import { InterestCorrectionPage } from "@/components/guidance/interest-correction";
 import { CounsellingJourneyShell } from "@/components/counselling-journey";
 import { counsellingStages } from "@/data/counselling-journey";
 
@@ -102,7 +101,6 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
   if (!state) redirect("/start");
   if (state.status !== "completed") redirect("/counselling");
 
-  if (params.mode === "correct" && params.section === "interests") return <InterestCorrectionPage stage={state.stage} stageDetail={state.stageDetail} answers={state.answers} />;
   if (params.mode === "correct") return <ProfileCorrection stage={state.stage} stageDetail={state.stageDetail} answers={state.answers} />;
 
   const snapshot = state.snapshot;
@@ -123,7 +121,7 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
   const stageDetail = stageDetails[state.stageDetail ?? ""] ?? "Not shared";
   const enjoyedItems: ReviewItem[] = [
     ...(subjectValues.length ? [{ label: "Subjects", value: joinValues(subjectValues, "Not shared") }] : []),
-    { label: "Interests", value: joinValues(interestSummaryValues, "Not shared"), editHref: "/guidance/review?mode=correct&section=interests" },
+    { label: "Interests", value: joinValues(interestSummaryValues, "Not shared"), editHref: editProfileHref() },
     { label: "Strengths", value: joinValues(strengthValues, "Not shared") },
     { label: "Work style", value: workStyle },
   ];

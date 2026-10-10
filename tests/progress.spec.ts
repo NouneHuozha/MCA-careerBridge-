@@ -4,7 +4,7 @@ const answers: [string, string[]][] = [
   ['strengths', ['problem-solving']], ['work_style', ['mixed']], ['goals', ['technology']], ['values', ['learning']],
   ['location_pref', ['within-nagaland']], ['budget', ['low']],
 ];
-test('completed counselling follows complete, review, confirmation, and possibilities', async ({ page }) => {
+test('completed counselling goes directly to review, confirmation, and possibilities', async ({ page }) => {
   for (const [questionKey, values] of answers) {
     const response = await page.request.post('/api/counselling', { data: { action: 'answer', stage: 'class10', questionKey, values } });
     expect(response.ok()).toBe(true);
@@ -13,9 +13,6 @@ test('completed counselling follows complete, review, confirmation, and possibil
   expect(completion.ok()).toBe(true);
 
   await page.goto('/counselling');
-  await expect(page).toHaveURL(/\/guidance\/complete$/);
-  await expect(page.getByRole('heading', { name: 'We’ve finished getting to know you' })).toBeVisible();
-  await page.getByRole('link', { name: 'Review what we understood' }).click();
   await expect(page).toHaveURL(/\/guidance\/review$/);
   await expect(page.getByRole('heading', { name: 'Here’s what we understood' })).toBeVisible();
   await expect(page.locator('section[aria-labelledby="review-heading"]').getByText('Step 5 of 5')).toBeVisible();

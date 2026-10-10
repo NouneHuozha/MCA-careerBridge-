@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { findQuestion, isStageDetail, type Stage } from "@/data/counselling";
-import { getSessionState, persistSnapshot, saveAnswer, startSession } from "@/services/profile";
+import { getSessionState, persistSnapshot, saveAnswers } from "@/services/profile";
 
 export const dynamic = "force-dynamic";
 
 const editableKeys = new Set([
+  "stream_intent",
+  "stream_current",
   "subjects_enjoy",
   "interests",
+  "interest_story",
   "strengths",
   "work_style",
   "goals",
@@ -14,6 +17,7 @@ const editableKeys = new Set([
   "budget",
   "scholarship_need",
   "location_pref",
+  "anything_else",
 ]);
 const stages = new Set<Stage>(["class10", "class12"]);
 
@@ -48,8 +52,11 @@ export async function POST(request: Request) {
     }
     const question = findQuestion(key);
     if (!question) return NextResponse.json({ error: "One of the profile fields is not available to edit here." }, { status: 400 });
+    if ((key === "stream_intent" && stage !== "class10") || (key === "stream_current" && stage !== "class12")) {
+      return NextResponse.json({ error: "Choose the stream answer that matches your current class." }, { status: 400 });
+    }
     const values = [...new Set((rawValues as string[]).map((value) => value.trim()).filter(Boolean))];
-    const allowed = new Set([...(question.options ?? []).map((option) => option.value), "not-sure"]);
+    const allowed = new Set([...(question.options ?? []).map((option) => option.value), "not-sure", ...(question.allowOther ? ["other"] : [])]);
     const max = question.answerType === "single" ? 1 : question.maxSelections ?? 20;
     if (values.some((value) => value.length > 80 || (!allowed.has(value) && !question.allowOther)) || values.length > max) {
       return NextResponse.json({ error: "Please use the available answers for each profile field." }, { status: 400 });
@@ -68,12 +75,16 @@ export async function POST(request: Request) {
     if (!current) return NextResponse.json({ error: "Your counselling profile is not available. Please return to counselling." }, { status: 404 });
     if (current.status !== "completed") return NextResponse.json({ error: "Finish your counselling reflection before correcting this profile." }, { status: 409 });
 
-    if (current.stage !== stage || current.stageDetail !== stageDetail) await startSession(stage as Stage, stageDetail);
-    const session = await getSessionState();
-    if (!session) throw new Error("Session unavailable");
-    for (const answer of validated) {
-      await saveAnswer({ sessionId: session.sessionId, questionKey: answer.key, values: answer.values, text: answer.text === undefined ? session.answers[answer.key]?.text ?? null : answer.text });
-    }
+    await saveAnswers({
+      sessionId: current.sessionId,
+      stage: stage as Stage,
+      stageDetail,
+      answers: validated.map((answer) => ({
+        questionKey: answer.key,
+        values: answer.values,
+        text: answer.text === undefined ? current.answers[answer.key]?.text ?? null : answer.text,
+      })),
+    });
     const updated = await getSessionState();
     if (updated) await persistSnapshot(updated.snapshot);
     return NextResponse.json({ ok: true, stage, stageDetail, updatedAnswers: validated.length }, { headers: { "Cache-Control": "private, no-store" } });
