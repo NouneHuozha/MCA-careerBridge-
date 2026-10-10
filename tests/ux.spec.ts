@@ -168,26 +168,33 @@ test('Class 12 education page records a stream and optional Other detail through
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page).toHaveURL('/counselling?first=stream_current');
   await expect(page.getByRole('heading', { name: 'What did you study in Class 11–12?' })).toBeVisible();
-  await expect(page.getByRole('radio')).toHaveCount(6);
+  await expect(page.getByRole('radio')).toHaveCount(7);
+  for (const label of ['Science with Mathematics', 'Science with Biology', 'Commerce', 'Arts / Humanities', 'Vocational', 'Something else', 'I’m not sure yet']) {
+    await expect(page.getByRole('radio', { name: label })).toBeVisible();
+  }
+  await expect(page.getByLabel('Tell us what you studied (optional)')).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });
   await noOverflow(page);
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('Choose an option');
+  await expect(page.locator('p[role="alert"]')).toContainText('Choose an option');
 
   const other = page.getByRole('radio', { name: 'Something else' });
   await other.focus();
   await page.keyboard.press('Space');
   await expect(other).toBeChecked();
-  const detailToggle = page.getByRole('button', { name: 'Tell us more in your own words' });
-  const detail = page.getByLabel('Tell us more in your own words (optional)');
+  const detail = page.getByLabel('Tell us what you studied (optional)');
   await expect(detail).toBeVisible();
   await detail.fill('Environmental management and local ecology.');
-  await detailToggle.click();
-  await detailToggle.click();
+  const notSure = page.getByRole('radio', { name: 'I’m not sure yet' });
+  await notSure.focus();
+  await page.keyboard.press('Space');
+  await expect(detail).toHaveCount(0);
+  await other.focus();
+  await page.keyboard.press('Space');
   await expect(detail).toHaveValue('Environmental management and local ecology.');
   await page.reload();
   await expect(page.getByRole('radio', { name: 'Something else' })).toBeChecked();
-  await expect(page.getByLabel('Tell us more in your own words (optional)')).toHaveValue('Environmental management and local ecology.');
+  await expect(page.getByLabel('Tell us what you studied (optional)')).toHaveValue('Environmental management and local ecology.');
 
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.getByRole('heading', { name: "Let's start simple. Which subjects do you enjoy the most?" })).toBeVisible();
@@ -197,12 +204,12 @@ test('Class 12 education page records a stream and optional Other detail through
   await page.getByRole('button', { name: 'Back', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'What did you study in Class 11–12?' })).toBeVisible();
   await expect(page.getByRole('radio', { name: 'Something else' })).toBeChecked();
-  await expect(page.getByLabel('Tell us more in your own words (optional)')).toHaveValue('Environmental management and local ecology.');
-  await page.getByText('Science', { exact: true }).click();
+  await expect(page.getByLabel('Tell us what you studied (optional)')).toHaveValue('Environmental management and local ecology.');
+  await page.getByText('Science with Mathematics', { exact: true }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.getByRole('heading', { name: "Let's start simple. Which subjects do you enjoy the most?" })).toBeVisible();
   savedState = await (await page.request.get('/api/counselling')).json();
-  expect(savedState.answers.stream_current).toEqual({ values: ['science'], text: 'Environmental management and local ecology.' });
+  expect(savedState.answers.stream_current).toEqual({ values: ['science-pcm'], text: 'Environmental management and local ecology.' });
 
   await page.getByRole('button', { name: 'Save and return later' }).click();
   await expect(page).toHaveURL('/start?counsellingSaved=1');

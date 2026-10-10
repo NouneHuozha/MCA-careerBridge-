@@ -44,14 +44,15 @@ const pageConfig: Record<PageKind, {
     questionKey: "stream_current",
     stage: "class12",
     heading: "What did you study in Class 11–12?",
-    helper: "This helps us understand which routes and courses may be relevant to explore next.",
-    afterHelper: "You can tell us more if you’d like.",
+    helper: "Choose the option that feels closest. You can change this later.",
+    afterHelper: "Not sure yet is okay.",
     specialOther: "other",
     options: [
-      { value: "science", label: "Science" },
+      { value: "science-pcm", label: "Science with Mathematics" },
+      { value: "science-pcb", label: "Science with Biology" },
       { value: "commerce", label: "Commerce" },
       { value: "arts", label: "Arts / Humanities" },
-      { value: "vocational", label: "Vocational / technical" },
+      { value: "vocational", label: "Vocational" },
       { value: "other", label: "Something else" },
       { value: "not-sure", label: "I’m not sure yet" },
     ],
@@ -60,14 +61,13 @@ const pageConfig: Record<PageKind, {
 
 const optionValues: Record<PageKind, Set<string>> = {
   class10: new Set(pageConfig.class10.options.map((option) => option.value)),
-  class12: new Set(pageConfig.class12.options.map((option) => option.value)),
+  // The generic Science value was used by the first Class 12 rollout; keep it loadable without showing it for new answers.
+  class12: new Set([...pageConfig.class12.options.map((option) => option.value), "science"]),
 };
 
 function initialChoice(kind: PageKind, answer: Answer | null) {
   const value = answer?.values.find((entry) => optionValues[kind].has(entry));
   if (value) return value;
-  // Older Class 12 sessions distinguished PCM/PCB; the new reference groups them as Science.
-  if (kind === "class12" && answer?.values.some((entry) => entry === "science-pcm" || entry === "science-pcb")) return "science";
   return "";
 }
 
@@ -85,6 +85,9 @@ function EducationSelectionPage({ kind, sessionId, initialAnswer, editing = fals
   const headingId = `${config.questionKey}-title`;
   const contextId = `${config.questionKey}-context`;
   const textId = `${config.questionKey}-text`;
+  const selectionOptions = kind === "class12" && selected === "science"
+    ? [{ value: "science", label: "Science" }, ...config.options]
+    : config.options;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -205,34 +208,65 @@ function EducationSelectionPage({ kind, sessionId, initialAnswer, editing = fals
             <fieldset disabled={pending || !draftReady}>
               <legend className="sr-only">{config.heading}</legend>
               <div className="grid gap-4 sm:grid-cols-2">
-                {config.options.map((option, index) => (
-                  <label
-                    key={option.value}
-                    className={`group relative flex min-h-[76px] cursor-pointer items-center gap-5 rounded-xl border border-[#e0e1dc] bg-white px-5 py-4 text-[15px] font-medium text-[#293032] transition hover:border-[#8db3a7] has-[:checked]:border-[#438573] has-[:checked]:bg-[#f4f8f5] has-[:checked]:shadow-[0_0_0_1px_#438573] focus-within:ring-2 focus-within:ring-[#438573] focus-within:ring-offset-2 sm:px-6 ${kind === "class10" && index === config.options.length - 1 ? "sm:col-span-2" : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      name={config.questionKey}
-                      value={option.value}
-                      checked={selected === option.value}
-                      onChange={() => {
-                        setSelected(option.value);
-                        setError(null);
-                        if (config.specialOther === option.value) setExpanded(true);
-                        cacheDraft(option.value, text);
-                      }}
-                      className="peer sr-only"
-                    />
-                    <span aria-hidden="true" className="pointer-events-none grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full border-2 border-[#9da5a3] bg-white text-transparent transition peer-checked:border-[#438573] peer-checked:bg-[#438573] peer-checked:text-white">
-                      <Check className="h-[18px] w-[18px]" strokeWidth={2.5} />
-                    </span>
-                    <span>{option.label}</span>
-                  </label>
-                ))}
+                {selectionOptions.map((option, index) => {
+                  const isSelected = selected === option.value;
+                  const inlineOther = kind === "class12" && option.value === config.specialOther && isSelected;
+                  const fullWidth = kind === "class10" && index === config.options.length - 1;
+                  return (
+                    <div
+                      key={option.value}
+                      className={`rounded-xl border transition focus-within:ring-2 focus-within:ring-[#438573] focus-within:ring-offset-2 ${isSelected ? "border-[#438573] bg-[#f4f8f5] shadow-[0_0_0_1px_#438573]" : "border-[#e0e1dc] bg-white hover:border-[#8db3a7]"} ${fullWidth ? "sm:col-span-2" : ""}`}
+                    >
+                      <label className={`group flex cursor-pointer gap-5 px-5 text-[15px] font-medium text-[#293032] sm:px-6 ${inlineOther ? "items-start pt-4" : "min-h-[76px] items-center py-4"}`}>
+                        <input
+                          type="radio"
+                          name={config.questionKey}
+                          value={option.value}
+                          checked={isSelected}
+                          onChange={() => {
+                            setSelected(option.value);
+                            setError(null);
+                            if (kind === "class10" && config.specialOther === option.value) setExpanded(true);
+                            cacheDraft(option.value, text);
+                          }}
+                          className="peer sr-only"
+                        />
+                        <span
+                          aria-hidden="true"
+                          className={`pointer-events-none grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full border-2 transition ${kind === "class12" ? (isSelected ? "border-[#397e70] bg-white" : "border-[#9da5a3] bg-white") : "border-[#9da5a3] bg-white text-transparent peer-checked:border-[#438573] peer-checked:bg-[#438573] peer-checked:text-white"} ${inlineOther ? "mt-0.5" : ""}`}
+                        >
+                          {kind === "class12"
+                            ? (isSelected && <span className="h-[17px] w-[17px] rounded-full bg-[#397e70]" />)
+                            : <Check className="h-[18px] w-[18px]" strokeWidth={2.5} />}
+                        </span>
+                        <span className="min-w-0 flex-1">{option.label}</span>
+                      </label>
+                      {inlineOther && (
+                        <div className="pb-4 pl-[4.75rem] pr-5 sm:pr-6">
+                          <label htmlFor={textId} className="mb-2 block text-sm text-[#747a79]">Tell us what you studied (optional)</label>
+                          <input
+                            id={textId}
+                            type="text"
+                            value={text}
+                            onChange={(event) => {
+                              setText(event.target.value);
+                              setError(null);
+                              cacheDraft(selected, event.target.value);
+                            }}
+                            maxLength={600}
+                            disabled={pending || !draftReady}
+                            placeholder="Your Class 11–12 stream"
+                            className="min-h-[48px] w-full rounded-lg border border-[#dfe2dd] bg-white px-4 text-sm text-[#293032] outline-none transition placeholder:text-[#858b89] focus:border-[#438573] focus:ring-2 focus:ring-[#dcebe3] disabled:bg-[#f7f7f5]"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </fieldset>
 
-            <div className="mt-8">
+            {kind === "class10" && <div className="mt-8">
               <button
                 type="button"
                 aria-expanded={expanded}
@@ -261,7 +295,7 @@ function EducationSelectionPage({ kind, sessionId, initialAnswer, editing = fals
                   className="w-full resize-y rounded-xl border border-[#dfe2dd] bg-white px-4 py-3 text-sm leading-relaxed text-[#293032] outline-none transition placeholder:text-[#858b89] focus:border-[#438573] focus:ring-2 focus:ring-[#dcebe3] disabled:bg-[#f7f7f5]"
                 />
               </div>
-            </div>
+            </div>}
             <p className="mt-3 text-sm text-[#747a79]">{config.afterHelper}</p>
 
             {error && <p role="alert" className="mt-4 rounded-xl border border-[#e7c9be] bg-[#fff4ef] px-4 py-3 text-sm font-medium text-[#8b4431]">{error}</p>}
