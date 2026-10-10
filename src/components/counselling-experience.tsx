@@ -358,14 +358,20 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
             </div>}
           </section>;
         })}
-        <div className="rounded-[9px] border border-[#e4e3df] bg-white">
-          <label className="flex min-h-[60px] cursor-pointer items-center gap-4 px-4 text-sm text-[#303638] hover:bg-[#fafbf9] focus-within:outline focus-within:outline-2 focus-within:outline-offset-[-3px] focus-within:outline-[#397e70] sm:px-5 sm:text-base">
+        <div className={cx("rounded-[9px] border bg-white", isInterestsQuestion && selected.includes("other") ? "border-[#76ad9b] bg-[#f0f7f3]" : "border-[#e4e3df]")}>
+          <label className="flex min-h-[60px] cursor-pointer items-center gap-4 rounded-t-[8px] px-4 text-sm text-[#303638] transition hover:bg-[#fafbf9] focus-within:outline focus-within:outline-2 focus-within:outline-offset-[-3px] focus-within:outline-[#397e70] sm:px-5 sm:text-base">
             <input type="checkbox" checked={selected.includes("other")} onChange={() => choose("other")} className="h-5 w-5 shrink-0 accent-[#287d6c]" />
             <span className="font-medium">Something else</span>
           </label>
           {selected.includes("other") && <div className="border-t border-[#ecebe7] px-4 py-3 sm:px-5">
-            <label htmlFor="grouped-other" className="mb-1.5 block text-sm font-medium text-[#454c4d]">{isInterestsQuestion ? "Tell us what else interests you" : "Tell us what else you enjoy"} <span className="font-normal text-[#777d7d]">(optional)</span></label>
-            <input id="grouped-other" value={other} onChange={(event) => { const value = event.target.value; setOther(value); persistDraft(selected, value, text); }} maxLength={600} placeholder={isInterestsQuestion ? "Add another interest (optional)" : "Add a subject (optional)"} className="min-h-11 w-full rounded-lg border border-[#d9d9d5] bg-white px-3.5 text-sm text-[#20272b] outline-none transition placeholder:text-[#858a89] focus:border-[#397e70] focus:ring-2 focus:ring-[#397e70]/20" />
+            {isInterestsQuestion ? <>
+              <label htmlFor="grouped-other" className="mb-2 block text-base font-medium text-[#454c4d]">Tell us more, if you’d like. <span className="font-normal text-[#777d7d]">Optional.</span></label>
+              <textarea id="grouped-other" aria-describedby="interest-other-help" value={other} onChange={(event) => { const value = event.target.value; setOther(value); persistDraft(selected, value, text); }} maxLength={600} rows={4} placeholder="Share an interest in your own words (optional)" className="min-h-24 w-full resize-y rounded-lg border border-[#bfc3c5] bg-white px-3.5 py-2.5 text-base text-[#20272b] outline-none transition placeholder:text-[#858a89] focus:border-[#397e70] focus:ring-2 focus:ring-[#397e70]/20" />
+              <p id="interest-other-help" className="mt-2 text-sm text-[#777d7d]">Your own words can help us understand what the list cannot capture.</p>
+            </> : <>
+              <label htmlFor="grouped-other" className="mb-1.5 block text-sm font-medium text-[#454c4d]">Tell us what else you enjoy <span className="font-normal text-[#777d7d]">(optional)</span></label>
+              <input id="grouped-other" value={other} onChange={(event) => { const value = event.target.value; setOther(value); persistDraft(selected, value, text); }} maxLength={600} placeholder="Add a subject (optional)" className="min-h-11 w-full rounded-lg border border-[#d9d9d5] bg-white px-3.5 text-sm text-[#20272b] outline-none transition placeholder:text-[#858a89] focus:border-[#397e70] focus:ring-2 focus:ring-[#397e70]/20" />
+            </>}
           </div>}
         </div>
         <label className={cx("flex min-h-[60px] cursor-pointer items-center gap-4 rounded-[9px] border px-4 text-sm transition sm:px-5 sm:text-base", selected.includes("not-sure") ? "border-[#579786] bg-[#f0f7f3]" : "border-[#e4e3df] bg-white hover:bg-[#fafbf9]")}>
