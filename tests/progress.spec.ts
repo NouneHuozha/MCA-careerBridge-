@@ -63,6 +63,7 @@ test('image 15 review accepts not-sure, allows adding optional detail, and retur
   await page.getByRole('link', { name: 'Edit What you enjoy and bring' }).click();
   await expect(page).toHaveURL(/\/guidance\/review\?mode=correct$/);
   await expect(page.getByRole('heading', { name: 'Change what we understood' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible();
   await page.goBack();
   await expect(page.getByRole('heading', { name: 'Here’s what we understood' })).toBeVisible();
 

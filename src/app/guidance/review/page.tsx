@@ -4,13 +4,14 @@ import { ArrowLeft, ArrowRight, Info, Pencil } from "lucide-react";
 import { findQuestion } from "@/data/counselling";
 import { getSessionState, labelFor } from "@/services/profile";
 import { ProfileCorrection } from "@/components/guidance/profile-correction";
+import { InterestCorrectionPage } from "@/components/guidance/interest-correction";
 import { CounsellingJourneyShell } from "@/components/counselling-journey";
 import { counsellingStages } from "@/data/counselling-journey";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Here’s what we understood" };
 
-type ReviewItem = { label: string; value: string };
+type ReviewItem = { label: string; value: string; editHref?: string };
 
 type SessionState = NonNullable<Awaited<ReturnType<typeof getSessionState>>>;
 
@@ -46,7 +47,7 @@ const preferenceLabels: Record<string, string> = {
 function labelsFor(state: SessionState, key: string, kind?: "subject" | "interest" | "strength" | "goal" | "value") {
   const values = state.answers[key]?.values ?? [];
   const question = findQuestion(key);
-  return values.map((value) => value === "not-sure" ? "Not sure yet" : question?.options?.find((option) => option.value === value)?.label ?? (kind ? labelFor(kind, value) : preferenceLabels[value] ?? value.replace(/-/g, " ")));
+  return values.map((value) => value === "not-sure" ? "Not sure yet" : value === "other" && kind === "interest" ? "Something else" : question?.options?.find((option) => option.value === value)?.label ?? (kind ? labelFor(kind, value) : preferenceLabels[value] ?? value.replace(/-/g, " ")));
 }
 
 function joinValues(values: string[], fallback: string) {
@@ -70,7 +71,10 @@ function SummaryCard({ title, items, editSection }: { title: string; items: Revi
     <dl className="mt-3 divide-y divide-[#e7e9e5]">
       {items.map((item) => <div key={item.label} className="grid min-w-0 grid-cols-[minmax(92px,.42fr)_minmax(0,1fr)] gap-x-3 py-2.5 text-sm leading-snug sm:grid-cols-[minmax(110px,.42fr)_minmax(0,1fr)]">
         <dt className="text-[#27333a]">{item.label}</dt>
-        <dd className="m-0 min-w-0 break-words text-[#68758a]">{item.value}</dd>
+        <dd className="m-0 flex min-w-0 flex-wrap items-center justify-between gap-2 break-words text-[#68758a]">
+          <span>{item.value}</span>
+          {item.editHref && <Link href={item.editHref} aria-label={`Edit ${item.label.toLowerCase()}`} className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-md px-1.5 text-xs font-medium text-[#176b62] hover:bg-[#f0f6f2] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]"><Pencil aria-hidden className="h-3.5 w-3.5" strokeWidth={1.8} />Edit</Link>}
+        </dd>
       </div>)}
     </dl>
   </article>;
@@ -92,12 +96,13 @@ function StillOpenCard({ detail }: { detail: string | null }) {
   </article>;
 }
 
-export default async function ProfileReviewPage({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
+export default async function ProfileReviewPage({ searchParams }: { searchParams: Promise<{ mode?: string; section?: string }> }) {
   const params = await searchParams;
   const state = await getSessionState();
   if (!state) redirect("/start");
   if (state.status !== "completed") redirect("/counselling");
 
+  if (params.mode === "correct" && params.section === "interests") return <InterestCorrectionPage stage={state.stage} stageDetail={state.stageDetail} answers={state.answers} />;
   if (params.mode === "correct") return <ProfileCorrection stage={state.stage} stageDetail={state.stageDetail} answers={state.answers} />;
 
   const snapshot = state.snapshot;
@@ -106,6 +111,8 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
   const streamAnswer = (state.answers[streamKey]?.values ?? []).includes("not-sure") ? "Not decided yet" : joinValues(streamValues, "Not decided yet");
   const subjectValues = labelsFor(state, "subjects_enjoy", "subject").filter((value) => value.toLowerCase() !== "not sure yet");
   const interestValues = labelsFor(state, "interests", "interest");
+  const interestText = state.answers.interests?.text?.trim();
+  const interestSummaryValues = interestValues.map((value) => value === "Something else" && interestText ? `Something else: ${interestText}` : value);
   const strengthValues = labelsFor(state, "strengths", "strength");
   const goalValues = labelsFor(state, "goals", "goal");
   const careerValues = labelsFor(state, "values", "value");
@@ -116,7 +123,7 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
   const stageDetail = stageDetails[state.stageDetail ?? ""] ?? "Not shared";
   const enjoyedItems: ReviewItem[] = [
     ...(subjectValues.length ? [{ label: "Subjects", value: joinValues(subjectValues, "Not shared") }] : []),
-    { label: "Interests", value: joinValues(interestValues, "Not shared") },
+    { label: "Interests", value: joinValues(interestSummaryValues, "Not shared"), editHref: "/guidance/review?mode=correct&section=interests" },
     { label: "Strengths", value: joinValues(strengthValues, "Not shared") },
     { label: "Work style", value: workStyle },
   ];
@@ -126,7 +133,7 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
     { label: "Study location", value: location },
     { label: "Cost preference", value: budget },
   ];
-  const chosenSignals = [...strengthValues, ...interestValues].filter((value) => value.toLowerCase() !== "not sure yet").slice(0, 3);
+  const chosenSignals = [...strengthValues, ...interestValues.filter((value) => value !== "Something else")].filter((value) => value.toLowerCase() !== "not sure yet").slice(0, 3);
   const interpretation = chosenSignals.length
     ? `You mentioned ${joinValues(chosenSignals, "")}. These may be useful clues as you explore different directions.`
     : "Some parts of your picture are still open. You can explore different directions and update this later.";
