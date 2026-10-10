@@ -60,3 +60,20 @@ test("Subjects accepts Not sure yet and remains usable at mobile width", async (
   expect(saved.answers.subjects_enjoy.values).toEqual(["not-sure"]);
   expect(saved.answers.subjects_enjoy.text).toBeNull();
 });
+
+test("starting again after a completed session opens a fresh flow instead of skipping Subjects", async ({ page }) => {
+  await startAtSubjects(page);
+  for (const questionKey of ["subjects_enjoy", "interests", "strengths", "goals", "values", "location_pref", "budget"]) {
+    const response = await page.request.post("/api/counselling", { data: { questionKey, values: ["not-sure"] } });
+    expect(response.ok(), `answer ${questionKey}`).toBeTruthy();
+  }
+  const completion = await page.request.post("/api/counselling", { data: { action: "complete" } });
+  expect(completion.ok()).toBeTruthy();
+
+  await page.goto("/start/current-position");
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(page).toHaveURL(/\/counselling\?first=stream_intent/);
+  await page.getByText("Science", { exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Which subjects do you enjoy the most?" })).toBeVisible();
+});

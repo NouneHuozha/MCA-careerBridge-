@@ -228,7 +228,7 @@ export async function findSession(): Promise<typeof counsellingSessions.$inferSe
         .select()
         .from(counsellingSessions)
         .where(eq(counsellingSessions.userId, user.id))
-        .orderBy(desc(counsellingSessions.updatedAt))
+        .orderBy(desc(counsellingSessions.updatedAt), desc(counsellingSessions.id))
         .limit(1);
       if (rows[0]) return rows[0];
     }
@@ -238,7 +238,7 @@ export async function findSession(): Promise<typeof counsellingSessions.$inferSe
       .select()
       .from(counsellingSessions)
       .where(and(eq(counsellingSessions.anonymousKey, key), isNull(counsellingSessions.userId)))
-      .orderBy(desc(counsellingSessions.updatedAt))
+      .orderBy(desc(counsellingSessions.updatedAt), desc(counsellingSessions.id))
       .limit(1);
     return rows[0] ?? null;
   } catch {
@@ -246,19 +246,30 @@ export async function findSession(): Promise<typeof counsellingSessions.$inferSe
   }
 }
 
-export async function startSession(stage: Stage, stageDetail: string | null): Promise<number> {
+export async function startSession(stage: Stage, stageDetail: string | null, options: { startNewIfComplete?: boolean } = {}): Promise<number> {
   const user = await getCurrentUser();
   const key = (await anonKey(true))!;
   const profileId = user ? await getOrCreateProfileId(user.id) : null;
 
   const existing = await findSession();
   if (existing) {
-    await db
-      .update(counsellingSessions)
-      .set({ stage, stageDetail, userId: user?.id ?? existing.userId, profileId: profileId ?? existing.profileId, updatedAt: new Date() })
-      .where(eq(counsellingSessions.id, existing.id));
-    if (user) await syncProfileStage(user.id, stage, stageDetail);
-    return existing.id;
+    let startFresh = false;
+    if (options.startNewIfComplete) {
+      const responses = await db
+        .select({ questionKey: counsellingResponses.questionKey })
+        .from(counsellingResponses)
+        .where(eq(counsellingResponses.sessionId, existing.id));
+      startFresh = existing.status === "completed" || !nextQuestion(stage, responses.map((response) => response.questionKey));
+    }
+    if (!startFresh) {
+      await db
+        .update(counsellingSessions)
+        .set({ stage, stageDetail, userId: user?.id ?? existing.userId, profileId: profileId ?? existing.profileId, updatedAt: new Date() })
+        .where(eq(counsellingSessions.id, existing.id));
+      if (user) await syncProfileStage(user.id, stage, stageDetail);
+      return existing.id;
+    }
+    // Keep the completed responses intact; a deliberate new start gets its own session.
   }
 
   const created = await db

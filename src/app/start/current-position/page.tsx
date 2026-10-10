@@ -28,7 +28,7 @@ export default async function CurrentPositionPage({ searchParams }: { searchPara
       redirect("/start/current-position?error=choose-options");
     }
     try {
-      await startSession(rawStage as Stage, rawDetail);
+      await startSession(rawStage as Stage, rawDetail, { startNewIfComplete: intent === "continue" });
     } catch {
       redirect("/start/current-position?error=unavailable");
     }
