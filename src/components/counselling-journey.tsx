@@ -61,12 +61,12 @@ export function CounsellingJourneyMobile({ currentSection, completedSections, pr
   return <details className="mb-5 overflow-hidden rounded-2xl border border-[#cfe2ef] bg-[#eaf4fb] lg:hidden"><summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3.5"><span><span className="block text-[11px] font-bold uppercase tracking-[.14em] text-[#38718e]">{current.key === "reflection" ? "Reflection ready" : "Your progress"}</span><span className="mt-1 block text-sm font-semibold text-ink-900">{current.label}</span></span><span className="grid h-8 w-8 place-items-center rounded-full border border-[#cfe2ef] bg-white text-sky-ink"><ChevronDown aria-hidden className="h-4 w-4" /></span></summary><div className="border-t border-[#cfe2ef] px-2 pb-2"><ProgressSummary currentSection={currentSection} completedSections={completedSections} progress={progress} /><StageList currentSection={currentSection} completedSections={completedSections} mobile /></div></details>;
 }
 
-function SubjectsJourneyMap({ mobile = false }: { mobile?: boolean }) {
+function SubjectsJourneyMap({ mobile = false, activeStep = 1 }: { mobile?: boolean; activeStep?: number }) {
   const steps = ["Where you are now", "What interests you", "What you bring", "What matters to you", "What we understood"];
   const content = <ol className={mobile ? "grid gap-1 p-2" : "mt-6"}>
     {steps.map((label, index) => {
-      const active = index === 1;
-      const complete = index === 0;
+      const active = index === activeStep;
+      const complete = index < activeStep;
       return <li key={label} aria-current={active ? "step" : undefined} className={`relative flex min-h-[66px] items-center gap-4 rounded-lg px-3 ${active ? "bg-[#f3f6f4]" : ""}`}>
         {!mobile && index < steps.length - 1 && <span aria-hidden className={`absolute left-[19px] top-[43px] h-[36px] w-px ${complete ? "bg-[#62a48e]" : "border-l border-dashed border-[#d6d9d5]"}`} />}
         <span aria-hidden className={`relative z-10 grid h-10 w-10 shrink-0 place-items-center rounded-full border ${complete ? "border-[#e6f2ec] bg-[#e6f2ec] text-[#397e70]" : active ? "border-[#287d6c] bg-[#287d6c] text-white" : "border-[#d8d9d6] bg-white text-[#747b7b]"}`}>
@@ -76,7 +76,7 @@ function SubjectsJourneyMap({ mobile = false }: { mobile?: boolean }) {
       </li>;
     })}
   </ol>;
-  if (mobile) return <details className="overflow-hidden rounded-xl border border-[#e4e3df] bg-white"><summary className="flex min-h-12 cursor-pointer items-center justify-between px-4 text-sm font-semibold text-[#20272b]">Your counselling journey <span className="text-xs font-medium text-[#397e70]">Step 2 of 5</span></summary><div className="border-t border-[#eeede9] p-2">{content}</div></details>;
+  if (mobile) return <details className="overflow-hidden rounded-xl border border-[#e4e3df] bg-white"><summary className="flex min-h-12 cursor-pointer items-center justify-between px-4 text-sm font-semibold text-[#20272b]">Your counselling journey <span className="text-xs font-medium text-[#397e70]">Step {activeStep + 1} of 5</span></summary><div className="border-t border-[#eeede9] p-2">{content}</div></details>;
   return <aside aria-label="Counselling journey" className="hidden lg:block">
     <div className="rounded-[9px] border border-[#e5e4e0] bg-white px-5 py-6 sm:px-7">
       <h2 className="text-[1.35rem] font-semibold tracking-[-.035em] text-[#20272b]">Your counselling journey</h2>
@@ -100,8 +100,8 @@ export function CounsellingJourneyShell({ children, currentSection, completedSec
       </Link>
     </header>
     <div className="mx-auto grid w-full max-w-[1472px] grid-cols-1 gap-5 px-5 py-6 sm:gap-7 sm:px-8 sm:py-8 lg:grid-cols-[386px_minmax(0,1fr)] lg:gap-12 lg:px-11 lg:py-10">
-      <SubjectsJourneyMap />
-      <div className="min-w-0 lg:hidden"><SubjectsJourneyMap mobile /></div>
+      <SubjectsJourneyMap activeStep={currentSection === "strengths" ? 2 : 1} />
+      <div className="min-w-0 lg:hidden"><SubjectsJourneyMap activeStep={currentSection === "strengths" ? 2 : 1} mobile /></div>
       <div className="min-w-0">{children}</div>
     </div>
   </JourneyContext.Provider>;

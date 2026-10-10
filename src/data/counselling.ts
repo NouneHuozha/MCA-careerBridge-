@@ -107,15 +107,19 @@ export const INTEREST_GROUPS = [
 export const STRENGTH_OPTIONS: QuestionOption[] = [
   { value: "problem-solving", label: "Problem solving" },
   { value: "communication", label: "Communication" },
-  { value: "creativity", label: "Creativity" },
   { value: "leadership", label: "Leadership" },
   { value: "people", label: "Working with people" },
   { value: "analytical", label: "Analytical thinking" },
-  { value: "practical", label: "Practical / hands-on work" },
   { value: "writing", label: "Writing" },
-  { value: "organising", label: "Organising and planning" },
+  { value: "practical", label: "Practical / hands-on work" },
   { value: "teaching", label: "Explaining and teaching" },
+  { value: "creativity", label: "Creativity" },
+  { value: "teamwork", label: "Teamwork" },
+  { value: "organising", label: "Organising and planning" },
+  { value: "listening-understanding-people", label: "Listening and understanding people" },
   { value: "research", label: "Finding things out" },
+  { value: "other", label: "Something else I’m good at" },
+  { value: "patience-persistence", label: "Patience and persistence" },
 ];
 
 export const GOAL_OPTIONS: QuestionOption[] = [
