@@ -62,7 +62,9 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
   const [costSelected, setCostSelected] = useState(savedCostValue === "not-sure" ? "unsure" : savedCostValue);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(() => {
     const groups = [...SUBJECT_GROUPS, ...INTEREST_GROUPS].filter((group) => group.values.some((value) => initialRestored?.selected.includes(value))).map((group) => group.key);
-    return groups.length ? groups : initial.question?.key === "interests" ? [INTEREST_GROUPS[0].key] : [];
+    if (groups.length) return groups;
+    if (initialRestored?.selected.includes("not-sure")) return [];
+    return initial.question?.key === "interests" ? [INTEREST_GROUPS[0].key] : [];
   });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -280,6 +282,7 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
   function chooseNotSure() {
     const next = ["not-sure"];
     setSelected(next);
+    if (isGroupedQuestion) setExpandedGroups([]);
     persistDraft(next, other, text);
   }
 
@@ -377,8 +380,8 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
         <label className={cx("flex min-h-[60px] cursor-pointer items-center gap-4 rounded-[9px] border px-4 text-sm transition sm:px-5 sm:text-base", selected.includes("not-sure") ? "border-[#579786] bg-[#f0f7f3]" : "border-[#e4e3df] bg-white hover:bg-[#fafbf9]")}>
           <input type="radio" name="grouped-answer" checked={selected.includes("not-sure")} onChange={chooseNotSure} className="h-5 w-5 shrink-0 accent-[#287d6c]" />
           <span className="font-medium text-[#303638]">I’m not sure yet</span>
-          {selected.includes("not-sure") && <span className="ml-auto text-xs text-[#557068]">That’s okay. You can explore possibilities before deciding.</span>}
         </label>
+        {selected.includes("not-sure") && <p role="status" className="mt-3 rounded-[9px] bg-[#eaf5f0] px-5 py-4 text-sm leading-relaxed text-[#35675b]">That’s okay. You can explore possibilities before deciding.</p>}
         {selectedChoiceCount > 0 && <p role="status" className="mt-2 text-sm text-[#6c7172]">{selectedChoiceCount} {selectedChoiceCount === 1 ? (isInterestsQuestion ? "interest" : "subject") : (isInterestsQuestion ? "interests" : "subjects")} selected</p>}
       </div> : isStrengthsQuestion ? <div className="grid gap-2 md:grid-cols-2" aria-label="Strengths you recognize in yourself">
         {(question.options ?? []).map((option) => {

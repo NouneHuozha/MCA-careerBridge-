@@ -61,6 +61,39 @@ test("Subjects accepts Not sure yet and remains usable at mobile width", async (
   expect(saved.answers.subjects_enjoy.text).toBeNull();
 });
 
+test("Interests accepts Not sure yet with groups collapsed and reassurance shown", async ({ page }) => {
+  await startAtSubjects(page);
+  await page.getByRole("checkbox", { name: "Something else" }).check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "What kinds of things genuinely interest you?" })).toBeVisible();
+
+  const unsure = page.getByRole("radio", { name: "I’m not sure yet" });
+  await unsure.focus();
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("status")).toContainText("That’s okay. You can explore possibilities before deciding.");
+  for (const group of ["Health, science, and nature", "Technology, engineering, and making", "People and public life", "Business and communication", "Practical and service work"]) {
+    await expect(page.getByRole("button", { name: new RegExp(`${group}.*0 selected`) })).toHaveAttribute("aria-expanded", "false");
+  }
+  await page.screenshot({ path: "/tmp/careerbridge-interests-not-sure.png", fullPage: true });
+  await page.reload();
+  await expect(unsure).toBeChecked();
+  await expect(page.getByText("That’s okay. You can explore possibilities before deciding.")).toBeVisible();
+  for (const group of ["Health, science, and nature", "Technology, engineering, and making", "People and public life", "Business and communication", "Practical and service work"]) {
+    await expect(page.getByRole("button", { name: new RegExp(`${group}.*0 selected`) })).toHaveAttribute("aria-expanded", "false");
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  const dimensions = await page.evaluate(() => ({ page: document.documentElement.scrollWidth, viewport: window.innerWidth }));
+  expect(dimensions.page).toBeLessThanOrEqual(dimensions.viewport);
+
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  const saved = await (await page.request.get("/api/counselling")).json();
+  expect(saved.answers.interests.values).toEqual(["not-sure"]);
+  expect(saved.answers.interests.text).toBeNull();
+  await page.goto("/counselling?edit=interests&returnTo=/counselling");
+  await expect(unsure).toBeChecked();
+  await expect(page.getByText("That’s okay. You can explore possibilities before deciding.")).toBeVisible();
+});
+
 test("Subjects shows the specified grouped options and persists Information Technology", async ({ page }) => {
   await startAtSubjects(page);
   const groups = [
@@ -92,7 +125,7 @@ test("Subjects shows the specified grouped options and persists Information Tech
 
 test("starting again after a completed session opens a fresh flow instead of skipping Subjects", async ({ page }) => {
   await startAtSubjects(page);
-  for (const questionKey of ["subjects_enjoy", "interests", "strengths", "goals", "values", "location_pref", "budget"]) {
+  for (const questionKey of ["subjects_enjoy", "interests", "strengths", "work_style", "goals", "values", "location_pref", "budget"]) {
     const response = await page.request.post("/api/counselling", { data: { questionKey, values: ["not-sure"] } });
     expect(response.ok(), `answer ${questionKey}`).toBeTruthy();
   }
