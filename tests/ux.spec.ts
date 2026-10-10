@@ -94,6 +94,7 @@ test('Class 10 education page preserves stream choice and optional context throu
   await page.getByText('I’m currently in Class 10', { exact: true }).click();
   await page.getByText('I’m waiting for results', { exact: true }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page).toHaveURL('/counselling?first=stream_intent');
 
   await expect(page.getByRole('heading', { name: 'What are you considering after Class 10?' })).toBeVisible();
   await expect(page.getByRole('radio')).toHaveCount(5);
@@ -165,7 +166,7 @@ test('counselling scrolls, preserves edits, and makes the next action clear', as
   await page.getByText('I’m currently in Class 10', { exact: true }).click();
   await page.getByText('I’m waiting for results', { exact: true }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await expect(page).toHaveURL(/\/counselling/);
+  await expect(page).toHaveURL('/counselling?first=stream_intent');
   await page.getByText('Science', { exact: true }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.getByRole('heading', { name: "Let's start simple. Which subjects do you enjoy the most?" })).toBeVisible();

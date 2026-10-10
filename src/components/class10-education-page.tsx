@@ -11,6 +11,7 @@ type Props = {
   sessionId: number;
   initialAnswer: Answer | null;
   editing?: boolean;
+  firstStep?: boolean;
   returnTo?: string;
 };
 
@@ -24,7 +25,7 @@ const streamOptions = [
 
 const optionValues = new Set<string>(streamOptions.map((option) => option.value));
 
-export function Class10EducationPage({ sessionId, initialAnswer, editing = false, returnTo }: Props) {
+export function Class10EducationPage({ sessionId, initialAnswer, editing = false, firstStep = false, returnTo }: Props) {
   const router = useRouter();
   const storageKey = `careerbridge:${sessionId}:stream-intent-draft`;
   const [selected, setSelected] = useState(() => initialAnswer?.values.find((value) => optionValues.has(value)) ?? "");
@@ -104,6 +105,9 @@ export function Class10EducationPage({ sessionId, initialAnswer, editing = false
         router.refresh();
       } else if (editing) {
         router.push(returnTo === "/guidance/review" ? "/guidance/review" : "/counselling");
+        router.refresh();
+      } else if (firstStep) {
+        router.replace("/counselling");
         router.refresh();
       } else {
         router.refresh();

@@ -17,7 +17,7 @@ const sectionStage: Record<CounsellingQuestion["section"], CounsellingStageKey> 
   practical: "practical",
 };
 
-export default async function CounsellingPage({ searchParams }: { searchParams: Promise<{ edit?: string; returnTo?: string }> }) {
+export default async function CounsellingPage({ searchParams }: { searchParams: Promise<{ edit?: string; returnTo?: string; first?: string }> }) {
   const params = await searchParams;
   const state = await getSessionState();
   if (!state) redirect("/start");
@@ -26,13 +26,14 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   if (state.status === "completed" && !focus) redirect("/guidance/complete");
   const streamIntentAnswered = state.snapshot.answeredKeys.includes("stream_intent");
   const showClass10Education = state.stage === "class10" && (
-    focus?.key === "stream_intent" || (!params.edit && !streamIntentAnswered)
+    focus?.key === "stream_intent" || params.first === "stream_intent" || (!params.edit && !streamIntentAnswered)
   );
   if (showClass10Education) {
     return <Class10EducationPage
       sessionId={state.sessionId}
       initialAnswer={state.answers.stream_intent ?? null}
       editing={focus?.key === "stream_intent"}
+      firstStep={params.first === "stream_intent"}
       returnTo={params.returnTo === "/guidance/review" ? params.returnTo : undefined}
     />;
   }
