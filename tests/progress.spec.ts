@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 const answers: [string, string[]][] = [
   ['subjects_enjoy', ['mathematics']], ['stream_intent', ['science']], ['interests', ['technology']],
-  ['strengths', ['problem-solving']], ['goals', ['technology']], ['values', ['learning']],
+  ['strengths', ['problem-solving']], ['work_style', ['mixed']], ['goals', ['technology']], ['values', ['learning']],
   ['location_pref', ['within-nagaland']], ['budget', ['low']],
 ];
 test('completed counselling follows complete, review, confirmation, and possibilities', async ({ page }) => {
@@ -18,7 +18,13 @@ test('completed counselling follows complete, review, confirmation, and possibil
   await page.getByRole('link', { name: 'Review what we understood' }).click();
   await expect(page).toHaveURL(/\/guidance\/review$/);
   await expect(page.getByRole('heading', { name: 'Here’s what we understood' })).toBeVisible();
-  await page.getByRole('link', { name: 'This looks right — continue' }).click();
+  await expect(page.locator('section[aria-labelledby="review-heading"]').getByText('Step 5 of 5')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Where you are now' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'What you enjoy and bring' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'What matters to you' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Still open' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Edit Where you are now' })).toHaveAttribute('href', '/guidance/review?mode=correct');
+  await page.getByRole('link', { name: 'This starting picture feels right — continue' }).click();
   await expect(page).toHaveURL(/\/guidance\/confirm$/);
   await expect(page.getByRole('heading', { name: 'Your starting picture is confirmed' })).toBeVisible();
   await page.getByRole('link', { name: 'Explore possible directions' }).click();
@@ -30,6 +36,53 @@ test('completed counselling follows complete, review, confirmation, and possibil
   await expect(page.getByRole('heading', { name: 'Welcome back.' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Continue where you left off' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Your explorations' })).toBeVisible();
+});
+
+test('image 15 review accepts not-sure, allows adding optional detail, and returns to review', async ({ page }) => {
+  const reviewAnswers: [string, string[]][] = [
+    ['stream_intent', ['science']], ['subjects_enjoy', ['not-sure']], ['interests', ['not-sure']],
+    ['strengths', ['problem-solving', 'communication', 'creativity']], ['work_style', ['mixed']],
+    ['goals', ['stable', 'helping', 'creative']], ['values', ['stability', 'work-life-balance']],
+    ['location_pref', ['within-nagaland']], ['budget', ['prefer-not']],
+  ];
+  for (const [questionKey, values] of reviewAnswers) {
+    const response = await page.request.post('/api/counselling', { data: { action: 'answer', stage: 'class10', questionKey, values } });
+    expect(response.ok()).toBe(true);
+  }
+  expect((await page.request.post('/api/counselling', { data: { action: 'complete' } })).ok()).toBe(true);
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/guidance/review');
+  await expect(page.getByRole('heading', { name: 'Here’s what we understood' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'CareerBridge home' })).toHaveCount(1);
+  await expect(page.locator('section[aria-labelledby="review-heading"]').getByText('Step 5 of 5')).toBeVisible();
+  await expect(page.getByText('Not sure yet', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('Problem solving, Communication, Creativity', { exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Add more detail' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Edit What you enjoy and bring' }).click();
+  await expect(page).toHaveURL(/\/guidance\/review\?mode=correct$/);
+  await expect(page.getByRole('heading', { name: 'Change what we understood' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'Here’s what we understood' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Add more detail' }).click();
+  await expect(page).toHaveURL(/\/counselling\?edit=anything_else/);
+  await page.getByRole('button', { name: 'Back' }).click();
+  await expect(page).toHaveURL(/\/guidance\/review$/);
+  await page.getByRole('link', { name: 'Add more detail' }).click();
+  await expect(page).toHaveURL(/\/counselling\?edit=anything_else/);
+  await page.getByRole('textbox', { name: 'Your answer' }).fill('I enjoy building small science projects.');
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  await expect(page).toHaveURL(/\/guidance\/review$/);
+  await expect(page.getByText('Extra detail you shared: I enjoy building small science projects.')).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(pageWidth).toBeLessThanOrEqual(390);
+  await page.getByRole('link', { name: 'This starting picture feels right — continue' }).click();
+  await expect(page).toHaveURL(/\/guidance\/confirm$/);
 });
 test('mobile counselling keeps progress and composer visible', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

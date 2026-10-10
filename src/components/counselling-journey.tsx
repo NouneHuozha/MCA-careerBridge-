@@ -91,6 +91,7 @@ function SubjectsJourneyMap({ mobile = false, activeStep = 1 }: { mobile?: boole
 
 export function CounsellingJourneyShell({ children, currentSection, completedSections, progress, variant = "standard" }: { children: ReactNode; currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; progress: QuestionProgress; variant?: "standard" | "grouped" }) {
   const [journey, setJourney] = useState<JourneyState>({ currentSection, completedSections, progress });
+  const activeStep = currentSection === "reflection" ? 4 : currentSection === "goals" || currentSection === "practical" ? 3 : currentSection === "strengths" ? 2 : 1;
   if (variant === "grouped") return <JourneyContext.Provider value={{ journey, setJourney }}>
     <header className="sticky top-0 z-50 flex min-h-[70px] items-center justify-between gap-4 border-b border-[#e9e8e4] bg-white px-5 sm:min-h-[76px] sm:px-8 lg:px-16">
       <Logo size="md" />
@@ -100,8 +101,8 @@ export function CounsellingJourneyShell({ children, currentSection, completedSec
       </Link>
     </header>
     <div className="mx-auto grid w-full max-w-[1472px] grid-cols-1 gap-5 px-5 py-6 sm:gap-7 sm:px-8 sm:py-8 lg:grid-cols-[386px_minmax(0,1fr)] lg:gap-12 lg:px-11 lg:py-10">
-      <SubjectsJourneyMap activeStep={currentSection === "goals" || currentSection === "practical" ? 3 : currentSection === "strengths" ? 2 : 1} />
-      <div className="min-w-0 lg:hidden"><SubjectsJourneyMap activeStep={currentSection === "goals" || currentSection === "practical" ? 3 : currentSection === "strengths" ? 2 : 1} mobile /></div>
+      <SubjectsJourneyMap activeStep={activeStep} />
+      <div className="min-w-0 lg:hidden"><SubjectsJourneyMap activeStep={activeStep} mobile /></div>
       <div className="min-w-0">{children}</div>
     </div>
   </JourneyContext.Provider>;

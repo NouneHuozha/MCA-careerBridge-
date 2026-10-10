@@ -68,8 +68,10 @@ function ProfileMenu() {
 
 function GuidanceHeader() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [openPathname, setOpenPathname] = useState<string | null>(null);
   const mobileOpen = openPathname === pathname;
+  if (pathname === "/guidance/review" && searchParams.get("mode") !== "correct") return null;
 
   return <header className="relative z-40 border-b border-[#e5e6e1] bg-white">
     <div className="mx-auto flex w-full min-h-[62px] items-center gap-4 px-5 sm:px-8 lg:min-h-[76px] lg:gap-7 lg:px-12">
