@@ -76,24 +76,33 @@ export const SUBJECT_GROUPS = [
 ] as const;
 
 export const INTEREST_OPTIONS: QuestionOption[] = [
-  { value: "technology", label: "Technology & computers" },
-  { value: "engineering", label: "Engineering & building things" },
-  { value: "medicine", label: "Medicine & health" },
-  { value: "science", label: "Science & experiments" },
-  { value: "business", label: "Business & enterprise" },
-  { value: "finance", label: "Finance & accounts" },
-  { value: "government", label: "Government & public service" },
-  { value: "law", label: "Law & justice" },
-  { value: "education", label: "Teaching & education" },
-  { value: "arts", label: "Art, design & making things" },
-  { value: "media", label: "Media, writing & communication" },
-  { value: "agriculture", label: "Agriculture & farming" },
-  { value: "environment", label: "Environment & nature" },
-  { value: "hospitality", label: "Hospitality, food & tourism" },
-  { value: "research", label: "Research & discovering things" },
-  { value: "social-sciences", label: "People, society & communities" },
+  { value: "technology", label: "Technology and computers" },
+  { value: "engineering", label: "Engineering and building things" },
+  { value: "medicine", label: "Medicine and health" },
+  { value: "science", label: "Science and experiments" },
+  { value: "business", label: "Business and enterprise" },
+  { value: "finance", label: "Finance and accounts" },
+  { value: "government", label: "Government and public service" },
+  { value: "law", label: "Law and justice" },
+  { value: "education", label: "Teaching and education" },
+  { value: "arts", label: "Art, design, and making things" },
+  { value: "media", label: "Media, writing, and communication" },
+  { value: "agriculture", label: "Agriculture and farming" },
+  { value: "environment", label: "Environment and nature" },
+  { value: "hospitality", label: "Hospitality, food, and tourism" },
+  { value: "research", label: "Research and discovering things" },
+  { value: "social-sciences", label: "People, society, and communities" },
   { value: "helping", label: "Helping people directly" },
 ];
+
+/** Presentation-only interest groups; individual option slugs remain stored as before. */
+export const INTEREST_GROUPS = [
+  { key: "health-science-nature", label: "Health, science, and nature", values: ["medicine", "science", "agriculture", "environment"] },
+  { key: "technology-engineering-making", label: "Technology, engineering, and making", values: ["technology", "engineering", "research", "arts"] },
+  { key: "people-public-life", label: "People and public life", values: ["helping", "education", "social-sciences", "government", "law"] },
+  { key: "business-communication", label: "Business and communication", values: ["business", "finance", "media"] },
+  { key: "practical-service-work", label: "Practical and service work", values: ["hospitality"] },
+] as const;
 
 export const STRENGTH_OPTIONS: QuestionOption[] = [
   { value: "problem-solving", label: "Problem solving" },
