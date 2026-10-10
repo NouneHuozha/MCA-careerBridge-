@@ -33,7 +33,7 @@ export default async function CurrentPositionPage({ searchParams }: { searchPara
       redirect("/start/current-position?error=unavailable");
     }
     if (intent === "save") redirect("/start?counsellingSaved=1");
-    redirect(rawStage === "class10" ? "/counselling?first=stream_intent" : "/counselling");
+    redirect(rawStage === "class10" ? "/counselling?first=stream_intent" : "/counselling?first=stream_current");
   }
 
   const error = params.error === "choose-options"

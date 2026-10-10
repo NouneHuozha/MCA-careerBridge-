@@ -110,6 +110,11 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
       router.refresh();
       return;
     }
+    if (state.stage === "class12" && previousQuestion.key === "stream_current") {
+      router.push("/counselling?edit=stream_current");
+      router.refresh();
+      return;
+    }
     setPending(true); setError(null);
     try {
       const response = await fetch(`/api/counselling?question=${encodeURIComponent(previousQuestion.key)}`);

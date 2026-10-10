@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { CounsellingExperience } from "@/components/counselling-experience";
-import { Class10EducationPage } from "@/components/class10-education-page";
+import { Class10EducationPage, Class12EducationPage } from "@/components/education-selection-page";
 import { CounsellingJourneyShell } from "@/components/counselling-journey";
 import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
 import { findQuestion, questionsForStage, SECTIONS, type CounsellingQuestion } from "@/data/counselling";
@@ -23,10 +23,15 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   if (!state) redirect("/start");
   const requested = params.edit ? findQuestion(params.edit) : null;
   const focus = requested && (!requested.stages || requested.stages.includes(state.stage)) ? requested : null;
-  if (state.status === "completed" && !focus && params.first !== "stream_intent") redirect("/guidance/complete");
+  const firstEducationKey = state.stage === "class10" ? "stream_intent" : "stream_current";
+  if (state.status === "completed" && !focus && params.first !== firstEducationKey) redirect("/guidance/complete");
   const streamIntentAnswered = state.snapshot.answeredKeys.includes("stream_intent");
+  const streamCurrentAnswered = state.snapshot.answeredKeys.includes("stream_current");
   const showClass10Education = state.stage === "class10" && (
     focus?.key === "stream_intent" || params.first === "stream_intent" || (!params.edit && !streamIntentAnswered)
+  );
+  const showClass12Education = state.stage === "class12" && (
+    focus?.key === "stream_current" || params.first === "stream_current" || (!params.edit && !streamCurrentAnswered)
   );
   if (showClass10Education) {
     return <Class10EducationPage
@@ -34,6 +39,15 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
       initialAnswer={state.answers.stream_intent ?? null}
       editing={focus?.key === "stream_intent"}
       firstStep={params.first === "stream_intent"}
+      returnTo={params.returnTo === "/guidance/review" ? params.returnTo : undefined}
+    />;
+  }
+  if (showClass12Education) {
+    return <Class12EducationPage
+      sessionId={state.sessionId}
+      initialAnswer={state.answers.stream_current ?? null}
+      editing={focus?.key === "stream_current"}
+      firstStep={params.first === "stream_current"}
       returnTo={params.returnTo === "/guidance/review" ? params.returnTo : undefined}
     />;
   }

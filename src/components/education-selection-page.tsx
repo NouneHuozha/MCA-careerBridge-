@@ -14,27 +14,77 @@ type Props = {
   firstStep?: boolean;
   returnTo?: string;
 };
+type PageKind = "class10" | "class12";
+type Choice = { value: string; label: string };
 
-const streamOptions = [
-  { value: "science", label: "Science" },
-  { value: "commerce", label: "Commerce" },
-  { value: "arts", label: "Arts / Humanities" },
-  { value: "vocational", label: "Vocational, ITI, or polytechnic routes" },
-  { value: "not-sure", label: "I’m not sure yet" },
-] as const;
+const pageConfig: Record<PageKind, {
+  questionKey: string;
+  stage: PageKind;
+  heading: string;
+  helper: string;
+  afterHelper: string;
+  options: Choice[];
+  specialOther?: string;
+}> = {
+  class10: {
+    questionKey: "stream_intent",
+    stage: "class10",
+    heading: "What are you considering after Class 10?",
+    helper: "You do not need to have decided yet. Choose what feels true today.",
+    afterHelper: "Not sure yet is okay.",
+    options: [
+      { value: "science", label: "Science" },
+      { value: "commerce", label: "Commerce" },
+      { value: "arts", label: "Arts / Humanities" },
+      { value: "vocational", label: "Vocational, ITI, or polytechnic routes" },
+      { value: "not-sure", label: "I’m not sure yet" },
+    ],
+  },
+  class12: {
+    questionKey: "stream_current",
+    stage: "class12",
+    heading: "What did you study in Class 11–12?",
+    helper: "This helps us understand which routes and courses may be relevant to explore next.",
+    afterHelper: "You can tell us more if you’d like.",
+    specialOther: "other",
+    options: [
+      { value: "science", label: "Science" },
+      { value: "commerce", label: "Commerce" },
+      { value: "arts", label: "Arts / Humanities" },
+      { value: "vocational", label: "Vocational / technical" },
+      { value: "other", label: "Something else" },
+      { value: "not-sure", label: "I’m not sure yet" },
+    ],
+  },
+};
 
-const optionValues = new Set<string>(streamOptions.map((option) => option.value));
+const optionValues: Record<PageKind, Set<string>> = {
+  class10: new Set(pageConfig.class10.options.map((option) => option.value)),
+  class12: new Set(pageConfig.class12.options.map((option) => option.value)),
+};
 
-export function Class10EducationPage({ sessionId, initialAnswer, editing = false, firstStep = false, returnTo }: Props) {
+function initialChoice(kind: PageKind, answer: Answer | null) {
+  const value = answer?.values.find((entry) => optionValues[kind].has(entry));
+  if (value) return value;
+  // Older Class 12 sessions distinguished PCM/PCB; the new reference groups them as Science.
+  if (kind === "class12" && answer?.values.some((entry) => entry === "science-pcm" || entry === "science-pcb")) return "science";
+  return "";
+}
+
+function EducationSelectionPage({ kind, sessionId, initialAnswer, editing = false, firstStep = false, returnTo }: Props & { kind: PageKind }) {
   const router = useRouter();
-  const storageKey = `careerbridge:${sessionId}:stream-intent-draft`;
-  const [selected, setSelected] = useState(() => initialAnswer?.values.find((value) => optionValues.has(value)) ?? "");
+  const config = pageConfig[kind];
+  const storageKey = `careerbridge:${sessionId}:${config.questionKey}-draft`;
+  const [selected, setSelected] = useState(() => initialChoice(kind, initialAnswer));
   const [text, setText] = useState(initialAnswer?.text ?? "");
-  const [expanded, setExpanded] = useState(Boolean(initialAnswer?.text));
+  const [expanded, setExpanded] = useState(Boolean(initialAnswer?.text || (config.specialOther && initialAnswer?.values.includes(config.specialOther))));
   const [draftReady, setDraftReady] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const busy = useRef(false);
+  const headingId = `${config.questionKey}-title`;
+  const contextId = `${config.questionKey}-context`;
+  const textId = `${config.questionKey}-text`;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -42,11 +92,12 @@ export function Class10EducationPage({ sessionId, initialAnswer, editing = false
         const raw = window.sessionStorage.getItem(storageKey);
         if (raw) {
           const draft = JSON.parse(raw) as { value?: unknown; text?: unknown };
-          if (typeof draft.value === "string" && (optionValues.has(draft.value) || draft.value === "")) setSelected(draft.value);
+          if (typeof draft.value === "string" && (optionValues[kind].has(draft.value) || draft.value === "")) setSelected(draft.value);
           if (typeof draft.text === "string") {
             setText(draft.text);
             if (draft.text) setExpanded(true);
           }
+          if (config.specialOther && draft.value === config.specialOther) setExpanded(true);
         }
       } catch {
         // Continue with the server-provided answer if draft storage is unavailable.
@@ -55,7 +106,7 @@ export function Class10EducationPage({ sessionId, initialAnswer, editing = false
       }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [storageKey]);
+  }, [config.specialOther, kind, storageKey]);
 
   function cacheDraft(value: string, nextText: string) {
     try {
@@ -82,10 +133,10 @@ export function Class10EducationPage({ sessionId, initialAnswer, editing = false
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             action: "answer",
-            questionKey: "stream_intent",
+            questionKey: config.questionKey,
             values: selected ? [selected] : [],
             text: text.trim() || null,
-            stage: "class10",
+            stage: config.stage,
           }),
         });
         const result = await response.json() as { error?: string };
@@ -143,30 +194,31 @@ export function Class10EducationPage({ sessionId, initialAnswer, editing = false
       <CounsellingStartHeader rightControl={headerAction} />
       <main className="mx-auto grid w-full max-w-[1472px] gap-7 px-5 py-7 sm:px-8 sm:py-9 lg:grid-cols-[386px_minmax(0,1fr)] lg:gap-12 lg:px-11 lg:py-10">
         <CounsellingJourneyMap activeStep={0} />
-        <section className="min-w-0 self-start py-1 lg:py-0" aria-labelledby="class10-stream-title">
+        <section className="min-w-0 self-start py-1 lg:py-0" aria-labelledby={headingId}>
           <p className="inline-flex rounded-full bg-[#eaf4ef] px-4 py-2 text-xs font-bold uppercase tracking-[.14em] text-[#47796d]">Step 1 of 5</p>
-          <h1 id="class10-stream-title" className="mt-5 max-w-none text-[clamp(2.2rem,3.2vw,3rem)] font-semibold leading-[1.08] tracking-[-.045em] text-[#20272b]">
-            What are you considering after Class 10?
+          <h1 id={headingId} className="mt-5 max-w-none text-[clamp(2.2rem,3.2vw,3rem)] font-semibold leading-[1.08] tracking-[-.045em] text-[#20272b]">
+            {config.heading}
           </h1>
-          <p className="mt-4 text-base leading-relaxed text-[#686e6e] sm:text-lg">You do not need to have decided yet. Choose what feels true today.</p>
+          <p className="mt-4 text-base leading-relaxed text-[#686e6e] sm:text-lg">{config.helper}</p>
 
           <form className="mt-7" onSubmit={submit}>
             <fieldset disabled={pending || !draftReady}>
-              <legend className="sr-only">Choose what you are considering after Class 10</legend>
+              <legend className="sr-only">{config.heading}</legend>
               <div className="grid gap-4 sm:grid-cols-2">
-                {streamOptions.map((option, index) => (
+                {config.options.map((option, index) => (
                   <label
                     key={option.value}
-                    className={`group relative flex min-h-[76px] cursor-pointer items-center gap-5 rounded-xl border border-[#e0e1dc] bg-white px-5 py-4 text-[15px] font-medium text-[#293032] transition hover:border-[#8db3a7] has-[:checked]:border-[#438573] has-[:checked]:bg-[#f4f8f5] has-[:checked]:shadow-[0_0_0_1px_#438573] focus-within:ring-2 focus-within:ring-[#438573] focus-within:ring-offset-2 sm:px-6 ${index === streamOptions.length - 1 ? "sm:col-span-2" : ""}`}
+                    className={`group relative flex min-h-[76px] cursor-pointer items-center gap-5 rounded-xl border border-[#e0e1dc] bg-white px-5 py-4 text-[15px] font-medium text-[#293032] transition hover:border-[#8db3a7] has-[:checked]:border-[#438573] has-[:checked]:bg-[#f4f8f5] has-[:checked]:shadow-[0_0_0_1px_#438573] focus-within:ring-2 focus-within:ring-[#438573] focus-within:ring-offset-2 sm:px-6 ${kind === "class10" && index === config.options.length - 1 ? "sm:col-span-2" : ""}`}
                   >
                     <input
                       type="radio"
-                      name="stream_intent"
+                      name={config.questionKey}
                       value={option.value}
                       checked={selected === option.value}
                       onChange={() => {
                         setSelected(option.value);
                         setError(null);
+                        if (config.specialOther === option.value) setExpanded(true);
                         cacheDraft(option.value, text);
                       }}
                       className="peer sr-only"
@@ -184,33 +236,33 @@ export function Class10EducationPage({ sessionId, initialAnswer, editing = false
               <button
                 type="button"
                 aria-expanded={expanded}
-                aria-controls="class10-stream-context"
+                aria-controls={contextId}
                 onClick={() => setExpanded((previous) => !previous)}
                 disabled={pending || !draftReady}
-                className="inline-flex min-h-10 items-center gap-3 rounded-lg text-base font-medium text-[#347966] transition hover:text-[#245f52] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#397e70] focus-visible:ring-offset-2"
+                className="inline-flex min-h-10 items-center gap-3 rounded-lg text-base font-medium text-[#347966] transition hover:text-[#245f52] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#397e70] focus-visible:ring-offset-2 disabled:opacity-60"
               >
                 <Plus aria-hidden="true" className={`h-6 w-6 transition-transform ${expanded ? "rotate-45" : ""}`} strokeWidth={1.8} />
                 Tell us more in your own words
               </button>
-              <div id="class10-stream-context" hidden={!expanded} className="mt-3">
-                  <label htmlFor="class10-stream-text" className="sr-only">Tell us more in your own words (optional)</label>
-                  <textarea
-                    id="class10-stream-text"
-                    value={text}
-                    onChange={(event) => {
-                      setText(event.target.value);
-                      setError(null);
-                      cacheDraft(selected, event.target.value);
-                    }}
-                    maxLength={600}
-                    rows={3}
-                    disabled={pending || !draftReady}
-                    placeholder="A few words are enough. You can leave this blank."
-                    className="w-full resize-y rounded-xl border border-[#dfe2dd] bg-white px-4 py-3 text-sm leading-relaxed text-[#293032] outline-none transition placeholder:text-[#858b89] focus:border-[#438573] focus:ring-2 focus:ring-[#dcebe3] disabled:bg-[#f7f7f5]"
-                  />
+              <div id={contextId} hidden={!expanded} className="mt-3">
+                <label htmlFor={textId} className="sr-only">Tell us more in your own words (optional)</label>
+                <textarea
+                  id={textId}
+                  value={text}
+                  onChange={(event) => {
+                    setText(event.target.value);
+                    setError(null);
+                    cacheDraft(selected, event.target.value);
+                  }}
+                  maxLength={600}
+                  rows={3}
+                  disabled={pending || !draftReady}
+                  placeholder="A few words are enough. You can leave this blank."
+                  className="w-full resize-y rounded-xl border border-[#dfe2dd] bg-white px-4 py-3 text-sm leading-relaxed text-[#293032] outline-none transition placeholder:text-[#858b89] focus:border-[#438573] focus:ring-2 focus:ring-[#dcebe3] disabled:bg-[#f7f7f5]"
+                />
               </div>
             </div>
-            <p className="mt-3 text-sm text-[#747a79]">Not sure yet is okay.</p>
+            <p className="mt-3 text-sm text-[#747a79]">{config.afterHelper}</p>
 
             {error && <p role="alert" className="mt-4 rounded-xl border border-[#e7c9be] bg-[#fff4ef] px-4 py-3 text-sm font-medium text-[#8b4431]">{error}</p>}
 
@@ -232,4 +284,12 @@ export function Class10EducationPage({ sessionId, initialAnswer, editing = false
       </main>
     </div>
   );
+}
+
+export function Class10EducationPage(props: Props) {
+  return <EducationSelectionPage {...props} kind="class10" />;
+}
+
+export function Class12EducationPage(props: Props) {
+  return <EducationSelectionPage {...props} kind="class12" />;
 }
