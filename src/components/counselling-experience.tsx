@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, BarChart3, Check, CircleHelp, ChevronRight, Leaf, Monitor, Palette, RotateCcw, UsersRound, Wrench } from "lucide-react";
 import { Button, Callout, cx } from "@/components/ui";
@@ -51,7 +51,10 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
   const question = state.question;
   const initialIsPractical = initial.question?.key === "location_pref" || initial.question?.key === "budget";
   const initialAnswer = initial.question ? initial.answers?.[initialIsPractical ? "location_pref" : initial.question.key] : undefined;
-  const initialRestored = initial.question ? restoredAnswer(initialAnswer, initialIsPractical ? findQuestion("location_pref")! : initial.question) : null;
+  const initialRestored = useMemo(
+    () => initial.question ? restoredAnswer(initialAnswer, initialIsPractical ? findQuestion("location_pref")! : initial.question) : null,
+    [initial.question, initialAnswer, initialIsPractical],
+  );
   const [selected, setSelected] = useState<string[]>(initialRestored?.selected ?? []);
   const [other, setOther] = useState(initialRestored?.other ?? "");
   const [text, setText] = useState(initialRestored?.text ?? "");
