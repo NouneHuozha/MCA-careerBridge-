@@ -248,13 +248,15 @@ export const QUESTIONS: CounsellingQuestion[] = [
     key: "work_style",
     section: "strengths",
     prompt: "Which kind of work would suit you better day to day?",
+    helper: "This is only a starting clue, not a personality test.",
     answerType: "single",
+    allowSkip: true,
     options: [
       { value: "with-people", label: "Working closely with people" },
       { value: "independent", label: "Working mostly on my own" },
       { value: "hands-on", label: "Hands-on, practical work" },
       { value: "outdoors", label: "Outdoors and moving around" },
-      { value: "mixed", label: "A mix — I'd like variety" },
+      { value: "mixed", label: "A mix — I’d like variety" },
     ],
   },
   {
@@ -378,7 +380,7 @@ export function questionsForStage(stage: Stage): CounsellingQuestion[] {
   return QUESTIONS.filter((q) => q.core && (!q.stages || q.stages.includes(stage)));
 }
 
-/** Optional depth, offered from the profile page once the core flow is done. */
+/** Optional depth beyond the core questions; selected optional items may also be offered inline. */
 export function optionalQuestionsForStage(stage: Stage): CounsellingQuestion[] {
   return QUESTIONS.filter((q) => !q.core && (!q.stages || q.stages.includes(stage)));
 }

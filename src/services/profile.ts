@@ -351,7 +351,14 @@ export async function saveAnswer(input: {
 
 export function nextQuestion(stage: Stage, answeredKeys: string[]): CounsellingQuestion | null {
   const list = questionsForStage(stage);
-  return list.find((q) => !answeredKeys.includes(q.key)) ?? null;
+  const nextCore = list.find((q) => !answeredKeys.includes(q.key)) ?? null;
+  const strengthsIndex = list.findIndex((q) => q.key === "strengths");
+  const strengthsAndEarlierAnswered = strengthsIndex >= 0 && list.slice(0, strengthsIndex + 1).every((q) => answeredKeys.includes(q.key));
+  const nextCoreIndex = nextCore ? list.indexOf(nextCore) : list.length;
+  if (strengthsAndEarlierAnswered && !answeredKeys.includes("work_style") && nextCoreIndex > strengthsIndex) {
+    return findQuestion("work_style") ?? nextCore;
+  }
+  return nextCore;
 }
 
 export function progressFor(stage: Stage, answeredKeys: string[]) {
