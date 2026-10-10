@@ -124,7 +124,7 @@ export const STRENGTH_OPTIONS: QuestionOption[] = [
 
 export const GOAL_OPTIONS: QuestionOption[] = [
   { value: "stable", label: "A stable career" },
-  { value: "high-growth", label: "A fast-growing field" },
+  { value: "high-growth", label: "A field with growing opportunities" },
   { value: "government", label: "Government service" },
   { value: "entrepreneurship", label: "Running my own thing" },
   { value: "research", label: "Research and deep study" },

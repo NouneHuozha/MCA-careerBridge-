@@ -58,7 +58,7 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   const progress = progressFor(state.stage, state.snapshot.answeredKeys);
   const questionProgress = { current: progress.answered, total: progress.total };
   const returnTo = params.returnTo === "/guidance/review" || params.returnTo === "/counselling" ? params.returnTo : undefined;
-  const shellVariant = question?.key === "subjects_enjoy" || question?.key === "interests" || question?.key === "strengths" || question?.key === "work_style" ? "grouped" : "standard";
+  const shellVariant = question?.key === "subjects_enjoy" || question?.key === "interests" || question?.key === "strengths" || question?.key === "work_style" || question?.key === "goals" ? "grouped" : "standard";
   return <CounsellingJourneyShell currentSection={currentSection} completedSections={completedSections} progress={questionProgress} variant={shellVariant}><main className={shellVariant === "grouped" ? "w-full min-w-0" : "cb-container cb-page cb-counselling-page"}>
     <CounsellingExperience key={params.edit ?? String(state.sessionId)} focusKey={focus?.key} returnTo={returnTo} initial={{ started: true, stage: state.stage, stageDetail: state.stageDetail, snapshot: state.snapshot, answers: state.answers, question, progress, sections: SECTIONS, completed: state.status === "completed" || !question }} />
   </main></CounsellingJourneyShell>;

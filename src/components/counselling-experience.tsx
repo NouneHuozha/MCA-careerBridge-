@@ -67,8 +67,9 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
   const isInterestsQuestion = question?.key === "interests";
   const isStrengthsQuestion = question?.key === "strengths";
   const isWorkStyleQuestion = question?.key === "work_style";
+  const isGoalsQuestion = question?.key === "goals";
   const isGroupedQuestion = isSubjectsQuestion || isInterestsQuestion;
-  const isReferenceQuestion = isGroupedQuestion || isStrengthsQuestion || isWorkStyleQuestion;
+  const isReferenceQuestion = isGroupedQuestion || isStrengthsQuestion || isWorkStyleQuestion || isGoalsQuestion;
   const choiceGroups = isInterestsQuestion ? INTEREST_GROUPS : SUBJECT_GROUPS;
 
   function persistDraft(values: string[], custom = other, responseText = text) {
@@ -140,6 +141,7 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
         ? (selected.includes("other") ? other.trim() || null : null)
       : isStrengthsQuestion
           ? (selected.includes("other") ? other.trim() || null : null)
+          : isGoalsQuestion ? (selected.includes("other") ? other.trim() || null : null)
           : isWorkStyleQuestion ? null
         : question?.answerType === "text" ? text.trim() : null;
     if (action === "answer" && !chosen.length && !(question?.answerType === "text" && text.trim())) { setError("Choose an option, write a short answer, or choose ‘Not sure yet’."); return; }
@@ -179,6 +181,8 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
   const currentNumber = historyKey ? currentIndex + 1 : Math.min(done + (question ? 1 : 0), total);
   const previousQuestion = isWorkStyleQuestion
     ? findQuestion("strengths") ?? null
+    : isGoalsQuestion && state.snapshot.answeredKeys.includes("work_style")
+      ? findQuestion("work_style") ?? null
     : question && currentIndex > 0
       ? [...coreQuestions.slice(0, currentIndex)].reverse().find((item) => state.snapshot.answeredKeys.includes(item.key)) ?? null
       : null;
@@ -242,10 +246,10 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
 
   return <div className={cx("mx-auto", isReferenceQuestion ? "max-w-[1034px]" : "max-w-[1110px]")}>
     {isReferenceQuestion && question ? <header className="mb-6 sm:mb-7">
-      <span className="inline-flex rounded-full bg-[#eaf3ed] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#39796c]">Step {isStrengthsQuestion || isWorkStyleQuestion ? 3 : 2} of 5</span>
+      <span className="inline-flex rounded-full bg-[#eaf3ed] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#39796c]">Step {isGoalsQuestion ? 4 : isStrengthsQuestion || isWorkStyleQuestion ? 3 : 2} of 5</span>
       {isWorkStyleQuestion && <p className="mt-4 text-sm font-medium text-[#707575]">Optional</p>}
-      <h1 className={cx("text-[clamp(2rem,3.2vw,3.25rem)] font-semibold leading-[1.1] tracking-[-0.045em] text-[#20272b]", isWorkStyleQuestion ? "mt-2" : "mt-5")}>{isStrengthsQuestion || isWorkStyleQuestion ? question.prompt : isInterestsQuestion ? "What kinds of things genuinely interest you?" : "Which subjects do you enjoy the most?"}</h1>
-      <p className="mt-3 max-w-[78ch] text-base leading-relaxed text-[#707575] sm:text-lg">{isStrengthsQuestion ? "Strengths are not only academic. Choose up to five." : isWorkStyleQuestion ? question.helper : isInterestsQuestion ? "Think about what you read about, watch, make, or lose track of time doing." : "Choose the subjects you enjoy, not only the ones where you get the highest marks."}</p>
+      <h1 className={cx("text-[clamp(2rem,3.2vw,3.25rem)] font-semibold leading-[1.1] tracking-[-0.045em] text-[#20272b]", isWorkStyleQuestion ? "mt-2" : "mt-5")}>{isStrengthsQuestion || isWorkStyleQuestion || isGoalsQuestion ? question.prompt : isInterestsQuestion ? "What kinds of things genuinely interest you?" : "Which subjects do you enjoy the most?"}</h1>
+      <p className="mt-3 max-w-[78ch] text-base leading-relaxed text-[#707575] sm:text-lg">{isStrengthsQuestion ? "Strengths are not only academic. Choose up to five." : isWorkStyleQuestion ? question.helper : isGoalsQuestion ? question.helper : isInterestsQuestion ? "Think about what you read about, watch, make, or lose track of time doing." : "Choose the subjects you enjoy, not only the ones where you get the highest marks."}</p>
     </header> : <header className="cb-counselling-question-header mb-7">
       <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-bold uppercase tracking-[.17em] text-[#317966]">{question ? historyKey ? `Reviewing question ${currentNumber} of ${total}` : `Question ${currentNumber} of ${total}` : "Your reflection is ready"}</p>{question && <span className="rounded-full border border-forest-200 bg-forest-50 px-3 py-1 text-xs font-semibold text-forest-700">{total} questions · About 5 minutes</span>}</div>
       {question && <div className="mt-3 h-2 overflow-hidden rounded-full bg-ink-100" role="progressbar" aria-label="Counselling progress" aria-valuemin={0} aria-valuemax={total} aria-valuenow={Math.min(currentNumber, total)}><div className="h-full rounded-full bg-[#7256df] transition-all duration-500" style={{ width: `${Math.max(8, (currentNumber / Math.max(total, 1)) * 100)}%` }} /></div>}
@@ -334,6 +338,29 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
           <input type="radio" name="work-style-answer" checked={selected.includes("not-sure")} onChange={() => choose("not-sure")} className="h-9 w-9 shrink-0 accent-[#287d6c]" />
           <span className="font-medium text-[#303638]">I’m not sure yet</span>
         </label>
+      </div> : isGoalsQuestion ? <div className="grid gap-2 md:grid-cols-2" aria-label="Future goals">
+        {(question.options ?? []).map((option) => {
+          const checked = selected.includes(option.value);
+          return <label key={option.value} className={cx("flex min-h-[67px] cursor-pointer items-center gap-5 rounded-[8px] border px-4 text-sm transition sm:text-base", checked ? "border-[#69a18e] bg-[#f1f8f4]" : "border-[#e4e3df] bg-white hover:bg-[#fafbf9]")}>
+            <input type="checkbox" checked={checked} onChange={() => choose(option.value)} className="h-5 w-5 shrink-0 accent-[#287d6c]" />
+            <span className="font-medium text-[#303638]">{option.label}</span>
+          </label>;
+        })}
+        <div>
+          <label className={cx("flex min-h-[67px] cursor-pointer items-center gap-5 rounded-[8px] border px-4 text-sm transition sm:text-base", selected.includes("other") ? "border-[#69a18e] bg-[#f1f8f4]" : "border-[#e4e3df] bg-white hover:bg-[#fafbf9]")}>
+            <input type="checkbox" checked={selected.includes("other")} onChange={() => choose("other")} className="h-5 w-5 shrink-0 accent-[#287d6c]" />
+            <span className="font-medium text-[#303638]">Something else I hope for</span>
+          </label>
+          {selected.includes("other") && <div className="mt-1 rounded-lg border border-[#e4e3df] bg-white px-3 py-2">
+            <label htmlFor="goals-other" className="mb-1 block text-xs font-medium text-[#454c4d]">Tell us what else you hope for <span className="font-normal text-[#777d7d]">(optional)</span></label>
+            <input id="goals-other" value={other} onChange={(event) => { const value = event.target.value; setOther(value); persistDraft(selected, value, text); }} maxLength={600} placeholder="Add a future goal in your own words" className="min-h-10 w-full rounded-md border border-[#d9d9d5] px-3 text-sm outline-none focus:border-[#397e70] focus:ring-2 focus:ring-[#397e70]/20" />
+          </div>}
+        </div>
+        <label className={cx("flex min-h-[67px] cursor-pointer items-center gap-5 rounded-[8px] border px-4 text-sm transition sm:text-base", selected.includes("not-sure") ? "border-[#69a18e] bg-[#f1f8f4]" : "border-[#e4e3df] bg-white hover:bg-[#fafbf9]")}>
+          <input type="checkbox" checked={selected.includes("not-sure")} onChange={(event) => { if (event.target.checked) chooseNotSure(); else { const next = selected.filter((value) => value !== "not-sure"); setSelected(next); persistDraft(next); } }} className="h-5 w-5 shrink-0 accent-[#287d6c]" />
+          <span className="font-medium text-[#303638]">I’m not sure yet</span>
+        </label>
+        <p role="status" aria-live="polite" className="text-sm text-[#6c7172]">{selected.filter((value) => value !== "not-sure").length} selected</p>
       </div> : question.answerType === "text" ? <div className="rounded-2xl border-2 border-ink-200 bg-white p-4"><label className="sr-only" htmlFor="counselling-text">Your answer</label><textarea id="counselling-text" rows={5} maxLength={600} value={text} onChange={(event) => { const value = event.target.value; setText(value); persistDraft(selected, other, value); }} placeholder="A few words are enough…" className="w-full resize-none border-0 bg-transparent text-base outline-none" /></div> : <div className="grid gap-3 md:grid-cols-2">{(question.options ?? []).map((option, index) => <button type="button" key={option.value} aria-pressed={selected.includes(option.value)} onClick={() => choose(option.value)} className={cx("group flex min-h-[96px] items-center gap-3 rounded-2xl border bg-white px-4 py-4 text-left transition-all hover:-translate-y-0.5 hover:border-[#9a85ea] hover:shadow-[0_8px_22px_-18px_#6048b4]", selected.includes(option.value) ? "border-[#8970df] bg-[#f8f5ff] shadow-[0_8px_20px_-14px_#6048b4]" : "border-ink-100")}><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${iconTone(index)}`}>{iconFor(option.value)}</span><span className="min-w-0"><span className="flex items-center justify-between gap-3 text-[15px] font-semibold text-[#17352f]">{option.label}{selected.includes(option.value) && <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#8065dc] text-white"><Check className="h-3.5 w-3.5" /></span>}</span><span className="mt-1 block text-[13px] leading-snug text-ink-500">{descriptions[option.value] ?? option.hint ?? "A direction you might enjoy exploring."}</span></span></button>)}</div>}
       {question.allowOther && !isReferenceQuestion && <div className="mt-4"><label htmlFor="counselling-other" className="sr-only">Something else</label><input id="counselling-other" value={other} onChange={(event) => { const value = event.target.value; setOther(value); persistDraft(selected, value, text); }} maxLength={80} placeholder="Something else? Add it here (optional)" className="w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#8065dc]" /></div>}
       <div className={cx("cb-counselling-actions mt-6 border-t border-[#e6e4df] pt-4", isReferenceQuestion && "!static !bottom-auto !z-auto !backdrop-blur-none bg-white") }>
