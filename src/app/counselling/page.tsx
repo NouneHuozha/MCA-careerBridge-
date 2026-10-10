@@ -57,8 +57,9 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   const completedSections = counsellingStages.filter((stage) => stage.key !== currentSection && stage.key !== "reflection" && coreQuestions.filter((item) => sectionStage[item.section] === stage.key).every((item) => state.snapshot.answeredKeys.includes(item.key))).map((stage) => stage.key);
   const progress = progressFor(state.stage, state.snapshot.answeredKeys);
   const questionProgress = { current: progress.answered, total: progress.total };
-  const returnTo = params.returnTo === "/guidance/review" ? params.returnTo : undefined;
-  return <CounsellingJourneyShell currentSection={currentSection} completedSections={completedSections} progress={questionProgress}><main className="cb-container cb-page cb-counselling-page">
+  const returnTo = params.returnTo === "/guidance/review" || params.returnTo === "/counselling" ? params.returnTo : undefined;
+  const shellVariant = question?.key === "subjects_enjoy" ? "subjects" : "standard";
+  return <CounsellingJourneyShell currentSection={currentSection} completedSections={completedSections} progress={questionProgress} variant={shellVariant}><main className={shellVariant === "subjects" ? "w-full min-w-0" : "cb-container cb-page cb-counselling-page"}>
     <CounsellingExperience key={params.edit ?? String(state.sessionId)} focusKey={focus?.key} returnTo={returnTo} initial={{ started: true, stage: state.stage, stageDetail: state.stageDetail, snapshot: state.snapshot, answers: state.answers, question, progress, sections: SECTIONS, completed: state.status === "completed" || !question }} />
   </main></CounsellingJourneyShell>;
 }

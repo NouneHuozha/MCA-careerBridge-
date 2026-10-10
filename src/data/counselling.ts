@@ -66,6 +66,14 @@ export const SUBJECT_OPTIONS: QuestionOption[] = [
   { value: "arts", label: "Arts / Fine Arts" },
 ];
 
+/** Presentation-only groups. Stored answer values remain the existing subject slugs. */
+export const SUBJECT_GROUPS = [
+  { key: "science-and-mathematics", label: "Science and mathematics", values: ["science", "mathematics", "physics", "chemistry", "biology"] },
+  { key: "technology-and-computing", label: "Technology and computing", values: ["computer-science"] },
+  { key: "languages-and-society", label: "Languages and society", values: ["english", "social-science", "history", "political-science", "geography"] },
+  { key: "business-and-creative-subjects", label: "Business and creative subjects", values: ["economics", "commerce", "arts"] },
+] as const;
+
 export const INTEREST_OPTIONS: QuestionOption[] = [
   { value: "technology", label: "Technology & computers" },
   { value: "engineering", label: "Engineering & building things" },
