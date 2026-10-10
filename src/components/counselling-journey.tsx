@@ -100,8 +100,8 @@ export function CounsellingJourneyShell({ children, currentSection, completedSec
       </Link>
     </header>
     <div className="mx-auto grid w-full max-w-[1472px] grid-cols-1 gap-5 px-5 py-6 sm:gap-7 sm:px-8 sm:py-8 lg:grid-cols-[386px_minmax(0,1fr)] lg:gap-12 lg:px-11 lg:py-10">
-      <SubjectsJourneyMap activeStep={currentSection === "goals" ? 3 : currentSection === "strengths" ? 2 : 1} />
-      <div className="min-w-0 lg:hidden"><SubjectsJourneyMap activeStep={currentSection === "goals" ? 3 : currentSection === "strengths" ? 2 : 1} mobile /></div>
+      <SubjectsJourneyMap activeStep={currentSection === "goals" || currentSection === "practical" ? 3 : currentSection === "strengths" ? 2 : 1} />
+      <div className="min-w-0 lg:hidden"><SubjectsJourneyMap activeStep={currentSection === "goals" || currentSection === "practical" ? 3 : currentSection === "strengths" ? 2 : 1} mobile /></div>
       <div className="min-w-0">{children}</div>
     </div>
   </JourneyContext.Provider>;

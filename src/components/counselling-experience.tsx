@@ -12,7 +12,7 @@ import { useCounsellingJourney, type CounsellingStageKey } from "@/components/co
 
 type Answer = { values: string[]; text: string | null };
 type State = { started: boolean; stage: "class10" | "class12"; stageDetail?: string | null; snapshot: StudentSnapshot; question: CounsellingQuestion | null; answers?: Record<string, Answer>; acknowledgement?: string; progress: { answered: number; total: number }; sections: { key: string; label: string }[]; completed: boolean };
-type Draft = { values: string[]; other: string; text: string };
+type Draft = { values: string[]; other: string; text: string; cost?: string };
 const DRAFT_PREFIX = "careerbridge:counselling-draft:";
 
 function questionIntro(question: CounsellingQuestion) {
@@ -49,11 +49,14 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
   const { setJourney } = useCounsellingJourney();
   const [state, setState] = useState(initial);
   const question = state.question;
-  const initialAnswer = initial.question ? initial.answers?.[initial.question.key] : undefined;
-  const initialRestored = initial.question ? restoredAnswer(initialAnswer, initial.question) : null;
+  const initialIsPractical = initial.question?.key === "location_pref" || initial.question?.key === "budget";
+  const initialAnswer = initial.question ? initial.answers?.[initialIsPractical ? "location_pref" : initial.question.key] : undefined;
+  const initialRestored = initial.question ? restoredAnswer(initialAnswer, initialIsPractical ? findQuestion("location_pref")! : initial.question) : null;
   const [selected, setSelected] = useState<string[]>(initialRestored?.selected ?? []);
   const [other, setOther] = useState(initialRestored?.other ?? "");
   const [text, setText] = useState(initialRestored?.text ?? "");
+  const savedCostValue = initial.answers?.budget?.values[0] ?? "";
+  const [costSelected, setCostSelected] = useState(savedCostValue === "not-sure" ? "unsure" : savedCostValue);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(() => {
     const groups = [...SUBJECT_GROUPS, ...INTEREST_GROUPS].filter((group) => group.values.some((value) => initialRestored?.selected.includes(value))).map((group) => group.key);
     return groups.length ? groups : initial.question?.key === "interests" ? [INTEREST_GROUPS[0].key] : [];
@@ -69,14 +72,15 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
   const isWorkStyleQuestion = question?.key === "work_style";
   const isGoalsQuestion = question?.key === "goals";
   const isValuesQuestion = question?.key === "values";
+  const isPracticalQuestion = question?.key === "location_pref" || question?.key === "budget";
   const isGroupedQuestion = isSubjectsQuestion || isInterestsQuestion;
-  const isReferenceQuestion = isGroupedQuestion || isStrengthsQuestion || isWorkStyleQuestion || isGoalsQuestion || isValuesQuestion;
+  const isReferenceQuestion = isGroupedQuestion || isStrengthsQuestion || isWorkStyleQuestion || isGoalsQuestion || isValuesQuestion || isPracticalQuestion;
   const choiceGroups = isInterestsQuestion ? INTEREST_GROUPS : SUBJECT_GROUPS;
 
-  function persistDraft(values: string[], custom = other, responseText = text) {
+  function persistDraft(values: string[], custom = other, responseText = text, cost = costSelected) {
     if (!question) return;
     try {
-      sessionStorage.setItem(`${DRAFT_PREFIX}${question.key}`, JSON.stringify({ values, other: custom, text: responseText } satisfies Draft));
+      sessionStorage.setItem(`${DRAFT_PREFIX}${question.key}`, JSON.stringify({ values, other: custom, text: responseText, ...(isPracticalQuestion ? { cost } : {}) } satisfies Draft));
     } catch {
       // Draft storage is a convenience; the server remains the source of saved answers.
     }
@@ -94,13 +98,21 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
       if (!raw) return;
       const draft = JSON.parse(raw) as Partial<Draft>;
       if (!Array.isArray(draft.values) || !draft.values.every((value) => typeof value === "string")) return;
-      const allowed = new Set([...(question.options ?? []).map((option) => option.value), "not-sure", ...(question.allowOther ? ["other"] : [])]);
-      const restoredValues = draft.values.filter((value) => allowed.has(value));
+      const draftQuestion = isPracticalQuestion ? findQuestion("location_pref")! : question;
+      const allowed = new Set([...(draftQuestion.options ?? []).map((option) => option.value), "not-sure", ...(draftQuestion.allowOther ? ["other"] : [])]);
+      const budgetOptions = findQuestion("budget")?.options ?? [];
+      const isLegacyBudgetDraft = isPracticalQuestion && question.key === "budget" && draft.cost === undefined;
+      const restoredValues = isLegacyBudgetDraft ? initialRestored?.selected ?? [] : draft.values.filter((value) => allowed.has(value));
+      const oldBudgetDraft = isLegacyBudgetDraft ? draft.values.find((value) => value === "not-sure" || budgetOptions.some((option) => option.value === value)) : undefined;
       // This effect intentionally hydrates a session-local draft from browser storage when a question is mounted.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelected(restoredValues);
       setOther(typeof draft.other === "string" ? draft.other : "");
       setText(typeof draft.text === "string" ? draft.text : "");
+      const draftCost = typeof draft.cost === "string" && budgetOptions.some((option) => option.value === draft.cost) ? draft.cost : oldBudgetDraft;
+      if (isPracticalQuestion && draftCost) {
+        setCostSelected(draftCost === "not-sure" ? "unsure" : draftCost);
+      }
       if (question.key === "subjects_enjoy" || question.key === "interests") {
         const groups = question.key === "interests" ? INTEREST_GROUPS : SUBJECT_GROUPS;
         setExpandedGroups(groups.filter((group) => group.values.some((value) => restoredValues.includes(value))).map((group) => group.key));
@@ -108,7 +120,7 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
     } catch {
       // Ignore malformed or unavailable draft storage and keep the server answer.
     }
-  }, [question]);
+  }, [question, isPracticalQuestion, initialRestored?.selected]);
 
   function syncJourney(next: State) {
     const sectionByQuestion: Record<CounsellingQuestion["section"], CounsellingStageKey> = { academics: "about", interests: "interests", strengths: "strengths", goals: "goals", practical: "practical" };
@@ -127,6 +139,35 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
     // The question state is the source of truth; the journey context mirrors it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.question?.key, state.progress.answered, state.completed]);
+
+  async function submitPractical() {
+    if (busy.current || !question) return;
+    if (!selected.length) { setError("Choose a location preference, or choose ‘I’m not sure yet’."); return; }
+    busy.current = true; setPending(true); setError(null);
+    try {
+      const save = async (questionKey: string, action: "answer" | "skip", values: string[]) => {
+        const response = await fetch("/api/counselling", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, questionKey, values, text: null, stage: state.stage }) });
+        const result = await response.json() as State & { error?: string };
+        if (!response.ok || result.error) throw new Error(result.error ?? "We couldn’t save that answer. Please try again.");
+        return result;
+      };
+      await save("location_pref", "answer", selected);
+      const next = await save("budget", costSelected ? "answer" : "skip", costSelected ? [costSelected] : []);
+      clearDraft("location_pref"); clearDraft("budget");
+      if (focusKey) { router.push(returnTo || "/guidance/review"); router.refresh(); return; }
+      if (!next.question) {
+        const response = await fetch("/api/counselling", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "complete" }) });
+        if (!response.ok) { setError("Your answers are saved, but we couldn’t finish just now. Please try again."); return; }
+        const completed = await response.json() as State;
+        setState(completed); syncJourney(completed); setSelected([]); setCostSelected("");
+        router.push("/guidance/complete");
+      } else {
+        setState(next); syncJourney(next); setSelected([]); setCostSelected("");
+      }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The connection was interrupted. Your earlier answers are safe—please try again.");
+    } finally { busy.current = false; setPending(false); }
+  }
 
   async function submit(action: "answer" | "skip" | "reset" = "answer", unsure = false) {
     if (busy.current || (!question && action !== "reset")) return;
@@ -244,13 +285,15 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
   const iconTone = (index: number) => ["bg-[#e8e0ff] text-[#5e4aaa]", "bg-[#dff2e9] text-[#28775f]", "bg-[#ffefb5] text-[#87722b]", "bg-[#e8e0ff] text-[#6048b4]", "bg-[#d8f1e6] text-[#28775f]", "bg-[#ffefb5] text-[#87722b]"][index % 6];
   const sectionLabel = question ? sectionLabels[question.section] : "Your reflection";
   const selectedChoiceCount = selected.filter((value) => value !== "not-sure" && value !== "other").length;
+  const locationOptions = findQuestion("location_pref")?.options ?? [];
+  const budgetOptions = findQuestion("budget")?.options ?? [];
 
   return <div className={cx("mx-auto", isReferenceQuestion ? "max-w-[1034px]" : "max-w-[1110px]")}>
     {isReferenceQuestion && question ? <header className="mb-6 sm:mb-7">
-      <span className="inline-flex rounded-full bg-[#eaf3ed] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#39796c]">Step {isValuesQuestion || isGoalsQuestion ? 4 : isStrengthsQuestion || isWorkStyleQuestion ? 3 : 2} of 5</span>
+      <span className="inline-flex rounded-full bg-[#eaf3ed] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#39796c]">Step {isPracticalQuestion || isValuesQuestion || isGoalsQuestion ? 4 : isStrengthsQuestion || isWorkStyleQuestion ? 3 : 2} of 5</span>
       {isWorkStyleQuestion && <p className="mt-4 text-sm font-medium text-[#707575]">Optional</p>}
-      <h1 className={cx("text-[clamp(2rem,3.2vw,3.25rem)] font-semibold leading-[1.1] tracking-[-0.045em] text-[#20272b]", isWorkStyleQuestion ? "mt-2" : "mt-5")}>{isStrengthsQuestion || isWorkStyleQuestion || isGoalsQuestion || isValuesQuestion ? question.prompt : isInterestsQuestion ? "What kinds of things genuinely interest you?" : "Which subjects do you enjoy the most?"}</h1>
-      <p className="mt-3 max-w-[78ch] text-base leading-relaxed text-[#707575] sm:text-lg">{isStrengthsQuestion ? "Strengths are not only academic. Choose up to five." : isWorkStyleQuestion ? question.helper : isGoalsQuestion || isValuesQuestion ? question.helper : isInterestsQuestion ? "Think about what you read about, watch, make, or lose track of time doing." : "Choose the subjects you enjoy, not only the ones where you get the highest marks."}</p>
+      <h1 className={cx("text-[clamp(2rem,3.2vw,3.25rem)] font-semibold leading-[1.1] tracking-[-0.045em] text-[#20272b]", isWorkStyleQuestion ? "mt-2" : "mt-5")}>{isPracticalQuestion ? "Where would you prefer to study?" : isStrengthsQuestion || isWorkStyleQuestion || isGoalsQuestion || isValuesQuestion ? question.prompt : isInterestsQuestion ? "What kinds of things genuinely interest you?" : "Which subjects do you enjoy the most?"}</h1>
+      <p className="mt-3 max-w-[78ch] text-base leading-relaxed text-[#707575] sm:text-lg">{isPracticalQuestion ? "A broad preference is enough. We never need your exact address." : isStrengthsQuestion ? "Strengths are not only academic. Choose up to five." : isWorkStyleQuestion ? question.helper : isGoalsQuestion || isValuesQuestion ? question.helper : isInterestsQuestion ? "Think about what you read about, watch, make, or lose track of time doing." : "Choose the subjects you enjoy, not only the ones where you get the highest marks."}</p>
     </header> : <header className="cb-counselling-question-header mb-7">
       <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-bold uppercase tracking-[.17em] text-[#317966]">{question ? historyKey ? `Reviewing question ${currentNumber} of ${total}` : `Question ${currentNumber} of ${total}` : "Your reflection is ready"}</p>{question && <span className="rounded-full border border-forest-200 bg-forest-50 px-3 py-1 text-xs font-semibold text-forest-700">{total} questions · About 5 minutes</span>}</div>
       {question && <div className="mt-3 h-2 overflow-hidden rounded-full bg-ink-100" role="progressbar" aria-label="Counselling progress" aria-valuemin={0} aria-valuemax={total} aria-valuenow={Math.min(currentNumber, total)}><div className="h-full rounded-full bg-[#7256df] transition-all duration-500" style={{ width: `${Math.max(8, (currentNumber / Math.max(total, 1)) * 100)}%` }} /></div>}
@@ -261,10 +304,32 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
     </header>}
     {state.acknowledgement && question && !isReferenceQuestion && <div className="mb-5 flex items-start gap-3 rounded-2xl border border-[#d2e9df] bg-[#effaf5] px-5 py-4 text-sm text-[#155b4d]" role="status"><Check className="mt-0.5 h-5 w-5 shrink-0 text-[#2a8b6d]" /><p>{state.acknowledgement}</p></div>}
     {error && <div className="mb-5"><Callout tone="amber"><p role="alert">{error}</p></Callout></div>}
-    {question ? <form id="counselling-form" className="cb-counselling-form" onSubmit={(event) => { event.preventDefault(); void submit(isWorkStyleQuestion && !selected.length ? "skip" : "answer"); }}><fieldset disabled={pending}>
+    {question ? <form id="counselling-form" className="cb-counselling-form" onSubmit={(event) => { event.preventDefault(); void (isPracticalQuestion ? submitPractical() : submit(isWorkStyleQuestion && !selected.length ? "skip" : "answer")); }}><fieldset disabled={pending}>
       {question.helper && !isReferenceQuestion && <p className="mb-5 text-sm text-ink-500">{question.helper}</p>}
       {question.maxSelections && <p role={isStrengthsQuestion || isValuesQuestion ? "status" : undefined} aria-live={isStrengthsQuestion || isValuesQuestion ? "polite" : undefined} className="mb-4 text-xs font-semibold text-ink-500">{isStrengthsQuestion || isValuesQuestion ? `${selected.filter((value) => value !== "not-sure").length} of ${question.maxSelections} selected` : `Choose up to ${question.maxSelections} · ${selected.filter((value) => value !== "not-sure").length} selected`}</p>}
-      {isGroupedQuestion ? <div className="space-y-2" aria-label={isInterestsQuestion ? "Things that interest you" : "Subjects you enjoy"}>
+      {isPracticalQuestion ? <div className="space-y-5">
+        <div role="radiogroup" aria-label="Study location preference" className="grid gap-2 md:grid-cols-2">
+          {locationOptions.map((option) => <label key={option.value} className={cx("flex min-h-[60px] cursor-pointer items-center gap-5 rounded-[8px] border px-4 text-sm transition sm:px-5 sm:text-base", selected.includes(option.value) ? "border-[#69a18e] bg-[#f1f8f4]" : "border-[#e4e3df] bg-white hover:bg-[#fafbf9]")}>
+            <input type="radio" name="location-preference" checked={selected.includes(option.value)} onChange={() => choose(option.value)} className="h-5 w-5 shrink-0 accent-[#287d6c]" />
+            <span className="font-medium text-[#303638]">{option.label}</span>
+          </label>)}
+          <label className={cx("flex min-h-[60px] cursor-pointer items-center gap-5 rounded-[8px] border px-4 text-sm transition sm:px-5 sm:text-base", selected.includes("not-sure") ? "border-[#69a18e] bg-[#f1f8f4]" : "border-[#e4e3df] bg-white hover:bg-[#fafbf9]")}>
+            <input type="radio" name="location-preference" checked={selected.includes("not-sure")} onChange={() => choose("not-sure")} className="h-5 w-5 shrink-0 accent-[#287d6c]" />
+            <span className="font-medium text-[#303638]">I’m not sure yet</span>
+          </label>
+        </div>
+        <section aria-labelledby="study-costs-title" className="rounded-[10px] border border-[#e4e7e2] bg-[#f8faf8] p-4 sm:p-5">
+          <span className="inline-flex rounded-full bg-[#e8f5ef] px-3 py-1 text-xs font-semibold text-[#287d6c]">Optional</span>
+          <h2 id="study-costs-title" className="mt-2 text-xl font-semibold tracking-[-0.025em] text-[#20272b] sm:text-2xl">What should we keep in mind about study costs?</h2>
+          <p className="mt-1 text-sm leading-relaxed text-[#707575] sm:text-base">You do not need to share family income. A broad preference is enough.</p>
+          <div role="radiogroup" aria-labelledby="study-costs-title" className="mt-3 space-y-1.5">
+            {budgetOptions.map((option) => <label key={option.value} className={cx("flex min-h-[39px] cursor-pointer items-center gap-4 rounded-md border px-3 text-sm transition sm:text-base", costSelected === option.value ? "border-[#8bb7a8] bg-[#eef7f2]" : "border-[#e0e5e2] bg-white hover:bg-[#f4f8f5]")}>
+              <input type="radio" name="study-cost-context" checked={costSelected === option.value} onChange={() => { setCostSelected(option.value); persistDraft(selected, other, text, option.value); }} className="h-5 w-5 shrink-0 accent-[#287d6c]" />
+              <span className="font-medium text-[#303638]">{option.label}</span>
+            </label>)}
+          </div>
+        </section>
+      </div> : isGroupedQuestion ? <div className="space-y-2" aria-label={isInterestsQuestion ? "Things that interest you" : "Subjects you enjoy"}>
         {choiceGroups.map((group) => {
           const groupSelected = group.values.filter((value) => selected.includes(value)).length;
           const expanded = expandedGroups.includes(group.key);
@@ -393,7 +458,7 @@ export function CounsellingExperience({ initial, focusKey, returnTo }: { initial
       <div className={cx("cb-counselling-actions mt-6 border-t border-[#e6e4df] pt-4", isReferenceQuestion && "!static !bottom-auto !z-auto !backdrop-blur-none bg-white") }>
         {isReferenceQuestion ? <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
           <button type="button" disabled={pending || !previousQuestion} onClick={() => void goBack()} className="inline-flex min-h-11 items-center gap-2 self-start rounded-lg px-1 text-sm font-medium text-[#243238] transition hover:text-[#286b61] disabled:cursor-not-allowed disabled:opacity-40"><ArrowLeft aria-hidden className="h-5 w-5" />Back</button>
-          <Button type="submit" disabled={pending} size="lg" className="min-w-[205px] rounded-lg bg-[#287d6c] hover:bg-[#226d5e]">{pending ? "Saving…" : "Continue"}<ArrowRight aria-hidden className="h-5 w-5" /></Button>
+          <Button type="submit" disabled={pending} size="lg" className="min-w-[205px] rounded-lg bg-[#287d6c] hover:bg-[#226d5e]">{pending ? "Saving…" : focusKey ? "Save changes" : "Continue"}<ArrowRight aria-hidden className="h-5 w-5" /></Button>
         </div> : <div className="flex flex-col gap-4"><button type="button" disabled={pending} onClick={() => void submit("answer", true)} className="flex min-h-14 w-full items-center justify-between rounded-2xl border-2 border-[#b9a9ed] bg-[#f7f4ff] px-4 text-left text-sm font-semibold text-[#5d46b8] transition hover:border-[#8065dc] hover:bg-[#f0ebff]"><span><span className="block">Not sure yet</span><span className="mt-0.5 block text-xs font-normal text-[#7668a4]">That&apos;s a valid answer. You can revisit it later.</span></span><span aria-hidden className="grid h-7 w-7 place-items-center rounded-full border border-[#b9a9ed] text-base">?</span></button><div className="flex flex-col gap-3 sm:flex-row sm:items-center"><div className="flex items-center gap-2"><button type="button" disabled={pending || !previousQuestion} onClick={() => void goBack()} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-4 text-sm font-semibold text-ink-700 transition hover:border-ink-300 hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-40"><ArrowLeft className="h-4 w-4" />Back</button><Link href="/" className="inline-flex min-h-11 items-center rounded-xl border border-ink-200 bg-white px-3.5 text-sm font-semibold text-ink-700 transition hover:border-ink-300 hover:bg-ink-50">Save and return later</Link></div><Button type="submit" disabled={pending} size="lg" className="min-w-36 sm:ml-auto">{pending ? "Saving…" : focusKey ? "Save changes" : historyKey ? "Save answer" : "Continue"}<ArrowRight className="h-4 w-4" /></Button></div></div>}
       </div>
     </fieldset></form> : <div className="relative isolate overflow-hidden rounded-[2rem] border border-[#cfe8dc] bg-[#eaf8f1] px-6 py-8 shadow-[0_20px_60px_-42px_rgba(13,78,57,.5)] sm:px-10 sm:py-12"><div className="absolute inset-y-0 right-0 -z-10 hidden w-[48%] sm:block"><Image src="/images/hero-student.png" alt="A student looking toward a brighter future" fill sizes="520px" className="object-cover object-left" /></div><div className="absolute inset-y-0 right-0 -z-10 w-full bg-gradient-to-r from-[#eaf8f1] via-[#eaf8f1]/95 to-[#eaf8f1]/20 sm:w-[72%]" /><div className="relative max-w-[570px]"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#25866c]">Your reflection is ready</p><h2 className="mt-4 text-[clamp(2rem,4vw,3.3rem)] font-semibold leading-[1.04] tracking-[-.05em] text-[#07352b]">A thoughtful starting point is waiting for you.</h2><p className="mt-4 max-w-lg text-base leading-relaxed text-ink-600">You are not choosing a career today. You are opening a few possibilities that connect with what you shared.</p><div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center"><Button type="button" onClick={() => { router.push("/guidance/complete"); router.refresh(); }} size="lg">See my possibilities<ArrowRight className="h-4 w-4" /></Button><span className="text-xs text-ink-500">You can keep exploring and change direction later.</span></div></div></div>}
