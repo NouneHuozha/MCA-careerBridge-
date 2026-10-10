@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { CounsellingExperience } from "@/components/counselling-experience";
+import { Class10EducationPage } from "@/components/class10-education-page";
 import { CounsellingJourneyShell } from "@/components/counselling-journey";
 import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
 import { findQuestion, questionsForStage, SECTIONS, type CounsellingQuestion } from "@/data/counselling";
@@ -23,6 +24,18 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   const requested = params.edit ? findQuestion(params.edit) : null;
   const focus = requested && (!requested.stages || requested.stages.includes(state.stage)) ? requested : null;
   if (state.status === "completed" && !focus) redirect("/guidance/complete");
+  const streamIntentAnswered = state.snapshot.answeredKeys.includes("stream_intent");
+  const showClass10Education = state.stage === "class10" && (
+    focus?.key === "stream_intent" || (!params.edit && !streamIntentAnswered)
+  );
+  if (showClass10Education) {
+    return <Class10EducationPage
+      sessionId={state.sessionId}
+      initialAnswer={state.answers.stream_intent ?? null}
+      editing={focus?.key === "stream_intent"}
+      returnTo={params.returnTo === "/guidance/review" ? params.returnTo : undefined}
+    />;
+  }
   const question = focus ?? nextQuestion(state.stage, state.snapshot.answeredKeys);
   const currentSection: CounsellingStageKey = question ? sectionStage[question.section] : "reflection";
   const coreQuestions = questionsForStage(state.stage);

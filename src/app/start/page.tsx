@@ -36,7 +36,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
         <section className="min-w-0 self-center py-1 lg:py-0" aria-labelledby="orientation-title">
           {params.counsellingSaved === "1" && (
             <p role="status" className="mb-5 rounded-xl border border-[#cfe4d8] bg-[#edf7f0] px-4 py-3 text-sm font-medium text-[#286b61]">
-              Your starting point is saved. You can return to counselling when you’re ready.
+              Your counselling progress has been saved. You can return whenever you’re ready.
             </p>
           )}
           <p className="text-base font-semibold text-[#477c70]">A short conversation about you</p>

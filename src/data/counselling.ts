@@ -128,6 +128,21 @@ export const VALUE_OPTIONS: QuestionOption[] = [
 
 export const QUESTIONS: CounsellingQuestion[] = [
   {
+    key: "stream_intent",
+    core: true,
+    section: "academics",
+    prompt: "Have you thought about which stream you might take in Class 11?",
+    helper: "You can change this later — plenty of students do.",
+    answerType: "single",
+    stages: ["class10"],
+    options: [
+      { value: "science", label: "Science" },
+      { value: "commerce", label: "Commerce" },
+      { value: "arts", label: "Arts / Humanities" },
+      { value: "vocational", label: "Vocational, ITI or polytechnic route" },
+    ],
+  },
+  {
     key: "subjects_enjoy",
     core: true,
     section: "academics",
@@ -158,21 +173,6 @@ export const QUESTIONS: CounsellingQuestion[] = [
       { value: "struggling", label: "Finding it hard at the moment" },
       { value: "awaiting", label: "Waiting for my results" },
       { value: "prefer-not", label: "I'd rather not say" },
-    ],
-  },
-  {
-    key: "stream_intent",
-    core: true,
-    section: "academics",
-    prompt: "Have you thought about which stream you might take in Class 11?",
-    helper: "You can change this later — plenty of students do.",
-    answerType: "single",
-    stages: ["class10"],
-    options: [
-      { value: "science", label: "Science" },
-      { value: "commerce", label: "Commerce" },
-      { value: "arts", label: "Arts / Humanities" },
-      { value: "vocational", label: "Vocational, ITI or polytechnic route" },
     ],
   },
   {
