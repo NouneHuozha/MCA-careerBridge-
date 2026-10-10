@@ -23,7 +23,7 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   if (!state) redirect("/start");
   const requested = params.edit ? findQuestion(params.edit) : null;
   const focus = requested && (!requested.stages || requested.stages.includes(state.stage)) ? requested : null;
-  if (state.status === "completed" && !focus) redirect("/guidance/complete");
+  if (state.status === "completed" && !focus && params.first !== "stream_intent") redirect("/guidance/complete");
   const streamIntentAnswered = state.snapshot.answeredKeys.includes("stream_intent");
   const showClass10Education = state.stage === "class10" && (
     focus?.key === "stream_intent" || params.first === "stream_intent" || (!params.edit && !streamIntentAnswered)
