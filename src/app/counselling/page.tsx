@@ -24,7 +24,7 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   const requested = params.edit ? findQuestion(params.edit) : null;
   const focus = requested && (!requested.stages || requested.stages.includes(state.stage)) ? requested : null;
   const firstEducationKey = state.stage === "class10" ? "stream_intent" : "stream_current";
-  if (state.status === "completed" && !focus && params.first !== firstEducationKey) redirect("/guidance/complete");
+  if (state.status === "completed" && !focus && params.first !== firstEducationKey) redirect("/guidance/review");
   const streamIntentAnswered = state.snapshot.answeredKeys.includes("stream_intent");
   const streamCurrentAnswered = state.snapshot.answeredKeys.includes("stream_current");
   const showClass10Education = state.stage === "class10" && (
