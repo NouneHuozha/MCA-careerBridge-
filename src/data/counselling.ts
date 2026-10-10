@@ -56,6 +56,7 @@ export const SUBJECT_OPTIONS: QuestionOption[] = [
   { value: "chemistry", label: "Chemistry" },
   { value: "biology", label: "Biology" },
   { value: "computer-science", label: "Computer Science" },
+  { value: "information-technology", label: "Information Technology" },
   { value: "english", label: "English" },
   { value: "social-science", label: "Social Science" },
   { value: "history", label: "History" },
@@ -69,7 +70,7 @@ export const SUBJECT_OPTIONS: QuestionOption[] = [
 /** Presentation-only groups. Stored answer values remain the existing subject slugs. */
 export const SUBJECT_GROUPS = [
   { key: "science-and-mathematics", label: "Science and mathematics", values: ["science", "mathematics", "physics", "chemistry", "biology"] },
-  { key: "technology-and-computing", label: "Technology and computing", values: ["computer-science"] },
+  { key: "technology-and-computing", label: "Technology and computing", values: ["computer-science", "information-technology"] },
   { key: "languages-and-society", label: "Languages and society", values: ["english", "social-science", "history", "political-science", "geography"] },
   { key: "business-and-creative-subjects", label: "Business and creative subjects", values: ["economics", "commerce", "arts"] },
 ] as const;

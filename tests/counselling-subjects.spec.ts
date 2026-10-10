@@ -61,6 +61,35 @@ test("Subjects accepts Not sure yet and remains usable at mobile width", async (
   expect(saved.answers.subjects_enjoy.text).toBeNull();
 });
 
+test("Subjects shows the specified grouped options and persists Information Technology", async ({ page }) => {
+  await startAtSubjects(page);
+  const groups = [
+    ["Science and mathematics", ["Science generally", "Mathematics", "Physics", "Chemistry", "Biology"]],
+    ["Technology and computing", ["Computer Science", "Information Technology"]],
+    ["Languages and society", ["English", "Social Science", "History", "Political Science", "Geography"]],
+    ["Business and creative subjects", ["Economics", "Commerce / Accountancy", "Arts / Fine Arts"]],
+  ] as const;
+  for (const [group, options] of groups) {
+    const heading = page.getByRole("button", { name: new RegExp(group) });
+    await heading.click();
+    for (const option of options) await expect(page.getByRole("checkbox", { name: option })).toBeVisible();
+    await heading.click();
+  }
+  await expect(page.getByRole("checkbox", { name: "Something else" })).toBeVisible();
+  await expect(page.getByRole("radio", { name: "I’m not sure yet" })).toBeVisible();
+
+  await page.getByRole("button", { name: /Technology and computing/ }).click();
+  await page.getByRole("checkbox", { name: "Information Technology" }).check();
+  await expect(page.getByText("1 subject selected", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  const saved = await (await page.request.get("/api/counselling")).json();
+  expect(saved.answers.subjects_enjoy.values).toEqual(["information-technology"]);
+
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(page.getByRole("button", { name: /Technology and computing.*1 selected/ })).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("checkbox", { name: "Information Technology" })).toBeChecked();
+});
+
 test("starting again after a completed session opens a fresh flow instead of skipping Subjects", async ({ page }) => {
   await startAtSubjects(page);
   for (const questionKey of ["subjects_enjoy", "interests", "strengths", "goals", "values", "location_pref", "budget"]) {
