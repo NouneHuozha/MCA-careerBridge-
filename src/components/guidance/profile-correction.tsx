@@ -288,14 +288,14 @@ export function ProfileCorrection({ stage, stageDetail, answers }: { stage: Stag
           <Save aria-hidden className="h-4 w-4" />{pending ? "Saving…" : "Save and return later"}
         </button>
       </div>
-      <div className="grid items-start gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-8">
-        <aside aria-label="Edit sections" className="hidden lg:block">
-          <nav className="sticky top-28 rounded-xl border border-[#e1e6e1] bg-white p-5">
-            <h2 className="font-semibold text-[#24342e]">Your counselling journey</h2>
-            <ol className="mt-4 space-y-1">
+      <div className="grid items-start gap-5 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-8">
+        <aside aria-label="Edit sections" className="hidden self-start lg:sticky lg:top-24 lg:block">
+          <nav className="rounded-xl border border-[#e1e6e1] bg-white p-5 sm:p-6">
+            <h2 className="text-base font-semibold text-[#24342e]">Your counselling journey</h2>
+            <ol className="mt-5 space-y-1.5">
               {sections.map(({ id, title, icon: Icon }, index) => <li key={id}>
-                <a href={`#${id}`} aria-current={activeSection === id ? "step" : undefined} onClick={() => setActiveSection(id)} className={`flex min-h-11 items-center gap-2.5 rounded-lg px-2.5 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] ${activeSection === id ? "bg-[#eaf4ee] font-semibold text-[#245b4c]" : "text-[#506259] hover:bg-[#f6f9f6]"}`}>
-                  <span aria-hidden className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${index < sections.length - 1 ? "bg-[#e6f1eb] text-[#397e70]" : "border border-[#d8dfd8] bg-white text-[#64736a]"}`}><Icon className="h-4 w-4" /></span>{title}
+                <a href={`#${id}`} aria-current={activeSection === id ? "step" : undefined} onClick={() => setActiveSection(id)} className={`flex min-h-12 items-center gap-3 rounded-lg px-3 text-[.95rem] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] ${activeSection === id ? "bg-[#eaf4ee] font-semibold text-[#245b4c]" : "text-[#506259] hover:bg-[#f6f9f6]"}`}>
+                  <span aria-hidden className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${index < sections.length - 1 ? "bg-[#e6f1eb] text-[#397e70]" : "border border-[#d8dfd8] bg-white text-[#64736a]"}`}><Icon className="h-4 w-4" /></span>{title}
                 </a>
               </li>)}
             </ol>
