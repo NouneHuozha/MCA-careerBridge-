@@ -5,6 +5,7 @@ import { Class10EducationPage, Class12EducationPage } from "@/components/educati
 import { CounsellingJourneyShell } from "@/components/counselling-journey";
 import { NearbyDistrictDetail } from "@/components/guidance/nearby-district-detail";
 import { RecentActivityDetail } from "@/components/guidance/recent-activity-detail";
+import { ScholarshipInformationDetail } from "@/components/guidance/scholarship-information-detail";
 import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
 import { findQuestion, questionsForStage, SECTIONS, type CounsellingQuestion } from "@/data/counselling";
 import { getSessionState, nextQuestion, progressFor } from "@/services/profile";
@@ -77,6 +78,15 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
     return <NearbyDistrictDetail
       stage={state.stage}
       initialAnswer={state.answers.home_district ?? null}
+      answered={state.snapshot.answeredKeys.length}
+      returnTo={detailReturnTo}
+    />;
+  }
+  if (focus?.key === "scholarship_need") {
+    const detailReturnTo = params.returnTo === "/guidance/review" || params.returnTo === "/guidance/review/details" ? params.returnTo : undefined;
+    return <ScholarshipInformationDetail
+      stage={state.stage}
+      initialAnswer={state.answers.scholarship_need ?? null}
       answered={state.snapshot.answeredKeys.length}
       returnTo={detailReturnTo}
     />;

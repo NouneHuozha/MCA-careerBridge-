@@ -192,7 +192,8 @@ export function buildSnapshot(stage: Stage, stageDetail: string | null, rows: Re
   const district = single("home_district");
   snap.district = district && NAGALAND_DISTRICTS.includes(district) ? district : null;
   snap.budget = single("budget");
-  snap.scholarshipNeed = single("scholarship_need");
+  const scholarshipNeed = single("scholarship_need");
+  snap.scholarshipNeed = scholarshipNeed && scholarshipNeed !== "not-sure" && scholarshipNeed !== "prefer-not" ? scholarshipNeed : null;
   snap.institutionPref = single("institution_pref");
   snap.hostel = single("hostel");
   snap.notes = [text("interest_story"), text("anything_else")].filter((v): v is string => Boolean(v && v.trim()));

@@ -25,6 +25,14 @@ export type QuestionOption = {
   hint?: string;
 };
 
+export const SCHOLARSHIP_NEED_OPTIONS: QuestionOption[] = [
+  { value: "yes", label: "Yes, it would matter a lot" },
+  { value: "maybe", label: "Maybe — good to know either way" },
+  { value: "no", label: "Not a priority right now" },
+  { value: "not-sure", label: "I’m not sure yet" },
+  { value: "prefer-not", label: "Prefer not to answer" },
+];
+
 export type CounsellingQuestion = {
   key: string;
   section: "academics" | "interests" | "strengths" | "goals" | "practical";
@@ -329,12 +337,10 @@ export const QUESTIONS: CounsellingQuestion[] = [
     key: "scholarship_need",
     section: "practical",
     prompt: "Would scholarship information be useful to you?",
+    helper: "This helps us show funding information when you explore courses and institutions.",
     answerType: "single",
-    options: [
-      { value: "yes", label: "Yes, it would matter a lot" },
-      { value: "maybe", label: "Maybe — good to know either way" },
-      { value: "no", label: "Not a priority right now" },
-    ],
+    allowSkip: true,
+    options: SCHOLARSHIP_NEED_OPTIONS,
   },
   {
     key: "institution_pref",
