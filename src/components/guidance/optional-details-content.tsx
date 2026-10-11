@@ -111,7 +111,13 @@ export function OptionalDetailsContent({ answers, answered }: { answers: Record<
           </div>
         </aside>
 
-        <ul aria-label="Optional details you can add" className="mt-4 space-y-1.5">
+        <section
+          role="region"
+          aria-label="Optional details list"
+          tabIndex={0}
+          className="mt-4 max-h-[50vh] overflow-y-auto overscroll-contain rounded-lg border border-[#e7eae5] bg-[#fafbf9] p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] sm:p-3 md:max-h-[420px]"
+        >
+        <ul aria-label="Optional details you can add" className="space-y-1.5">
           {optionalDetails.map(({ key, title, description, questionKey, icon: Icon }) => {
             const answer = answers[questionKey];
             const hasAnswer = Boolean(answer && (answer.values.length > 0 || answer.text?.trim()));
@@ -136,6 +142,7 @@ export function OptionalDetailsContent({ answers, answered }: { answers: Record<
             );
           })}
         </ul>
+        </section>
 
         <nav aria-label="Optional detail navigation" className="mt-5 flex flex-col gap-3 border-t border-[#e4e8e7] pt-3 sm:flex-row sm:items-center sm:justify-between">
           <Link href="/guidance/review" className="inline-flex min-h-11 items-center gap-2 self-start rounded-lg px-1 text-sm font-medium text-[#263b55] transition hover:text-[#176b62] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
