@@ -35,11 +35,11 @@ export type CounsellingQuestion = {
 };
 
 export const SECTIONS: { key: CounsellingQuestion["section"]; label: string }[] = [
-  { key: "academics", label: "Your studies" },
+  { key: "academics", label: "Where you are and what you study" },
   { key: "interests", label: "What interests you" },
-  { key: "strengths", label: "What you're good at" },
+  { key: "strengths", label: "What you bring" },
   { key: "goals", label: "What matters to you" },
-  { key: "practical", label: "Practical realities" },
+  { key: "practical", label: "Practical considerations" },
 ];
 
 export const SUBJECT_OPTIONS: QuestionOption[] = [
@@ -49,6 +49,7 @@ export const SUBJECT_OPTIONS: QuestionOption[] = [
   { value: "chemistry", label: "Chemistry" },
   { value: "biology", label: "Biology" },
   { value: "computer-science", label: "Computer Science" },
+  { value: "information-technology", label: "Information Technology" },
   { value: "english", label: "English" },
   { value: "social-science", label: "Social Science" },
   { value: "history", label: "History" },
@@ -91,6 +92,9 @@ export const STRENGTH_OPTIONS: QuestionOption[] = [
   { value: "organising", label: "Organising and planning" },
   { value: "teaching", label: "Explaining and teaching" },
   { value: "research", label: "Finding things out" },
+  { value: "teamwork", label: "Teamwork" },
+  { value: "listening", label: "Listening and understanding people" },
+  { value: "patience", label: "Patience and persistence" },
 ];
 
 export const GOAL_OPTIONS: QuestionOption[] = [
@@ -138,20 +142,7 @@ export const QUESTIONS: CounsellingQuestion[] = [
     answerType: "multi",
     options: SUBJECT_OPTIONS,
     allowSkip: true,
-  },
-  {
-    key: "performance",
-    section: "academics",
-    prompt: "How would you describe how your studies are going?",
-    helper: "A rough sense is enough. We never rank students.",
-    answerType: "single",
-    options: [
-      { value: "strong", label: "Going well overall" },
-      { value: "mixed", label: "Strong in some subjects, weaker in others" },
-      { value: "struggling", label: "Finding it hard at the moment" },
-      { value: "awaiting", label: "Waiting for my results" },
-      { value: "prefer-not", label: "I'd rather not say" },
-    ],
+    allowOther: true,
   },
   {
     key: "stream_intent",
@@ -182,6 +173,7 @@ export const QUESTIONS: CounsellingQuestion[] = [
       { value: "arts", label: "Arts / Humanities" },
       { value: "vocational", label: "Vocational" },
     ],
+    allowOther: true,
   },
   {
     key: "interests",
@@ -224,6 +216,7 @@ export const QUESTIONS: CounsellingQuestion[] = [
       { value: "outdoors", label: "Outdoors and moving around" },
       { value: "mixed", label: "A mix — I'd like variety" },
     ],
+    allowSkip: true,
   },
   {
     key: "goals",
@@ -286,7 +279,6 @@ export const QUESTIONS: CounsellingQuestion[] = [
   },
   {
     key: "budget",
-    core: true,
     section: "practical",
     prompt: "What kind of course fees would be manageable for your family?",
     helper: "A broad range is enough — we never ask for income details. Skip if you'd rather not answer.",
@@ -309,6 +301,7 @@ export const QUESTIONS: CounsellingQuestion[] = [
       { value: "maybe", label: "Maybe — good to know either way" },
       { value: "no", label: "Not a priority right now" },
     ],
+    allowSkip: true,
   },
   {
     key: "institution_pref",
@@ -320,6 +313,7 @@ export const QUESTIONS: CounsellingQuestion[] = [
       { value: "private", label: "Prefer private" },
       { value: "either", label: "Either is fine" },
     ],
+    allowSkip: true,
   },
   {
     key: "hostel",
@@ -329,7 +323,9 @@ export const QUESTIONS: CounsellingQuestion[] = [
     options: [
       { value: "yes", label: "Yes, I'd need a hostel" },
       { value: "day-scholar", label: "No, I'd stay at home" },
+      { value: "depends", label: "It depends on the institution" },
     ],
+    allowSkip: true,
   },
   {
     key: "anything_else",
@@ -341,12 +337,12 @@ export const QUESTIONS: CounsellingQuestion[] = [
   },
 ];
 
-/** The short flow: ~8 questions. This is what students are actually asked. */
+/** The new five-step flow contains seven core answer prompts per student stage. */
 export function questionsForStage(stage: Stage): CounsellingQuestion[] {
   return QUESTIONS.filter((q) => q.core && (!q.stages || q.stages.includes(stage)));
 }
 
-/** Optional depth, offered from the profile page once the core flow is done. */
+/** Optional depth is offered in the review step and alongside work style. */
 export function optionalQuestionsForStage(stage: Stage): CounsellingQuestion[] {
   return QUESTIONS.filter((q) => !q.core && (!q.stages || q.stages.includes(stage)));
 }
@@ -364,7 +360,6 @@ export function findQuestion(key: string): CounsellingQuestion | undefined {
 export const ACKNOWLEDGEMENTS: Record<string, string> = {
   subjects_enjoy: "Thanks — that already tells us something useful about how you like to think.",
   subjects_difficult: "Good to know. Difficulty in a subject rules out fewer routes than most students expect.",
-  performance: "Thank you for being honest. Marks are one input here, never the whole picture.",
   stream_intent: "Noted. Streams open doors rather than close them, and we'll show you what each one keeps open.",
   stream_current: "Thanks. We'll focus on routes that build on what you've already studied.",
   interests: "That's helpful. Interests are usually a better long-term signal than marks alone.",

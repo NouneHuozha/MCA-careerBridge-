@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, ChevronDown, Circle, LockKeyhole } from "lucide-react";
+import { Check, ChevronDown, Circle } from "lucide-react";
 import { createContext, useContext, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Logo } from "@/components/logo";
 import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
@@ -22,43 +22,41 @@ export type { CounsellingStageKey };
 
 function StageList({ currentSection, completedSections, mobile = false }: { currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; mobile?: boolean }) {
   const currentIndex = counsellingStages.findIndex((stage) => stage.key === currentSection);
-  return <ol className={mobile ? "grid gap-1 p-2" : "mt-8"}>
+  return <ol className={mobile ? "grid gap-1 p-2" : "mt-7"} aria-label="Counselling progress">
     {counsellingStages.map((stage, index) => {
       const done = completedSections.includes(stage.key);
       const active = stage.key === currentSection;
       const available = done && Boolean(stage.editKey);
       const content = <>
-        <span className={`relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 transition-colors ${done ? "border-[#36a989] bg-[#36a989] text-white" : active ? "border-[#7355d6] bg-[#7355d6] text-white shadow-[0_0_0_5px_#e8e5ff]" : "border-[#b9cbd6] bg-[#f7fbfd] text-[#98aab6]"}`}>
-          {done ? <Check className="h-4 w-4" strokeWidth={3} /> : active ? <span className="h-2.5 w-2.5 rounded-full bg-white" /> : <Circle className="h-3.5 w-3.5" />}
+        <span className={`relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 transition-colors ${done ? "border-[#2c947c] bg-[#e4f5ee] text-[#24806a]" : active ? "border-[#267d69] bg-[#267d69] text-white" : "border-[#d5e0db] bg-white text-[#9eaca6]"}`}>
+          {done ? <Check className="h-4 w-4" strokeWidth={3} /> : active ? <span className="text-sm font-bold">{index + 1}</span> : <Circle className="h-3 w-3" />}
         </span>
         <span className="min-w-0 flex-1">
-          <span className={`block text-sm font-semibold ${active ? "text-[#5b43be]" : done ? "text-ink-800" : "text-ink-500"}`}>{stage.label}</span>
-          <span className="mt-1 block text-xs leading-relaxed text-ink-500">{active ? (stage.key === "reflection" ? "Ready to review" : "In progress · You are here") : done ? "Completed · Edit answers" : index === currentIndex + 1 ? "Up next" : stage.detail}</span>
+          <span className={`block text-sm font-semibold ${active ? "text-[#176b58]" : done ? "text-[#29453a]" : "text-[#64746e]"}`}>{stage.label}</span>
+          <span className="mt-1 block text-xs leading-relaxed text-[#7c8984]">{active ? "You are here" : done ? "Completed · Edit answers" : index === currentIndex + 1 ? "Up next" : stage.detail}</span>
         </span>
-        {!done && !active && <LockKeyhole aria-hidden className="mt-1 h-3.5 w-3.5 shrink-0 text-[#a6b6c0]" />}
       </>;
-      return <li key={stage.key} className={`relative flex gap-3 ${mobile ? "rounded-xl px-2 py-2" : "min-h-[76px]"} ${active ? "rounded-xl bg-[#e8e5ff]" : ""}`}>
-        {!mobile && index < counsellingStages.length - 1 && <span aria-hidden className={`absolute left-[17px] top-9 h-[58px] w-px ${index < currentIndex || done ? "bg-[#46b7a1]" : "bg-[#c7d9e2]"}`} />}
-        {available ? <Link href={`/counselling?edit=${stage.editKey}`} className="flex min-w-0 flex-1 gap-3 rounded-xl px-2 py-2 hover:bg-white/70">{content}</Link> : <span className="flex min-w-0 flex-1 gap-3 rounded-xl px-2 py-2" aria-current={active ? "step" : undefined} aria-disabled={!active ? "true" : undefined}>{content}</span>}
+      return <li key={stage.key} className={`relative flex gap-3 ${mobile ? "rounded-xl px-2 py-2" : "min-h-[68px]"} ${active ? "rounded-xl bg-[#e9f5ef]" : ""}`}>
+        {!mobile && index < counsellingStages.length - 1 ? <span aria-hidden className={`absolute left-[17px] top-9 h-[51px] w-px ${index < currentIndex || done ? "bg-[#62b79d]" : "bg-[#d4dfda]"}`} /> : null}
+        {available ? <Link href={`/counselling?edit=${stage.editKey}`} className="flex min-w-0 flex-1 gap-3 rounded-xl px-2 py-2 hover:bg-white/70">{content}</Link> : <span className="flex min-w-0 flex-1 gap-3 rounded-xl px-2 py-2" aria-current={active ? "step" : undefined}>{content}</span>}
       </li>;
     })}
   </ol>;
 }
 
 function ProgressSummary({ currentSection, completedSections, progress }: { currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; progress: QuestionProgress }) {
-  const sectionIndex = ["about", "interests", "strengths", "goals", "practical"].indexOf(currentSection) + 1;
-  const percent = currentSection === "reflection" ? 100 : Math.round((progress.current / Math.max(1, progress.total)) * 100);
-  const label = currentSection === "reflection" ? "Reflection ready" : `Section ${Math.max(1, sectionIndex)} of 5`;
-  return <div className="mt-6 rounded-2xl border border-[#cfe2ef] bg-white/75 p-3.5"><div className="flex items-center justify-between gap-3"><p className="text-[11px] font-bold uppercase tracking-[.14em] text-[#38718e]">{label}</p><span className="text-xs font-semibold text-ink-400">{percent}%</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#dfeaf1]"><div className="h-full rounded-full bg-[#36a989] transition-all" style={{ width: `${percent}%` }} /></div><p className="mt-2 text-xs leading-relaxed text-ink-500">{currentSection === "reflection" ? "Your answers are ready to review." : `${progress.current} of ${progress.total} questions answered · ${completedSections.length} of 5 sections completed.`}</p></div>;
+  const sectionIndex = counsellingStages.findIndex((stage) => stage.key === currentSection);
+  const percent = currentSection === "review" ? 100 : Math.round((Math.max(0, sectionIndex) / (counsellingStages.length - 1)) * 100);
+  return <div className="mt-5 rounded-2xl border border-[#dce8e2] bg-white/80 p-3.5"><div className="flex items-center justify-between gap-3"><p className="text-[11px] font-bold uppercase tracking-[.14em] text-[#397967]">Step {Math.max(1, sectionIndex + 1)} of 5</p><span className="text-xs font-semibold text-[#718079]">{percent}%</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#e3ece7]"><div className="h-full rounded-full bg-[#2c947c] transition-all" style={{ width: `${percent}%` }} /></div><p className="mt-2 text-xs leading-relaxed text-[#74817b]">{currentSection === "review" ? "Your answers are ready to review." : `${progress.current} of ${progress.total} core answers saved · ${completedSections.length} steps complete.`}</p></div>;
 }
 
 export function CounsellingJourneySidebar({ currentSection, completedSections, progress }: { currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; progress: QuestionProgress }) {
-  return <aside className="hidden lg:block lg:w-[285px] lg:shrink-0" aria-label="Counselling journey progress"><div className="sticky top-0 min-h-[calc(100vh-4rem)] overflow-hidden border-r border-[#cfe2ef] bg-[#eaf4fb] px-6 py-8"><p className="text-xl font-semibold tracking-[-.03em] text-forest-900">Your journey</p><p className="mt-2 max-w-[205px] text-sm leading-relaxed text-ink-500">A short conversation about you, not a test.</p><ProgressSummary currentSection={currentSection} completedSections={completedSections} progress={progress} /><StageList currentSection={currentSection} completedSections={completedSections} /><div className="mt-5 rounded-2xl border border-white/80 bg-[#d9eee2] p-4"><p className="text-sm font-semibold text-forest-900">You stay in control.</p><p className="mt-1 text-xs leading-relaxed text-forest-800">Your answers are starting points. Change direction whenever you need.</p></div></div></aside>;
+  return <aside className="hidden lg:block lg:w-[310px] lg:shrink-0" aria-label="Counselling journey progress"><div className="sticky top-0 min-h-[calc(100vh-4rem)] overflow-hidden border-r border-[#dce8e2] bg-[#f8fbf9] px-6 py-8"><p className="text-xl font-semibold tracking-[-.03em] text-[#183d33]">Your counselling journey</p><ProgressSummary currentSection={currentSection} completedSections={completedSections} progress={progress} /><StageList currentSection={currentSection} completedSections={completedSections} /><div className="mt-5 rounded-2xl border border-white bg-[#e7f3ec] p-4"><p className="text-sm font-semibold text-[#214f40]">You stay in control.</p><p className="mt-1 text-xs leading-relaxed text-[#537164]">This is your progress through the conversation, not a score. Change direction whenever you need.</p></div></div></aside>;
 }
 
 export function CounsellingJourneyMobile({ currentSection, completedSections, progress }: { currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; progress: QuestionProgress }) {
   const current = counsellingStages.find((stage) => stage.key === currentSection) ?? counsellingStages[0];
-  return <details className="mb-5 overflow-hidden rounded-2xl border border-[#cfe2ef] bg-[#eaf4fb] lg:hidden"><summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3.5"><span><span className="block text-[11px] font-bold uppercase tracking-[.14em] text-[#38718e]">{current.key === "reflection" ? "Reflection ready" : "Your progress"}</span><span className="mt-1 block text-sm font-semibold text-ink-900">{current.label}</span></span><span className="grid h-8 w-8 place-items-center rounded-full border border-[#cfe2ef] bg-white text-sky-ink"><ChevronDown aria-hidden className="h-4 w-4" /></span></summary><div className="border-t border-[#cfe2ef] px-2 pb-2"><ProgressSummary currentSection={currentSection} completedSections={completedSections} progress={progress} /><StageList currentSection={currentSection} completedSections={completedSections} mobile /></div></details>;
+  return <details className="mb-5 overflow-hidden rounded-2xl border border-[#dce8e2] bg-[#f8fbf9] lg:hidden"><summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3.5"><span><span className="block text-[11px] font-bold uppercase tracking-[.14em] text-[#397967]">Counselling · Step {counsellingStages.findIndex((stage) => stage.key === current.key) + 1} of 5</span><span className="mt-1 block text-sm font-semibold text-[#203f34]">{current.label}</span></span><span className="grid h-8 w-8 place-items-center rounded-full border border-[#dce8e2] bg-white text-[#397967]"><ChevronDown aria-hidden className="h-4 w-4" /></span></summary><div className="border-t border-[#dce8e2] px-2 pb-2"><ProgressSummary currentSection={currentSection} completedSections={completedSections} progress={progress} /><StageList currentSection={currentSection} completedSections={completedSections} mobile /></div></details>;
 }
 
 export function CounsellingJourneyShell({ children, currentSection, completedSections, progress }: { children: ReactNode; currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; progress: QuestionProgress }) {

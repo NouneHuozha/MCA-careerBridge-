@@ -1,34 +1,57 @@
-import { redirect } from "next/navigation";
 import { CounsellingExperience } from "@/components/counselling-experience";
-import { CounsellingJourneyShell } from "@/components/counselling-journey";
-import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
-import { findQuestion, questionsForStage, SECTIONS, type CounsellingQuestion } from "@/data/counselling";
-import { getSessionState, nextQuestion, progressFor } from "@/services/profile";
+import { CounsellingJourneyShell, type CounsellingStageKey } from "@/components/counselling-journey";
+import { getSessionState, emptySnapshot, progressFor } from "@/services/profile";
+import { findQuestion } from "@/data/counselling";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Counselling" };
 
-const sectionStage: Record<CounsellingQuestion["section"], CounsellingStageKey> = {
-  academics: "about",
-  interests: "interests",
-  strengths: "strengths",
-  goals: "goals",
-  practical: "practical",
-};
+function stepForEditKey(key?: string): CounsellingStageKey {
+  if (!key) return "where";
+  if (["stream_intent", "stream_current"].includes(key)) return "where";
+  if (["subjects_enjoy", "interests"].includes(key)) return "interests";
+  if (["strengths", "work_style"].includes(key)) return "strengths";
+  if (["goals", "values", "location_pref", "budget"].includes(key)) return "priorities";
+  if (findQuestion(key)) return "review";
+  return "review";
+}
+
+function stepForState(state: Awaited<ReturnType<typeof getSessionState>>): CounsellingStageKey {
+  if (!state || !state.stageDetail) return "where";
+  const answered = state.snapshot.answeredKeys;
+  const streamKey = state.stage === "class10" ? "stream_intent" : "stream_current";
+  if (!answered.includes(streamKey)) return "where";
+  if (!["subjects_enjoy", "interests"].every((key) => answered.includes(key))) return "interests";
+  if (!answered.includes("strengths")) return "strengths";
+  if (!["goals", "values", "location_pref"].every((key) => answered.includes(key))) return "priorities";
+  return "review";
+}
 
 export default async function CounsellingPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   const params = await searchParams;
-  const state = await getSessionState();
-  if (!state) redirect("/start");
-  const requested = params.edit ? findQuestion(params.edit) : null;
-  const focus = requested && (!requested.stages || requested.stages.includes(state.stage)) ? requested : null;
-  const question = focus ?? nextQuestion(state.stage, state.snapshot.answeredKeys);
-  const currentSection: CounsellingStageKey = question ? sectionStage[question.section] : "reflection";
-  const coreQuestions = questionsForStage(state.stage);
-  const completedSections = counsellingStages.filter((stage) => stage.key !== currentSection && stage.key !== "reflection" && coreQuestions.filter((item) => sectionStage[item.section] === stage.key).every((item) => state.snapshot.answeredKeys.includes(item.key))).map((stage) => stage.key);
-  const progress = progressFor(state.stage, state.snapshot.answeredKeys);
-  const questionProgress = { current: progress.answered, total: progress.total };
-  return <CounsellingJourneyShell currentSection={currentSection} completedSections={completedSections} progress={questionProgress}><main className="cb-container cb-page cb-counselling-page">
-    <CounsellingExperience key={params.edit ?? String(state.sessionId)} focusKey={focus?.key} initial={{ started: true, stage: state.stage, stageDetail: state.stageDetail, snapshot: state.snapshot, answers: state.answers, question, progress, sections: SECTIONS, completed: state.status === "completed" || !question }} />
-  </main></CounsellingJourneyShell>;
+  const session = await getSessionState();
+  const state = session ? {
+    started: true,
+    stage: session.stage,
+    stageDetail: session.stageDetail,
+    status: session.status,
+    snapshot: session.snapshot,
+    answers: session.answers,
+    progress: progressFor(session.stage, session.snapshot.answeredKeys),
+    completed: session.status === "completed",
+  } : {
+    started: false as const,
+    stage: "class10" as const,
+    stageDetail: null,
+    status: "in_progress",
+    snapshot: emptySnapshot("class10"),
+    answers: {} as Record<string, { values: string[]; text: string | null }>,
+    progress: { answered: 0, total: 0 },
+    completed: false,
+  };
+  const currentSection = params.edit ? stepForEditKey(params.edit) : stepForState(session);
+  const focusKey = params.edit && findQuestion(params.edit) ? params.edit : undefined;
+  return <CounsellingJourneyShell currentSection={currentSection} completedSections={[]} progress={{ current: state.progress.answered, total: state.progress.total }}>
+    <CounsellingExperience initial={state} focusKey={focusKey} />
+  </CounsellingJourneyShell>;
 }

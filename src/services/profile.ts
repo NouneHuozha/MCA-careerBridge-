@@ -211,7 +211,7 @@ export async function startSession(stage: Stage, stageDetail: string | null): Pr
   if (existing) {
     await db
       .update(counsellingSessions)
-      .set({ stage, stageDetail, userId: user?.id ?? existing.userId, profileId: profileId ?? existing.profileId, updatedAt: new Date() })
+      .set({ stage, stageDetail, status: "in_progress", completedAt: null, stepIndex: 0, totalSteps: 5, userId: user?.id ?? existing.userId, profileId: profileId ?? existing.profileId, updatedAt: new Date() })
       .where(eq(counsellingSessions.id, existing.id));
     if (user) await syncProfileStage(user.id, stage, stageDetail);
     return existing.id;
@@ -225,7 +225,7 @@ export async function startSession(stage: Stage, stageDetail: string | null): Pr
       anonymousKey: key,
       stage,
       stageDetail,
-      totalSteps: questionsForStage(stage).length,
+      totalSteps: 5,
     })
     .returning({ id: counsellingSessions.id });
   if (user) await syncProfileStage(user.id, stage, stageDetail);

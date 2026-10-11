@@ -1,4 +1,4 @@
-export type CounsellingStageKey = "about" | "interests" | "strengths" | "goals" | "practical" | "reflection";
+export type CounsellingStageKey = "where" | "interests" | "strengths" | "priorities" | "review";
 
 export type CounsellingStage = {
   key: CounsellingStageKey;
@@ -8,10 +8,9 @@ export type CounsellingStage = {
 };
 
 export const counsellingStages: CounsellingStage[] = [
-  { key: "about", label: "About you", detail: "Your study stage and subjects", editKey: "subjects_enjoy" },
-  { key: "interests", label: "What interests you", detail: "What naturally pulls you", editKey: "interests" },
+  { key: "where", label: "Where you are now", detail: "Your stage and study context", editKey: "stream_intent" },
+  { key: "interests", label: "What interests you", detail: "Subjects and things that pull you", editKey: "subjects_enjoy" },
   { key: "strengths", label: "What you bring", detail: "Strengths and working style", editKey: "strengths" },
-  { key: "goals", label: "What matters to you", detail: "Goals and career values", editKey: "goals" },
-  { key: "practical", label: "Practical realities", detail: "Location, fees and access", editKey: "location_pref" },
-  { key: "reflection", label: "Your reflection", detail: "Review your answers" },
+  { key: "priorities", label: "What matters to you", detail: "Goals, values and practical needs", editKey: "goals" },
+  { key: "review", label: "What we understood", detail: "Review, edit or add details" },
 ];
