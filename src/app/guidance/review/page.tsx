@@ -10,7 +10,7 @@ import { counsellingStages } from "@/data/counselling-journey";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Here’s what we understood" };
 
-type ReviewItem = { label: string; value: string; editHref?: string };
+type ReviewItem = { label: string; value: string };
 
 type SessionState = NonNullable<Awaited<ReturnType<typeof getSessionState>>>;
 
@@ -70,10 +70,7 @@ function SummaryCard({ title, items, editSection }: { title: string; items: Revi
     <dl className="mt-3 divide-y divide-[#e7e9e5]">
       {items.map((item) => <div key={item.label} className="grid min-w-0 grid-cols-[minmax(92px,.42fr)_minmax(0,1fr)] gap-x-3 py-2.5 text-sm leading-snug sm:grid-cols-[minmax(110px,.42fr)_minmax(0,1fr)]">
         <dt className="text-[#27333a]">{item.label}</dt>
-        <dd className="m-0 flex min-w-0 flex-wrap items-center justify-between gap-2 break-words text-[#68758a]">
-          <span>{item.value}</span>
-          {item.editHref && <Link href={item.editHref} aria-label={`Edit ${item.label.toLowerCase()}`} className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-md px-1.5 text-xs font-medium text-[#176b62] hover:bg-[#f0f6f2] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]"><Pencil aria-hidden className="h-3.5 w-3.5" strokeWidth={1.8} />Edit</Link>}
-        </dd>
+        <dd className="m-0 min-w-0 break-words text-[#68758a]">{item.value}</dd>
       </div>)}
     </dl>
   </article>;
@@ -81,11 +78,9 @@ function SummaryCard({ title, items, editSection }: { title: string; items: Revi
 
 function StillOpenCard({ detail, additional }: { detail: string | null; additional: { label: string; value: string }[] }) {
   const optionalDetailHref = "/guidance/review/details";
-  const editAnythingElseHref = "/counselling?edit=anything_else&returnTo=%2Fguidance%2Freview";
   return <article className="flex h-[70svh] max-h-[26rem] min-w-0 flex-col overflow-hidden rounded-xl border border-[#eee5d4] bg-[#fffdf7] px-5 py-4 shadow-[0_4px_18px_-18px_rgba(40,69,60,.35)] sm:px-6 sm:py-5 lg:h-[22rem]">
-    <header className="flex shrink-0 items-start justify-between gap-3">
+    <header className="flex shrink-0 items-start">
       <h2 className="font-semibold leading-tight tracking-[-.025em] text-[#20272b] sm:text-[1.15rem]">Still open</h2>
-      <Link href={editAnythingElseHref} aria-label="Edit optional detail" className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-[#176b62] transition hover:bg-[#f3f5ef] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]"><Pencil aria-hidden className="h-4 w-4" strokeWidth={1.8} />Edit</Link>
     </header>
     <p className="mt-3 shrink-0 text-sm leading-relaxed text-[#68758a]">You have not told us everything, and that is okay. You can add more later if it feels useful.</p>
     <div role="region" aria-label="Saved and optional details" tabIndex={0} className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
@@ -125,7 +120,7 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
   const stageDetail = stageDetails[state.stageDetail ?? ""] ?? "Not shared";
   const enjoyedItems: ReviewItem[] = [
     ...(subjectValues.length ? [{ label: "Subjects", value: joinValues(subjectValues, "Not shared") }] : []),
-    { label: "Interests", value: joinValues(interestSummaryValues, "Not shared"), editHref: editProfileHref() },
+    { label: "Interests", value: joinValues(interestSummaryValues, "Not shared") },
     { label: "Strengths", value: joinValues(strengthValues, "Not shared") },
     { label: "Work style", value: workStyle },
   ];
