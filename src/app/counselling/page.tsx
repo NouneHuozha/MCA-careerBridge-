@@ -3,6 +3,7 @@ import { CounsellingExperience } from "@/components/counselling-experience";
 import { DifficultSubjectsPage } from "@/components/difficult-subjects-page";
 import { Class10EducationPage, Class12EducationPage } from "@/components/education-selection-page";
 import { CounsellingJourneyShell } from "@/components/counselling-journey";
+import { RecentActivityDetail } from "@/components/guidance/recent-activity-detail";
 import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
 import { findQuestion, questionsForStage, SECTIONS, type CounsellingQuestion } from "@/data/counselling";
 import { getSessionState, nextQuestion, progressFor } from "@/services/profile";
@@ -59,6 +60,15 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
       initialAnswer={state.answers.subjects_difficult ?? null}
       answered={state.snapshot.answeredKeys.length}
       returnTo={params.returnTo === "/guidance/review/details" ? params.returnTo : undefined}
+    />;
+  }
+  if (focus?.key === "interest_story") {
+    const detailReturnTo = params.returnTo === "/guidance/review" || params.returnTo === "/guidance/review/details" ? params.returnTo : undefined;
+    return <RecentActivityDetail
+      stage={state.stage}
+      initialAnswer={state.answers.interest_story ?? null}
+      answered={state.snapshot.answeredKeys.length}
+      returnTo={detailReturnTo}
     />;
   }
   const question = focus ?? nextQuestion(state.stage, state.snapshot.answeredKeys);
