@@ -82,15 +82,17 @@ function SummaryCard({ title, items, editSection }: { title: string; items: Revi
 function StillOpenCard({ detail, additional }: { detail: string | null; additional: { label: string; value: string }[] }) {
   const optionalDetailHref = "/guidance/review/details";
   const editAnythingElseHref = "/counselling?edit=anything_else&returnTo=%2Fguidance%2Freview";
-  return <article className="min-w-0 rounded-xl border border-[#eee5d4] bg-[#fffdf7] px-5 py-4 shadow-[0_4px_18px_-18px_rgba(40,69,60,.35)] sm:px-6 sm:py-5">
-    <header className="flex items-start justify-between gap-3">
+  return <article className="flex h-[70svh] max-h-[26rem] min-w-0 flex-col overflow-hidden rounded-xl border border-[#eee5d4] bg-[#fffdf7] px-5 py-4 shadow-[0_4px_18px_-18px_rgba(40,69,60,.35)] sm:px-6 sm:py-5 lg:h-[22rem]">
+    <header className="flex shrink-0 items-start justify-between gap-3">
       <h2 className="font-semibold leading-tight tracking-[-.025em] text-[#20272b] sm:text-[1.15rem]">Still open</h2>
       <Link href={editAnythingElseHref} aria-label="Edit optional detail" className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-[#176b62] transition hover:bg-[#f3f5ef] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]"><Pencil aria-hidden className="h-4 w-4" strokeWidth={1.8} />Edit</Link>
     </header>
-    <p className="mt-3 text-sm leading-relaxed text-[#68758a]">You have not told us everything, and that is okay. You can add more later if it feels useful.</p>
-    {detail ? <p className="mt-3 rounded-lg border border-[#eee9dc] bg-white/80 px-3 py-2.5 text-sm leading-relaxed text-[#4c5a54]"><span className="font-medium text-[#344740]">Extra detail you shared:</span> {detail}</p> : null}
-    {additional.map((item) => <p key={item.label} className="mt-2 rounded-lg border border-[#eee9dc] bg-white/80 px-3 py-2.5 text-sm leading-relaxed text-[#4c5a54]"><span className="font-medium text-[#344740]">{item.label}:</span> {item.value}</p>)}
-    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+    <p className="mt-3 shrink-0 text-sm leading-relaxed text-[#68758a]">You have not told us everything, and that is okay. You can add more later if it feels useful.</p>
+    <div role="region" aria-label="Saved and optional details" tabIndex={0} className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
+      {detail ? <p className="rounded-lg border border-[#eee9dc] bg-white/80 px-3 py-2.5 text-sm leading-relaxed text-[#4c5a54]"><span className="font-medium text-[#344740]">Extra detail you shared:</span> {detail}</p> : null}
+      {additional.map((item) => <p key={item.label} className="rounded-lg border border-[#eee9dc] bg-white/80 px-3 py-2.5 text-sm leading-relaxed text-[#4c5a54]"><span className="font-medium text-[#344740]">{item.label}:</span> {item.value}</p>)}
+    </div>
+    <div className="mt-4 grid shrink-0 gap-2 sm:grid-cols-2">
       <Link href={optionalDetailHref} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#3d927f] bg-[#f5fbf7] px-4 text-center text-sm font-semibold text-[#176b62] transition hover:bg-[#eaf5ee] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Add more detail</Link>
       <Link href="/guidance/confirm" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#cbd8e3] bg-white px-4 text-center text-sm font-medium text-[#24344c] transition hover:bg-[#f7f9fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Continue without adding</Link>
     </div>
@@ -159,7 +161,7 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
         <p className="mt-2 max-w-[850px] text-[clamp(1rem,1.35vw,1.15rem)] leading-relaxed text-[#68758a]">This is a starting picture, not a final judgement. Check each section and change anything that doesn’t feel right.</p>
       </header>
 
-      <div className="grid min-w-0 gap-3 lg:grid-cols-2">
+      <div className="grid min-w-0 items-start gap-3 lg:grid-cols-2">
         <SummaryCard title="Where you are now" editSection="Where you are now" items={[
           { label: "Study stage", value: stage },
           { label: "Current status", value: stageDetail },
