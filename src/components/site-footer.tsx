@@ -43,7 +43,6 @@ export function SiteFooter({ home = false }: { home?: boolean }) {
           <Link href="/about" className="hover:text-white">About</Link>
         </nav>
       </div>
-      <div className="border-t border-white/35 py-4 text-xs text-white/75">© 2026 CareerBridge. All rights reserved.</div>
     </div>
   </footer>;
   return (

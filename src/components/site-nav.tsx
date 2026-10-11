@@ -40,7 +40,10 @@ export function SiteNav({ user }: { user: NavUser }) {
       if (event.key === "Escape") {
         setExploreOpen(false);
         setMobileOpen(false);
-        if (exploreOpen) exploreButton.current?.focus();
+        if (exploreOpen) {
+          const homeTriggerId = pathname === "/" ? (window.matchMedia("(min-width: 768px)").matches ? "home-explore-trigger" : "home-explore-trigger-mobile") : null;
+          (homeTriggerId ? document.getElementById(homeTriggerId) : exploreButton.current)?.focus();
+        }
       }
     }
     document.addEventListener("mousedown", onPointerDown);
@@ -49,7 +52,7 @@ export function SiteNav({ user }: { user: NavUser }) {
       document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("keydown", onKey);
     };
-  }, [exploreOpen]);
+  }, [exploreOpen, pathname]);
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const closeAll = () => { setMobileOpen(false); setExploreOpen(false); };
@@ -57,21 +60,38 @@ export function SiteNav({ user }: { user: NavUser }) {
   const progressHref = user ? "/guidance" : "/guidance/review";
   const progressLabel = user ? "My Guidance" : "My journey";
 
-  if (isHome) return <header className="absolute inset-x-0 top-0 z-50 border-0 bg-transparent text-white">
-    <div className="cb-container flex h-[76px] items-center justify-between gap-5">
+  if (isHome) return <header ref={exploreRef} className="absolute inset-x-0 top-0 z-50 border-0 bg-transparent text-white">
+    <div className="cb-container flex h-[84px] items-center justify-between gap-5 pt-2">
       <Logo tone="light" size="md" textClassName="font-serif text-xl sm:text-[1.5rem]" />
       <nav aria-label="Main" className="hidden items-center gap-8 md:flex">
-        <Link href="/explore" className="inline-flex items-center gap-1.5 text-sm font-medium text-white/90 transition hover:text-white">Explore<ChevronDown aria-hidden className="h-4 w-4" /></Link>
+        <div className="relative">
+          <button id="home-explore-trigger" ref={exploreButton} type="button" onClick={() => setExploreOpen((open) => !open)} aria-expanded={exploreOpen} aria-controls="home-explore-menu" className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-white/90 transition hover:bg-white/10 hover:text-white">
+            Explore<ChevronDown aria-hidden className={`h-4 w-4 transition-transform ${exploreOpen ? "rotate-180" : ""}`} />
+          </button>
+          {exploreOpen && <div id="home-explore-menu" className="animate-rise absolute left-1/2 top-[calc(100%+1rem)] z-[60] max-h-[min(70dvh,34rem)] w-[min(36rem,calc(100vw-2rem))] -translate-x-1/2 overflow-y-auto rounded-2xl border border-[#dce6dd] bg-[#fffefa] p-3 text-[#18352d] shadow-[0_20px_60px_-25px_rgba(8,39,31,.5)] sm:p-4">
+            <p className="px-2 pb-2 text-xs font-bold uppercase tracking-[.14em] text-[#36654f]">Choose what you want to explore</p>
+            <div className="grid gap-1 sm:grid-cols-2">{exploreMenu.map((item) => <Link key={item.href} href={item.href} onClick={closeAll} className="flex min-w-0 items-start gap-3 rounded-xl p-3 transition hover:bg-[#edf5ee]">
+              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${item.color}`}><item.icon aria-hidden className="h-4 w-4" /></span>
+              <span className="min-w-0"><span className="block text-sm font-semibold text-[#17382e]">{item.label}</span><span className="mt-1 block text-xs leading-relaxed text-[#637168]">{item.detail}</span></span>
+            </Link>)}</div>
+          </div>}
+        </div>
         <Link href="/how-it-works" className="text-sm font-medium text-white/90 transition hover:text-white">How it works</Link>
         <Link href="/about" className="text-sm font-medium text-white/90 transition hover:text-white">About</Link>
       </nav>
-      <div className="flex shrink-0 items-center gap-3 sm:gap-6">
-        {!user ? <Link href="/sign-in" className="text-sm font-medium text-white/90 transition hover:text-white">Sign in</Link> : <Link href="/guidance" className="text-sm font-medium text-white/90 transition hover:text-white">My guidance</Link>}
-        <Link href="/start" className="inline-flex min-h-10 items-center rounded-full bg-[#fffefa] px-5 text-sm font-semibold text-[#173e32] shadow-sm transition hover:bg-[#f3f0e6]">Start counselling</Link>
+      <div className="flex shrink-0 items-center gap-2 sm:gap-6">
+        {!user ? <Link href="/sign-in" className="hidden text-sm font-medium text-white/90 transition hover:text-white sm:inline">Sign in</Link> : <Link href="/guidance" className="hidden text-sm font-medium text-white/90 transition hover:text-white sm:inline">My guidance</Link>}
+        <Link href="/start" className="inline-flex min-h-10 items-center whitespace-nowrap rounded-full bg-[#fffefa] px-3 text-xs font-semibold text-[#173e32] shadow-sm transition hover:bg-[#f3f0e6] sm:px-5 sm:text-sm">Start counselling</Link>
       </div>
     </div>
-    <nav aria-label="Mobile" className="flex justify-center gap-6 border-t border-white/15 px-4 py-2 text-xs font-medium text-white/90 md:hidden">
-      <Link href="/explore">Explore</Link><Link href="/how-it-works">How it works</Link><Link href="/about">About</Link>
+    <nav aria-label="Mobile" className="flex justify-center gap-7 border-t border-white/15 px-4 py-2 text-xs font-medium text-white/90 md:hidden">
+      <div className="relative">
+        <button id="home-explore-trigger-mobile" type="button" onClick={() => setExploreOpen((open) => !open)} aria-expanded={exploreOpen} aria-controls="home-explore-menu-mobile" className="flex items-center gap-1">Explore<ChevronDown aria-hidden className={`h-3.5 w-3.5 transition-transform ${exploreOpen ? "rotate-180" : ""}`} /></button>
+        {exploreOpen && <div id="home-explore-menu-mobile" className="fixed left-1/2 top-[7.5rem] z-[60] max-h-[min(68dvh,32rem)] w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 overflow-y-auto rounded-2xl border border-[#dce6dd] bg-[#fffefa] p-2 text-[#18352d] shadow-[0_20px_60px_-25px_rgba(8,39,31,.5)]">
+          {exploreMenu.map((item) => <Link key={item.href} href={item.href} onClick={closeAll} className="flex items-center gap-3 rounded-xl p-3 text-left text-sm font-semibold transition hover:bg-[#edf5ee]"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${item.color}`}><item.icon aria-hidden className="h-4 w-4" /></span><span className="min-w-0"><span className="block">{item.label}</span><span className="mt-0.5 block text-xs font-normal text-[#637168]">{item.detail}</span></span></Link>)}
+        </div>}
+      </div>
+      <Link href="/how-it-works">How it works</Link><Link href="/about">About</Link>
     </nav>
   </header>;
 
