@@ -40,6 +40,14 @@ export const INSTITUTION_PREF_OPTIONS: QuestionOption[] = [
   { value: "not-sure", label: "I’m not sure yet" },
 ];
 
+export const HOSTEL_OPTIONS: QuestionOption[] = [
+  { value: "yes", label: "Yes, I’d need a hostel" },
+  { value: "day-scholar", label: "No, I’d stay at home" },
+  { value: "depends", label: "It depends on the institution" },
+  { value: "not-sure", label: "I’m not sure yet" },
+  { value: "prefer-not", label: "Prefer not to answer" },
+];
+
 export type CounsellingQuestion = {
   key: string;
   section: "academics" | "interests" | "strengths" | "goals" | "practical";
@@ -361,12 +369,11 @@ export const QUESTIONS: CounsellingQuestion[] = [
   {
     key: "hostel",
     section: "practical",
-    prompt: "Would you need hostel accommodation?",
+    prompt: "Would you need a hostel?",
+    helper: "This helps us include practical living arrangements when comparing institutions.",
     answerType: "single",
-    options: [
-      { value: "yes", label: "Yes, I'd need a hostel" },
-      { value: "day-scholar", label: "No, I'd stay at home" },
-    ],
+    allowSkip: true,
+    options: HOSTEL_OPTIONS,
   },
   {
     key: "anything_else",

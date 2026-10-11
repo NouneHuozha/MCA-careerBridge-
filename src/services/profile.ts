@@ -196,7 +196,8 @@ export function buildSnapshot(stage: Stage, stageDetail: string | null, rows: Re
   snap.scholarshipNeed = scholarshipNeed && scholarshipNeed !== "not-sure" && scholarshipNeed !== "prefer-not" ? scholarshipNeed : null;
   const institutionPref = single("institution_pref");
   snap.institutionPref = institutionPref && institutionPref !== "not-sure" ? institutionPref : null;
-  snap.hostel = single("hostel");
+  const hostel = single("hostel");
+  snap.hostel = hostel && hostel !== "not-sure" && hostel !== "prefer-not" ? hostel : null;
   snap.notes = [text("interest_story"), text("anything_else")].filter((v): v is string => Boolean(v && v.trim()));
   snap.answeredKeys = [...byKey.keys()];
 
