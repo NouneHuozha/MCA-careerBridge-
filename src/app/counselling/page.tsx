@@ -8,6 +8,7 @@ import { NearbyDistrictDetail } from "@/components/guidance/nearby-district-deta
 import { RecentActivityDetail } from "@/components/guidance/recent-activity-detail";
 import { ScholarshipInformationDetail } from "@/components/guidance/scholarship-information-detail";
 import { HostelRequirementDetail } from "@/components/guidance/hostel-requirement-detail";
+import { AnythingElseDetail } from "@/components/guidance/anything-else-detail";
 import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
 import { findQuestion, questionsForStage, SECTIONS, type CounsellingQuestion } from "@/data/counselling";
 import { getSessionState, nextQuestion, progressFor } from "@/services/profile";
@@ -107,6 +108,15 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
     return <HostelRequirementDetail
       stage={state.stage}
       initialAnswer={state.answers.hostel ?? null}
+      answered={state.snapshot.answeredKeys.length}
+      returnTo={detailReturnTo}
+    />;
+  }
+  if (focus?.key === "anything_else") {
+    const detailReturnTo = params.returnTo === "/guidance/review" || params.returnTo === "/guidance/review/details" ? params.returnTo : undefined;
+    return <AnythingElseDetail
+      stage={state.stage}
+      initialAnswer={state.answers.anything_else ?? null}
       answered={state.snapshot.answeredKeys.length}
       returnTo={detailReturnTo}
     />;

@@ -378,8 +378,8 @@ export const QUESTIONS: CounsellingQuestion[] = [
   {
     key: "anything_else",
     section: "practical",
-    prompt: "Anything else you'd like us to keep in mind?",
-    helper: "For example a family responsibility, a health consideration, or a field you've already ruled out. Optional.",
+    prompt: "Is there anything else you would like us to keep in mind?",
+    helper: "You can share a situation, responsibility, concern, hope, or question in your own words.",
     answerType: "text",
     allowSkip: true,
   },

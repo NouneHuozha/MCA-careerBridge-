@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { CounsellingJourneyShell } from "@/components/counselling-journey";
 import { counsellingStages } from "@/data/counselling-journey";
+import { findQuestion } from "@/data/counselling";
 
 const DETAILS_PATH = "/guidance/review/details";
 
@@ -76,6 +77,17 @@ function questionHref(questionKey: string) {
   return `/counselling?edit=${encodeURIComponent(questionKey)}&returnTo=${encodeURIComponent(DETAILS_PATH)}`;
 }
 
+function answerSummary(answer: OptionalAnswer, questionKey: string) {
+  if (!answer.values.length && answer.text?.trim()) return "Written response";
+  if (answer.values.length > 1) return `${answer.values.length} selected`;
+  if (answer.values.length === 1) {
+    const value = answer.values[0];
+    const question = findQuestion(questionKey);
+    return question?.options?.find((option) => option.value === value)?.label ?? (value === "not-sure" ? "Not sure yet" : value);
+  }
+  return answer.text?.trim() ? "Written response" : "";
+}
+
 export function OptionalDetailsContent({ answers, answered }: { answers: Record<string, OptionalAnswer>; answered: number }) {
   const completedSections = counsellingStages
     .filter((stage) => stage.key !== "reflection")
@@ -122,6 +134,7 @@ export function OptionalDetailsContent({ answers, answered }: { answers: Record<
             const answer = answers[questionKey];
             const hasAnswer = Boolean(answer && (answer.values.length > 0 || answer.text?.trim()));
             const action = hasAnswer ? "Edit" : "Add";
+            const summary = hasAnswer && answer ? answerSummary(answer, questionKey) : "";
             return (
               <li key={key} className="flex min-h-[68px] min-w-0 items-center gap-3 rounded-lg border border-[#e9ece7] bg-white/80 px-3.5 py-2.5 sm:gap-4 sm:px-5">
                 <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#e8f3ee] text-[#317b6c] sm:h-11 sm:w-11">
@@ -129,7 +142,7 @@ export function OptionalDetailsContent({ answers, answered }: { answers: Record<
                 </span>
                 <div className="min-w-0 flex-1">
                   <h2 className="font-semibold leading-snug text-[#20272b]">{title}</h2>
-                  <p className="mt-0.5 text-xs leading-snug text-[#68758a] sm:text-sm">{description}</p>
+                  <p className="mt-0.5 text-xs leading-snug text-[#68758a] sm:text-sm">{hasAnswer ? `Added · ${summary}` : description}</p>
                 </div>
                 <Link
                   href={questionHref(questionKey)}
