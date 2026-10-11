@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Eyebrow, accentSurface } from "@/components/ui";
 import { Reveal } from "@/components/reveal";
+import { ScrollDepth } from "@/components/scroll-depth";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ const steps = [
 export default function HomePage() {
   return <div className="bg-[#fbfaf6] text-[#18352d]">
     <section className="relative isolate min-h-[710px] overflow-visible bg-[#123f34] text-white lg:min-h-[760px]">
-      <Image src="/images/SunlitModernLibraryStudyWorkspace.png" alt="A sunlit library study space with books and a laptop" fill priority sizes="100vw" className="absolute inset-0 -z-20 object-cover object-center" />
+      <ScrollDepth><Image src="/images/SunlitModernLibraryStudyWorkspace.png" alt="A sunlit library study space with books and a laptop" fill priority sizes="100vw" className="object-cover object-center" /></ScrollDepth>
       <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(8,52,43,.97)_0%,rgba(8,52,43,.91)_30%,rgba(8,52,43,.62)_49%,rgba(8,52,43,.05)_77%),linear-gradient(0deg,rgba(8,52,43,.20),transparent_42%)]" />
       <div className="cb-container relative flex min-h-[710px] flex-col justify-center pb-36 pt-32 lg:min-h-[760px] lg:pb-40">
         <div className="max-w-[620px]">

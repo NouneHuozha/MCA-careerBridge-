@@ -81,7 +81,7 @@ export function SiteNav({ user }: { user: NavUser }) {
       </nav>
       <div className="flex shrink-0 items-center gap-2 sm:gap-6">
         {!user ? <Link href="/sign-in" className="hidden text-sm font-medium text-white/90 transition hover:text-white sm:inline">Sign in</Link> : <Link href="/guidance" className="hidden text-sm font-medium text-white/90 transition hover:text-white sm:inline">My guidance</Link>}
-        <Link href="/start" className="inline-flex min-h-10 items-center whitespace-nowrap rounded-full bg-[#fffefa] px-3 text-xs font-semibold text-[#173e32] shadow-sm transition hover:bg-[#f3f0e6] sm:px-5 sm:text-sm">Start counselling</Link>
+        <Link href="/start" className="inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-[#fffefa] px-3 text-xs font-semibold text-[#173e32] shadow-[0_5px_18px_-9px_rgba(9,39,30,.5)] transition hover:-translate-y-0.5 hover:bg-[#f3f0e6] sm:gap-2 sm:px-5 sm:text-sm">Start counselling<ArrowRight aria-hidden className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></Link>
       </div>
     </div>
     <nav aria-label="Mobile" className="flex justify-center gap-7 border-t border-white/15 px-4 py-2 text-xs font-medium text-white/90 md:hidden">
