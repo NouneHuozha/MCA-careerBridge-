@@ -33,6 +33,13 @@ export const SCHOLARSHIP_NEED_OPTIONS: QuestionOption[] = [
   { value: "prefer-not", label: "Prefer not to answer" },
 ];
 
+export const INSTITUTION_PREF_OPTIONS: QuestionOption[] = [
+  { value: "government", label: "Prefer government" },
+  { value: "private", label: "Prefer private" },
+  { value: "either", label: "Either is fine" },
+  { value: "not-sure", label: "I’m not sure yet" },
+];
+
 export type CounsellingQuestion = {
   key: string;
   section: "academics" | "interests" | "strengths" | "goals" | "practical";
@@ -345,13 +352,11 @@ export const QUESTIONS: CounsellingQuestion[] = [
   {
     key: "institution_pref",
     section: "practical",
-    prompt: "Do you have a preference between government and private institutions?",
+    prompt: "Do you have a preference about the type of institution?",
+    helper: "You can compare both types later. This is only a starting preference.",
     answerType: "single",
-    options: [
-      { value: "government", label: "Prefer government" },
-      { value: "private", label: "Prefer private" },
-      { value: "either", label: "Either is fine" },
-    ],
+    allowSkip: true,
+    options: INSTITUTION_PREF_OPTIONS,
   },
   {
     key: "hostel",

@@ -3,6 +3,7 @@ import { CounsellingExperience } from "@/components/counselling-experience";
 import { DifficultSubjectsPage } from "@/components/difficult-subjects-page";
 import { Class10EducationPage, Class12EducationPage } from "@/components/education-selection-page";
 import { CounsellingJourneyShell } from "@/components/counselling-journey";
+import { InstitutionPreferenceDetail } from "@/components/guidance/institution-preference-detail";
 import { NearbyDistrictDetail } from "@/components/guidance/nearby-district-detail";
 import { RecentActivityDetail } from "@/components/guidance/recent-activity-detail";
 import { ScholarshipInformationDetail } from "@/components/guidance/scholarship-information-detail";
@@ -87,6 +88,15 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
     return <ScholarshipInformationDetail
       stage={state.stage}
       initialAnswer={state.answers.scholarship_need ?? null}
+      answered={state.snapshot.answeredKeys.length}
+      returnTo={detailReturnTo}
+    />;
+  }
+  if (focus?.key === "institution_pref") {
+    const detailReturnTo = params.returnTo === "/guidance/review" || params.returnTo === "/guidance/review/details" ? params.returnTo : undefined;
+    return <InstitutionPreferenceDetail
+      stage={state.stage}
+      initialAnswer={state.answers.institution_pref ?? null}
       answered={state.snapshot.answeredKeys.length}
       returnTo={detailReturnTo}
     />;
