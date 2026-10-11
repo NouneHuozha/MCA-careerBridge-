@@ -8,6 +8,8 @@
  *   a broad budget band the student can skip)
  */
 
+import { NAGALAND_DISTRICTS } from "@/data/institutions";
+
 export type Stage = "class10" | "class12";
 
 export const STAGE_DETAIL_VALUES = ["studying", "completed", "awaiting_results", "deciding"] as const;
@@ -298,26 +300,13 @@ export const QUESTIONS: CounsellingQuestion[] = [
     key: "home_district",
     section: "practical",
     prompt: "Which district are you closest to?",
-    helper: "This helps us show nearby institutions and travel distance. You can skip it.",
+    helper: "This helps us understand nearby study options and travel distance. We do not need your exact address.",
     answerType: "single",
     allowSkip: true,
     options: [
-      { value: "Kohima", label: "Kohima" },
-      { value: "Dimapur", label: "Dimapur" },
-      { value: "Chümoukedima", label: "Chümoukedima" },
-      { value: "Mokokchung", label: "Mokokchung" },
-      { value: "Zunheboto", label: "Zunheboto" },
-      { value: "Wokha", label: "Wokha" },
-      { value: "Phek", label: "Phek" },
-      { value: "Tuensang", label: "Tuensang" },
-      { value: "Mon", label: "Mon" },
-      { value: "Longleng", label: "Longleng" },
-      { value: "Kiphire", label: "Kiphire" },
-      { value: "Peren", label: "Peren" },
-      { value: "Niuland", label: "Niuland" },
-      { value: "Tseminyü", label: "Tseminyü" },
-      { value: "Shamator", label: "Shamator" },
-      { value: "Noklak", label: "Noklak" },
+      ...NAGALAND_DISTRICTS.map((district) => ({ value: district, label: district === "Tseminyü" ? "Tseminyu" : district })),
+      { value: "not-sure", label: "I’m not sure" },
+      { value: "prefer-not", label: "Prefer not to say" },
     ],
   },
   {

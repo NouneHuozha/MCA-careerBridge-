@@ -3,6 +3,7 @@ import { CounsellingExperience } from "@/components/counselling-experience";
 import { DifficultSubjectsPage } from "@/components/difficult-subjects-page";
 import { Class10EducationPage, Class12EducationPage } from "@/components/education-selection-page";
 import { CounsellingJourneyShell } from "@/components/counselling-journey";
+import { NearbyDistrictDetail } from "@/components/guidance/nearby-district-detail";
 import { RecentActivityDetail } from "@/components/guidance/recent-activity-detail";
 import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
 import { findQuestion, questionsForStage, SECTIONS, type CounsellingQuestion } from "@/data/counselling";
@@ -67,6 +68,15 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
     return <RecentActivityDetail
       stage={state.stage}
       initialAnswer={state.answers.interest_story ?? null}
+      answered={state.snapshot.answeredKeys.length}
+      returnTo={detailReturnTo}
+    />;
+  }
+  if (focus?.key === "home_district") {
+    const detailReturnTo = params.returnTo === "/guidance/review" || params.returnTo === "/guidance/review/details" ? params.returnTo : undefined;
+    return <NearbyDistrictDetail
+      stage={state.stage}
+      initialAnswer={state.answers.home_district ?? null}
       answered={state.snapshot.answeredKeys.length}
       returnTo={detailReturnTo}
     />;

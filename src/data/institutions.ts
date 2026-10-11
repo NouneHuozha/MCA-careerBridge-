@@ -49,6 +49,7 @@ export const REGION_SEEDS: RegionSeed[] = [
   { code: "IN-NL-TSE", level: "district", name: "Tseminyü", parentId: null, latitude: 25.9, longitude: 94.13 },
   { code: "IN-NL-SHA", level: "district", name: "Shamator", parentId: null, latitude: 26.15, longitude: 94.98 },
   { code: "IN-NL-NOK", level: "district", name: "Noklak", parentId: null, latitude: 26.2, longitude: 95.03 },
+  { code: "IN-NL-MEL", level: "district", name: "Meluri", parentId: null },
 ];
 
 export const NAGALAND_DISTRICTS = REGION_SEEDS.filter((r) => r.level === "district").map((r) => r.name);

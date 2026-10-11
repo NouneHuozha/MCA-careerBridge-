@@ -25,6 +25,7 @@ import {
   type CounsellingQuestion,
   type Stage,
 } from "@/data/counselling";
+import { NAGALAND_DISTRICTS } from "@/data/institutions";
 
 const ANON_COOKIE = "cb_journey";
 export const EXPLORATION_COOKIE = "cb_exploration";
@@ -188,7 +189,8 @@ export function buildSnapshot(stage: Stage, stageDetail: string | null, rows: Re
   snap.values = values("values");
   snap.workStyle = single("work_style");
   snap.locationPref = single("location_pref");
-  snap.district = single("home_district");
+  const district = single("home_district");
+  snap.district = district && NAGALAND_DISTRICTS.includes(district) ? district : null;
   snap.budget = single("budget");
   snap.scholarshipNeed = single("scholarship_need");
   snap.institutionPref = single("institution_pref");
