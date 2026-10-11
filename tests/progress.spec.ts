@@ -65,13 +65,22 @@ test('image 15 review accepts not-sure, allows adding optional detail, and retur
   await expect(page.getByRole('heading', { name: 'Here’s what we understood' })).toBeVisible();
 
   await page.getByRole('link', { name: 'Add more detail' }).click();
-  await expect(page).toHaveURL(/\/counselling\?edit=anything_else/);
-  await page.getByRole('button', { name: 'Back' }).click();
+  await expect(page).toHaveURL(/\/guidance\/review\/details$/);
+  await expect(page.getByRole('heading', { name: 'Add anything else that may help' })).toBeVisible();
+  for (const label of ['Subjects I find difficult', 'Something I enjoyed recently', 'Nearby district', 'Scholarship information', 'Institution preference', 'Hostel requirement', 'Anything else']) {
+    await expect(page.getByRole('heading', { name: label })).toBeVisible();
+  }
+  await expect(page.getByRole('link', { name: 'Add Anything else' })).toBeVisible();
+  await page.getByRole('link', { name: 'Back to review' }).click();
   await expect(page).toHaveURL(/\/guidance\/review$/);
   await page.getByRole('link', { name: 'Add more detail' }).click();
-  await expect(page).toHaveURL(/\/counselling\?edit=anything_else/);
+  await expect(page).toHaveURL(/\/guidance\/review\/details$/);
+  await page.getByRole('link', { name: 'Add Anything else' }).click();
+  await expect(page).toHaveURL(/\/counselling\?edit=anything_else&returnTo=.*guidance%2Freview%2Fdetails/);
   await page.getByRole('textbox', { name: 'Your answer' }).fill('I enjoy building small science projects.');
   await page.getByRole('button', { name: 'Save changes' }).click();
+  await expect(page).toHaveURL(/\/guidance\/review\/details$/);
+  await page.getByRole('link', { name: 'Save and return to review' }).click();
   await expect(page).toHaveURL(/\/guidance\/review$/);
   await expect(page.getByText('Extra detail you shared: I enjoy building small science projects.')).toBeVisible();
 

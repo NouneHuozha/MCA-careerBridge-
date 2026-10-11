@@ -79,15 +79,17 @@ function SummaryCard({ title, items, editSection }: { title: string; items: Revi
   </article>;
 }
 
-function StillOpenCard({ detail }: { detail: string | null }) {
-  const optionalDetailHref = "/counselling?edit=anything_else&returnTo=%2Fguidance%2Freview";
+function StillOpenCard({ detail, additional }: { detail: string | null; additional: { label: string; value: string }[] }) {
+  const optionalDetailHref = "/guidance/review/details";
+  const editAnythingElseHref = "/counselling?edit=anything_else&returnTo=%2Fguidance%2Freview";
   return <article className="min-w-0 rounded-xl border border-[#eee5d4] bg-[#fffdf7] px-5 py-4 shadow-[0_4px_18px_-18px_rgba(40,69,60,.35)] sm:px-6 sm:py-5">
     <header className="flex items-start justify-between gap-3">
       <h2 className="font-semibold leading-tight tracking-[-.025em] text-[#20272b] sm:text-[1.15rem]">Still open</h2>
-      <Link href={optionalDetailHref} aria-label="Edit optional detail" className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-[#176b62] transition hover:bg-[#f3f5ef] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]"><Pencil aria-hidden className="h-4 w-4" strokeWidth={1.8} />Edit</Link>
+      <Link href={editAnythingElseHref} aria-label="Edit optional detail" className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-[#176b62] transition hover:bg-[#f3f5ef] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]"><Pencil aria-hidden className="h-4 w-4" strokeWidth={1.8} />Edit</Link>
     </header>
     <p className="mt-3 text-sm leading-relaxed text-[#68758a]">You have not told us everything, and that is okay. You can add more later if it feels useful.</p>
     {detail ? <p className="mt-3 rounded-lg border border-[#eee9dc] bg-white/80 px-3 py-2.5 text-sm leading-relaxed text-[#4c5a54]"><span className="font-medium text-[#344740]">Extra detail you shared:</span> {detail}</p> : null}
+    {additional.map((item) => <p key={item.label} className="mt-2 rounded-lg border border-[#eee9dc] bg-white/80 px-3 py-2.5 text-sm leading-relaxed text-[#4c5a54]"><span className="font-medium text-[#344740]">{item.label}:</span> {item.value}</p>)}
     <div className="mt-4 grid gap-2 sm:grid-cols-2">
       <Link href={optionalDetailHref} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#3d927f] bg-[#f5fbf7] px-4 text-center text-sm font-semibold text-[#176b62] transition hover:bg-[#eaf5ee] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Add more detail</Link>
       <Link href="/guidance/confirm" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#cbd8e3] bg-white px-4 text-center text-sm font-medium text-[#24344c] transition hover:bg-[#f7f9fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Continue without adding</Link>
@@ -136,6 +138,14 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
     ? `You mentioned ${joinValues(chosenSignals, "")}. These may be useful clues as you explore different directions.`
     : "Some parts of your picture are still open. You can explore different directions and update this later.";
   const anythingElse = state.answers.anything_else?.text?.trim() || null;
+  const additionalDetails = [
+    { label: "Subjects I find difficult", value: joinValues(labelsFor(state, "subjects_difficult", "subject"), "") },
+    { label: "Something I enjoyed recently", value: state.answers.interest_story?.text?.trim() || (state.answers.interest_story?.values.includes("not-sure") ? "Not sure yet" : "") },
+    { label: "Nearby district", value: joinValues(labelsFor(state, "home_district"), "") },
+    { label: "Scholarship information", value: joinValues(labelsFor(state, "scholarship_need"), "") },
+    { label: "Institution preference", value: joinValues(labelsFor(state, "institution_pref"), "") },
+    { label: "Hostel requirement", value: joinValues(labelsFor(state, "hostel"), "") },
+  ].filter((item) => Boolean(item.value));
   const completedSections = counsellingStages.filter((section) => section.key !== "reflection").map((section) => section.key);
   const answeredCount = state.snapshot.answeredKeys.length;
 
@@ -155,7 +165,7 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
         ]} />
         <SummaryCard title="What you enjoy and bring" editSection="What you enjoy and bring" items={enjoyedItems} />
         <SummaryCard title="What matters to you" editSection="What matters to you" items={mattersItems} />
-        <StillOpenCard detail={anythingElse} />
+        <StillOpenCard detail={anythingElse} additional={additionalDetails} />
       </div>
 
       <aside role="note" className="mt-3 flex items-start gap-3 rounded-lg border border-[#dce5ec] bg-[#f7fafc] px-4 py-3 text-sm leading-relaxed text-[#61708b]">
