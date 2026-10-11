@@ -13,10 +13,11 @@ type AppUser = { name: string | null; email: string } | null;
 export function AppShell({ user, children }: { user: AppUser; children: ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
+  const isHome = pathname === "/";
   const isCounselling = pathname.startsWith("/counselling");
   const isStart = pathname.startsWith("/start");
   const isGuidance = pathname.startsWith("/guidance");
   const isGuidedFlow = isStart || isCounselling || isGuidance;
-  const showPageBack = !isAdmin && !isGuidedFlow;
-  return <SavedProvider key={user?.email ?? "guest"} signedIn={Boolean(user)}><>{!isAdmin && !isGuidedFlow && <SiteNav user={user ? { name: user.name, email: user.email } : null} />}<main id="main" className="min-w-0 flex-1">{showPageBack && <PageBack />}{children}</main>{!isAdmin && !isGuidedFlow && <SiteFooter />}{!isAdmin && !isGuidedFlow && <MentorWidget />}</></SavedProvider>;
+  const showPageBack = !isAdmin && !isGuidedFlow && !isHome;
+  return <SavedProvider key={user?.email ?? "guest"} signedIn={Boolean(user)}><>{!isAdmin && !isGuidedFlow && <SiteNav user={user ? { name: user.name, email: user.email } : null} />}<main id="main" className="min-w-0 flex-1">{showPageBack && <PageBack />}{children}</main>{!isAdmin && !isGuidedFlow && <SiteFooter home={isHome} />}{!isAdmin && !isGuidedFlow && !isHome && <MentorWidget />}</></SavedProvider>;
 }

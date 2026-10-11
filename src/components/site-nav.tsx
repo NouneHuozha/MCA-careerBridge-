@@ -57,6 +57,24 @@ export function SiteNav({ user }: { user: NavUser }) {
   const progressHref = user ? "/guidance" : "/guidance/review";
   const progressLabel = user ? "My Guidance" : "My journey";
 
+  if (isHome) return <header className="absolute inset-x-0 top-0 z-50 border-0 bg-transparent text-white">
+    <div className="cb-container flex h-[76px] items-center justify-between gap-5">
+      <Logo tone="light" size="md" textClassName="font-serif text-xl sm:text-[1.5rem]" />
+      <nav aria-label="Main" className="hidden items-center gap-8 md:flex">
+        <Link href="/explore" className="inline-flex items-center gap-1.5 text-sm font-medium text-white/90 transition hover:text-white">Explore<ChevronDown aria-hidden className="h-4 w-4" /></Link>
+        <Link href="/how-it-works" className="text-sm font-medium text-white/90 transition hover:text-white">How it works</Link>
+        <Link href="/about" className="text-sm font-medium text-white/90 transition hover:text-white">About</Link>
+      </nav>
+      <div className="flex shrink-0 items-center gap-3 sm:gap-6">
+        {!user ? <Link href="/sign-in" className="text-sm font-medium text-white/90 transition hover:text-white">Sign in</Link> : <Link href="/guidance" className="text-sm font-medium text-white/90 transition hover:text-white">My guidance</Link>}
+        <Link href="/start" className="inline-flex min-h-10 items-center rounded-full bg-[#fffefa] px-5 text-sm font-semibold text-[#173e32] shadow-sm transition hover:bg-[#f3f0e6]">Start counselling</Link>
+      </div>
+    </div>
+    <nav aria-label="Mobile" className="flex justify-center gap-6 border-t border-white/15 px-4 py-2 text-xs font-medium text-white/90 md:hidden">
+      <Link href="/explore">Explore</Link><Link href="/how-it-works">How it works</Link><Link href="/about">About</Link>
+    </nav>
+  </header>;
+
   return <header className="sticky top-0 z-50 border-b border-ink-200 bg-canvas shadow-[0_2px_8px_#23453305]">
     <div className="cb-container flex h-[76px] items-center justify-between gap-5">
       <div className="flex min-w-0 items-center gap-6 2xl:gap-12">

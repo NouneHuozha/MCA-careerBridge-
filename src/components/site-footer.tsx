@@ -31,7 +31,21 @@ const columns = [
   },
 ];
 
-export function SiteFooter() {
+export function SiteFooter({ home = false }: { home?: boolean }) {
+  if (home) return <footer className="mt-0 bg-[#104638] text-white">
+    <div className="cb-container">
+      <div className="flex flex-wrap items-center justify-between gap-x-10 gap-y-5 py-6">
+        <Logo tone="light" size="md" textClassName="font-serif text-xl sm:text-[1.5rem]" />
+        <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-white/85">
+          <Link href="/explore" className="hover:text-white">Explore</Link>
+          <Link href="/guidance" className="hover:text-white">Guidance</Link>
+          <Link href="/courses" className="hover:text-white">Resources</Link>
+          <Link href="/about" className="hover:text-white">About</Link>
+        </nav>
+      </div>
+      <div className="border-t border-white/35 py-4 text-xs text-white/75">© 2026 CareerBridge. All rights reserved.</div>
+    </div>
+  </footer>;
   return (
     <footer className="mt-auto border-t border-ink-100 bg-white">
       <div className="cb-container grid gap-10 py-14 md:grid-cols-[1.5fr_repeat(3,1fr)]">
