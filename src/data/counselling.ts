@@ -198,7 +198,8 @@ export const QUESTIONS: CounsellingQuestion[] = [
     prompt: "Which subjects do you find difficult right now?",
     helper: "This isn't a judgement. Knowing this helps us suggest realistic routes — and difficulty often changes with teaching and time.",
     answerType: "multi",
-    options: SUBJECT_OPTIONS,
+    options: [...SUBJECT_OPTIONS, { value: "other", label: "Something else" }, { value: "prefer-not", label: "Prefer not to say" }],
+    allowOther: true,
     allowSkip: true,
   },
   {

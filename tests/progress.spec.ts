@@ -71,6 +71,18 @@ test('image 15 review accepts not-sure, allows adding optional detail, and retur
     await expect(page.getByRole('heading', { name: label })).toBeVisible();
   }
   await expect(page.getByRole('link', { name: 'Add Anything else' })).toBeVisible();
+  await page.getByRole('link', { name: 'Add Subjects I find difficult' }).click();
+  await expect(page).toHaveURL(/\/counselling\?edit=subjects_difficult&returnTo=.*guidance%2Freview%2Fdetails/);
+  await expect(page.getByRole('heading', { name: 'Are there subjects you find difficult right now?' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Science and mathematics/ })).toHaveAttribute('aria-expanded', 'true');
+  await page.getByRole('checkbox', { name: 'Mathematics' }).check();
+  await page.getByRole('button', { name: /Technology and computing/ }).click();
+  await page.getByRole('checkbox', { name: 'Computer Science' }).check();
+  await page.getByRole('checkbox', { name: 'Something else' }).check();
+  await page.getByRole('textbox', { name: /Tell us about another subject you find difficult/ }).fill('Geology');
+  await page.getByRole('button', { name: 'Save and return', exact: true }).click();
+  await expect(page).toHaveURL(/\/guidance\/review\/details$/);
+  await expect(page.getByRole('link', { name: 'Edit Subjects I find difficult' })).toBeVisible();
   await page.getByRole('link', { name: 'Back to review' }).click();
   await expect(page).toHaveURL(/\/guidance\/review$/);
   await page.getByRole('link', { name: 'Add more detail' }).click();

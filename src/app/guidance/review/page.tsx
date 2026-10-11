@@ -138,8 +138,10 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
     ? `You mentioned ${joinValues(chosenSignals, "")}. These may be useful clues as you explore different directions.`
     : "Some parts of your picture are still open. You can explore different directions and update this later.";
   const anythingElse = state.answers.anything_else?.text?.trim() || null;
+  const difficultSubjectText = state.answers.subjects_difficult?.text?.trim();
+  const difficultSubjectValues = labelsFor(state, "subjects_difficult", "subject").map((value) => value === "Something else" && difficultSubjectText ? `Something else: ${difficultSubjectText}` : value);
   const additionalDetails = [
-    { label: "Subjects I find difficult", value: joinValues(labelsFor(state, "subjects_difficult", "subject"), "") },
+    { label: "Subjects I find difficult", value: joinValues(difficultSubjectValues, "") },
     { label: "Something I enjoyed recently", value: state.answers.interest_story?.text?.trim() || (state.answers.interest_story?.values.includes("not-sure") ? "Not sure yet" : "") },
     { label: "Nearby district", value: joinValues(labelsFor(state, "home_district"), "") },
     { label: "Scholarship information", value: joinValues(labelsFor(state, "scholarship_need"), "") },

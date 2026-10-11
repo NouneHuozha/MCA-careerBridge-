@@ -89,16 +89,16 @@ function SubjectsJourneyMap({ mobile = false, activeStep = 1 }: { mobile?: boole
   </aside>;
 }
 
-export function CounsellingJourneyShell({ children, currentSection, completedSections, progress, variant = "standard" }: { children: ReactNode; currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; progress: QuestionProgress; variant?: "standard" | "grouped" }) {
+export function CounsellingJourneyShell({ children, currentSection, completedSections, progress, variant = "standard", headerAction }: { children: ReactNode; currentSection: CounsellingStageKey; completedSections: CounsellingStageKey[]; progress: QuestionProgress; variant?: "standard" | "grouped"; headerAction?: ReactNode }) {
   const [journey, setJourney] = useState<JourneyState>({ currentSection, completedSections, progress });
   const activeStep = currentSection === "reflection" ? 4 : currentSection === "goals" || currentSection === "practical" ? 3 : currentSection === "strengths" ? 2 : 1;
   if (variant === "grouped") return <JourneyContext.Provider value={{ journey, setJourney }}>
     <header className="sticky top-0 z-50 flex min-h-[70px] items-center justify-between gap-4 border-b border-[#e9e8e4] bg-white px-5 sm:min-h-[76px] sm:px-8 lg:px-16">
       <Logo size="md" />
-      <Link href="/" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-[#263439] transition hover:bg-[#f5f8f6] focus-visible:outline-offset-2 sm:gap-3 sm:px-3 sm:text-base" aria-label="Save and return later">
+      {headerAction ?? <Link href="/" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-[#263439] transition hover:bg-[#f5f8f6] focus-visible:outline-offset-2 sm:gap-3 sm:px-3 sm:text-base" aria-label="Save and return later">
         <Bookmark aria-hidden className="h-5 w-5 text-[#397e70]" strokeWidth={1.8} />
         <span>Save and return later</span>
-      </Link>
+      </Link>}
     </header>
     <div className="mx-auto grid w-full max-w-[1472px] grid-cols-1 gap-5 px-5 py-6 sm:gap-7 sm:px-8 sm:py-8 lg:grid-cols-[386px_minmax(0,1fr)] lg:gap-12 lg:px-11 lg:py-10">
       <SubjectsJourneyMap activeStep={activeStep} />

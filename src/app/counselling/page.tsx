@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { CounsellingExperience } from "@/components/counselling-experience";
+import { DifficultSubjectsPage } from "@/components/difficult-subjects-page";
 import { Class10EducationPage, Class12EducationPage } from "@/components/education-selection-page";
 import { CounsellingJourneyShell } from "@/components/counselling-journey";
 import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
@@ -49,6 +50,15 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
       editing={focus?.key === "stream_current"}
       firstStep={params.first === "stream_current"}
       returnTo={params.returnTo === "/guidance/review" ? params.returnTo : undefined}
+    />;
+  }
+  if (focus?.key === "subjects_difficult") {
+    return <DifficultSubjectsPage
+      sessionId={state.sessionId}
+      stage={state.stage}
+      initialAnswer={state.answers.subjects_difficult ?? null}
+      answered={state.snapshot.answeredKeys.length}
+      returnTo={params.returnTo === "/guidance/review/details" ? params.returnTo : undefined}
     />;
   }
   const question = focus ?? nextQuestion(state.stage, state.snapshot.answeredKeys);
