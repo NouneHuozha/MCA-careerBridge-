@@ -38,8 +38,8 @@ const steps = [
 export default async function HomePage() {
   const fields = await getFields();
 
-  return <main className="overflow-hidden bg-[#fbfaf6]">
-    <section className="relative isolate min-h-[620px] overflow-hidden bg-[#123f34] text-white lg:min-h-[650px]">
+  return <main className="bg-[#fbfaf6]">
+    <section className="relative isolate min-h-[620px] overflow-visible bg-[#123f34] text-white lg:min-h-[650px]">
       <Image src="/images/SunlitModernLibraryStudyWorkspace.png" alt="A sunlit library study space with books and a laptop" fill priority sizes="100vw" className="absolute inset-0 -z-20 object-cover object-center" />
       <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(8,52,43,.98)_0%,rgba(8,52,43,.93)_27%,rgba(8,52,43,.62)_48%,rgba(8,52,43,.08)_75%),linear-gradient(0deg,rgba(8,52,43,.35),transparent_45%)]" />
       <div className="cb-container relative flex min-h-[620px] flex-col justify-center pb-36 pt-16 lg:min-h-[650px] lg:pb-40">
