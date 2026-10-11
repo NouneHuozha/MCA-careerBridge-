@@ -25,6 +25,8 @@ const secondaryLinks = [
   { href: "/about", label: "About", icon: Info },
 ];
 
+const homeNavPill = "inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/35 bg-[#103f35]/60 px-5 text-sm font-semibold text-white shadow-sm transition hover:border-white/60 hover:bg-[#103f35]/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f2cf78] focus-visible:ring-offset-2 focus-visible:ring-offset-[#123f34] xl:px-6 xl:text-[15px]";
+
 export function SiteNav({ user }: { user: NavUser }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,7 +43,7 @@ export function SiteNav({ user }: { user: NavUser }) {
         setExploreOpen(false);
         setMobileOpen(false);
         if (exploreOpen) {
-          const homeTriggerId = pathname === "/" ? (window.matchMedia("(min-width: 768px)").matches ? "home-explore-trigger" : "home-explore-trigger-mobile") : null;
+          const homeTriggerId = pathname === "/" ? (window.matchMedia("(min-width: 1280px)").matches ? "home-explore-trigger" : "home-explore-trigger-mobile") : null;
           (homeTriggerId ? document.getElementById(homeTriggerId) : exploreButton.current)?.focus();
         }
       }
@@ -59,13 +61,15 @@ export function SiteNav({ user }: { user: NavUser }) {
   const isHome = pathname === "/";
   const progressHref = user ? "/guidance" : "/guidance/review";
   const progressLabel = user ? "My Guidance" : "My journey";
+  const homeAccountHref = user ? "/guidance" : "/sign-in";
+  const homeAccountLabel = user ? "My guidance" : "Sign in";
 
   if (isHome) return <header ref={exploreRef} className="absolute inset-x-0 top-0 z-50 border-0 bg-transparent text-white">
     <div className="cb-container flex h-[84px] items-center justify-between gap-5 pt-2">
       <Logo tone="light" size="md" textClassName="font-serif text-xl sm:text-[1.5rem]" />
-      <nav aria-label="Main" className="hidden items-center gap-8 md:flex">
+      <nav aria-label="Main" className="hidden items-center gap-2 xl:flex 2xl:gap-3">
         <div className="relative">
-          <button id="home-explore-trigger" ref={exploreButton} type="button" onClick={() => setExploreOpen((open) => !open)} aria-expanded={exploreOpen} aria-controls="home-explore-menu" className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-white/90 transition hover:bg-white/10 hover:text-white">
+          <button id="home-explore-trigger" ref={exploreButton} type="button" onClick={() => setExploreOpen((open) => !open)} aria-expanded={exploreOpen} aria-controls="home-explore-menu" className={cx(homeNavPill, exploreOpen && "border-white/60 bg-[#103f35]/80")}>
             Explore<ChevronDown aria-hidden className={`h-4 w-4 transition-transform ${exploreOpen ? "rotate-180" : ""}`} />
           </button>
           {exploreOpen && <div id="home-explore-menu" className="animate-rise absolute left-1/2 top-[calc(100%+1rem)] z-[60] max-h-[min(70dvh,34rem)] w-[min(36rem,calc(100vw-2rem))] -translate-x-1/2 overflow-y-auto rounded-2xl border border-[#dce6dd] bg-[#fffefa] p-3 text-[#18352d] shadow-[0_20px_60px_-25px_rgba(8,39,31,.5)] sm:p-4">
@@ -76,22 +80,26 @@ export function SiteNav({ user }: { user: NavUser }) {
             </Link>)}</div>
           </div>}
         </div>
-        <Link href="/how-it-works" className="text-sm font-medium text-white/90 transition hover:text-white">How it works</Link>
-        <Link href="/about" className="text-sm font-medium text-white/90 transition hover:text-white">About</Link>
+        <Link href="/how-it-works" className={homeNavPill}>How it works</Link>
+        <Link href="/about" className={homeNavPill}>About</Link>
+        <Link href="/mentor" className={homeNavPill}><MessageCircle aria-hidden className="h-4 w-4" />Ask Mentor</Link>
       </nav>
-      <div className="flex shrink-0 items-center gap-2 sm:gap-6">
-        {!user ? <Link href="/sign-in" className="hidden text-sm font-medium text-white/90 transition hover:text-white sm:inline">Sign in</Link> : <Link href="/guidance" className="hidden text-sm font-medium text-white/90 transition hover:text-white sm:inline">My guidance</Link>}
-        <Link href="/start" className="inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-[#fffefa] px-3 text-xs font-semibold text-[#173e32] shadow-[0_5px_18px_-9px_rgba(9,39,30,.5)] transition hover:-translate-y-0.5 hover:bg-[#f3f0e6] sm:gap-2 sm:px-5 sm:text-sm">Start counselling<ArrowRight aria-hidden className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></Link>
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <Link href={homeAccountHref} className="hidden min-h-12 items-center justify-center rounded-full border border-white/60 bg-[#e7f1e9] px-5 text-sm font-semibold text-[#173e32] shadow-sm transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f2cf78] focus-visible:ring-offset-2 focus-visible:ring-offset-[#123f34] xl:inline-flex xl:text-[15px]">{homeAccountLabel}</Link>
+        <Link href="/start" className="inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full bg-[#f2cf78] px-4 text-sm font-bold text-[#263b2e] shadow-[0_5px_18px_-9px_rgba(9,39,30,.5)] transition hover:-translate-y-0.5 hover:bg-[#ebc45e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#123f34] sm:min-h-12 sm:px-5 sm:text-[15px] xl:px-6">Start counselling<ArrowRight aria-hidden className="h-4 w-4" /></Link>
       </div>
     </div>
-    <nav aria-label="Mobile" className="flex justify-center gap-7 border-t border-white/15 px-4 py-2 text-xs font-medium text-white/90 md:hidden">
-      <div className="relative">
-        <button id="home-explore-trigger-mobile" type="button" onClick={() => setExploreOpen((open) => !open)} aria-expanded={exploreOpen} aria-controls="home-explore-menu-mobile" className="flex items-center gap-1">Explore<ChevronDown aria-hidden className={`h-3.5 w-3.5 transition-transform ${exploreOpen ? "rotate-180" : ""}`} /></button>
-        {exploreOpen && <div id="home-explore-menu-mobile" className="fixed left-1/2 top-[7.5rem] z-[60] max-h-[min(68dvh,32rem)] w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 overflow-y-auto rounded-2xl border border-[#dce6dd] bg-[#fffefa] p-2 text-[#18352d] shadow-[0_20px_60px_-25px_rgba(8,39,31,.5)]">
-          {exploreMenu.map((item) => <Link key={item.href} href={item.href} onClick={closeAll} className="flex items-center gap-3 rounded-xl p-3 text-left text-sm font-semibold transition hover:bg-[#edf5ee]"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${item.color}`}><item.icon aria-hidden className="h-4 w-4" /></span><span className="min-w-0"><span className="block">{item.label}</span><span className="mt-0.5 block text-xs font-normal text-[#637168]">{item.detail}</span></span></Link>)}
-        </div>}
-      </div>
-      <Link href="/how-it-works">How it works</Link><Link href="/about">About</Link>
+    <nav aria-label="Mobile" className="relative flex flex-wrap items-center justify-center gap-2 border-t border-white/15 px-3 py-2.5 xl:hidden">
+      <button id="home-explore-trigger-mobile" type="button" onClick={() => setExploreOpen((open) => !open)} aria-expanded={exploreOpen} aria-controls="home-explore-menu-mobile" className={cx(homeNavPill, "min-h-11 px-4 text-[13px]")}>
+        Explore<ChevronDown aria-hidden className={`h-3.5 w-3.5 transition-transform ${exploreOpen ? "rotate-180" : ""}`} />
+      </button>
+      <Link href="/how-it-works" className={cx(homeNavPill, "min-h-11 px-4 text-[13px]")}>How it works</Link>
+      <Link href="/about" className={cx(homeNavPill, "min-h-11 px-4 text-[13px]")}>About</Link>
+      <Link href="/mentor" className={cx(homeNavPill, "min-h-11 px-4 text-[13px]")}><MessageCircle aria-hidden className="h-4 w-4" />Ask Mentor</Link>
+      <Link href={homeAccountHref} className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/60 bg-[#e7f1e9] px-4 text-[13px] font-semibold text-[#173e32] shadow-sm transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f2cf78] focus-visible:ring-offset-2 focus-visible:ring-offset-[#123f34]">{homeAccountLabel}</Link>
+      {exploreOpen && <div id="home-explore-menu-mobile" className="animate-rise absolute left-1/2 top-[calc(100%+0.75rem)] z-[60] max-h-[min(68dvh,32rem)] w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 overflow-y-auto rounded-2xl border border-[#dce6dd] bg-[#fffefa] p-2 text-[#18352d] shadow-[0_20px_60px_-25px_rgba(8,39,31,.5)]">
+        {exploreMenu.map((item) => <Link key={item.href} href={item.href} onClick={closeAll} className="flex items-center gap-3 rounded-xl p-3 text-left text-sm font-semibold transition hover:bg-[#edf5ee]"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${item.color}`}><item.icon aria-hidden className="h-4 w-4" /></span><span className="min-w-0"><span className="block">{item.label}</span><span className="mt-0.5 block text-xs font-normal text-[#637168]">{item.detail}</span></span></Link>)}
+      </div>}
     </nav>
   </header>;
 
