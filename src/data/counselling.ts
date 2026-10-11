@@ -228,20 +228,6 @@ export const QUESTIONS: CounsellingQuestion[] = [
     allowSkip: true,
   },
   {
-    key: "performance",
-    section: "academics",
-    prompt: "How would you describe how your studies are going?",
-    helper: "A rough sense is enough. We never rank students.",
-    answerType: "single",
-    options: [
-      { value: "strong", label: "Going well overall" },
-      { value: "mixed", label: "Strong in some subjects, weaker in others" },
-      { value: "struggling", label: "Finding it hard at the moment" },
-      { value: "awaiting", label: "Waiting for my results" },
-      { value: "prefer-not", label: "I'd rather not say" },
-    ],
-  },
-  {
     key: "interests",
     core: true,
     section: "interests",
@@ -408,7 +394,6 @@ export function findQuestion(key: string): CounsellingQuestion | undefined {
 export const ACKNOWLEDGEMENTS: Record<string, string> = {
   subjects_enjoy: "Thanks — that already tells us something useful about how you like to think.",
   subjects_difficult: "Good to know. Difficulty in a subject rules out fewer routes than most students expect.",
-  performance: "Thank you for being honest. Marks are one input here, never the whole picture.",
   stream_intent: "Noted. Streams open doors rather than close them, and we'll show you what each one keeps open.",
   stream_current: "Thanks. We'll focus on routes that build on what you've already studied.",
   interests: "That's helpful. Interests are usually a better long-term signal than marks alone.",
