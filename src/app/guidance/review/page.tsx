@@ -78,7 +78,7 @@ function SummaryCard({ title, items, editSection }: { title: string; items: Revi
 
 function StillOpenCard({ detail, additional }: { detail: string | null; additional: { label: string; value: string }[] }) {
   const optionalDetailHref = "/guidance/review/details";
-  return <article className="flex h-[70svh] max-h-[26rem] min-w-0 flex-col overflow-hidden rounded-xl border border-[#eee5d4] bg-[#fffdf7] px-5 py-4 shadow-[0_4px_18px_-18px_rgba(40,69,60,.35)] sm:px-6 sm:py-5 lg:h-[22rem]">
+  return <article className="flex h-[70svh] max-h-[22rem] min-w-0 flex-col overflow-hidden rounded-xl border border-[#eee5d4] bg-[#fffdf7] px-5 py-4 shadow-[0_4px_18px_-18px_rgba(40,69,60,.35)] sm:px-6 sm:py-5 lg:h-[18rem]">
     <header className="flex shrink-0 items-start">
       <h2 className="font-semibold leading-tight tracking-[-.025em] text-[#20272b] sm:text-[1.15rem]">Still open</h2>
     </header>

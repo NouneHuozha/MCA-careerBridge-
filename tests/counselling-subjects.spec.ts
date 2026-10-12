@@ -133,6 +133,12 @@ test("starting again after a completed session opens a fresh flow instead of ski
   expect(completion.ok()).toBeTruthy();
 
   await page.goto("/start/current-position");
+  await expect(page.getByRole("radio", { name: "I’m currently in Class 10" })).not.toBeChecked();
+  await expect(page.getByRole("radio", { name: "I’m currently in Class 12" })).not.toBeChecked();
+  await expect(page.getByRole("radio", { name: "I’ve completed it" })).not.toBeChecked();
+  await expect(page.getByRole("radio", { name: "I’m still studying" })).not.toBeChecked();
+  await page.getByRole("radio", { name: "I’m currently in Class 10" }).check();
+  await page.getByRole("radio", { name: "I’m still studying" }).check();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await expect(page).toHaveURL(/\/counselling\?first=stream_intent/);
   await page.getByText("Science", { exact: true }).click();
@@ -142,6 +148,8 @@ test("starting again after a completed session opens a fresh flow instead of ski
 
 test("final answer opens the new review directly without the retired reflection interstitial", async ({ page }) => {
   await startAtSubjects(page);
+  const activeStep = page.locator('aside[aria-label="Counselling journey"] [aria-current="step"]');
+  await expect(activeStep).toHaveText("What interests you");
 
   await page.getByRole("radio", { name: "I’m not sure yet" }).check();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
@@ -149,11 +157,13 @@ test("final answer opens the new review directly without the retired reflection 
 
   await page.getByRole("radio", { name: "I’m not sure yet" }).check();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(activeStep).toHaveText("What you bring");
   await page.getByRole("checkbox", { name: "I’m not sure yet" }).check();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
 
   // Work style is optional; continuing without a selection records a skip.
   await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(activeStep).toHaveText("What matters to you");
   await page.getByRole("checkbox", { name: "I’m not sure yet" }).check();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("checkbox", { name: "I’m not sure yet" }).check();
@@ -165,4 +175,22 @@ test("final answer opens the new review directly without the retired reflection 
   await expect(page.getByRole("heading", { name: "Here’s what we understood" })).toBeVisible();
   await expect(page.getByText("Your reflection is ready", { exact: true })).toHaveCount(0);
   await expect(page.getByText("A thoughtful starting point is waiting for you.", { exact: true })).toHaveCount(0);
+});
+
+test("fresh current-position visit has no preselected choices, even with an old browser draft", async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem("careerbridge-current-position-draft", JSON.stringify({ stage: "class12", stageDetail: "completed" }));
+  });
+  await page.goto("/start/current-position");
+
+  for (const label of [
+    "I’m currently in Class 10",
+    "I’m currently in Class 12",
+    "I’m still studying",
+    "I’ve completed it",
+    "I’m waiting for results",
+    "I’m taking some time to decide what comes next",
+  ]) {
+    await expect(page.getByRole("radio", { name: label })).not.toBeChecked();
+  }
 });

@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Sprout } from "lucide-react";
 import type { Stage, StageDetail } from "@/data/counselling";
-
-const draftKey = "careerbridge-current-position-draft";
 
 type SubmitAction = (formData: FormData) => void | Promise<void>;
 
@@ -36,47 +34,13 @@ export function CurrentPositionForm({
       ? (initialStageDetail as StageDetail)
       : "",
   );
-  const [draftLoaded, setDraftLoaded] = useState(false);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const hasSavedSession = Boolean(initialStage);
-      if (hasSavedSession) {
-        window.sessionStorage.removeItem(draftKey);
-      } else {
-        try {
-          const value = window.sessionStorage.getItem(draftKey);
-          if (value) {
-            const draft = JSON.parse(value) as { stage?: string; stageDetail?: string };
-            if (stages.some((option) => option.value === draft.stage)) setStage(draft.stage as Stage);
-            if (statusOptions.some((option) => option.value === draft.stageDetail)) setStageDetail(draft.stageDetail as StageDetail);
-          }
-        } catch {
-          window.sessionStorage.removeItem(draftKey);
-        }
-      }
-      setDraftLoaded(true);
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [initialStage, initialStageDetail]);
-
-  useEffect(() => {
-    if (!draftLoaded) return;
-    if (!stage && !stageDetail) {
-      window.sessionStorage.removeItem(draftKey);
-      return;
-    }
-    window.sessionStorage.setItem(draftKey, JSON.stringify({ stage, stageDetail }));
-  }, [draftLoaded, stage, stageDetail]);
 
   function updateStage(value: Stage) {
     setStage(value);
-    window.sessionStorage.setItem(draftKey, JSON.stringify({ stage: value, stageDetail }));
   }
 
   function updateStatus(value: StageDetail) {
     setStageDetail(value);
-    window.sessionStorage.setItem(draftKey, JSON.stringify({ stage, stageDetail: value }));
   }
 
   return (

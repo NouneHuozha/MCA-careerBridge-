@@ -82,8 +82,8 @@ export default async function CurrentPositionPage({ searchParams }: { searchPara
 
           <div className="mt-7 sm:mt-8">
             <CurrentPositionForm
-              initialStage={savedState?.stage ?? null}
-              initialStageDetail={savedState?.stageDetail ?? null}
+              initialStage={savedState?.status === "in_progress" ? savedState.stage : null}
+              initialStageDetail={savedState?.status === "in_progress" ? savedState.stageDetail : null}
               submitAction={submitPosition}
             />
           </div>
