@@ -1,14 +1,20 @@
-import { desc } from "drizzle-orm";
+import { desc, inArray } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { ChangeHistoryWorkspace, type HistoryEntry } from "@/components/admin/change-history-workspace";
 import { db } from "@/db";
-import { auditEvents } from "@/db/schema";
+import { auditEvents, users } from "@/db/schema";
 import { getInstitutions } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Change history · Admin workspace" };
+
+function actorFallback(value: string | null) {
+  if (!value) return "System";
+  if (!value.includes("@")) return value;
+  return value.split("@")[0].split(/[._-]+/).filter(Boolean).map((part) => part.length === 1 ? `${part.toUpperCase()}.` : part[0].toUpperCase() + part.slice(1)).join(" ");
+}
 
 function dateOnly(date: Date) {
   const year = date.getFullYear();
@@ -28,11 +34,22 @@ export default async function AdminChangeHistoryPage() {
   } catch (error) {
     console.warn("[careerbridge] change history unavailable", error);
   }
+  let namesByEmail = new Map<string, string>();
+  try {
+    const actorEmails = [...new Set(records.flatMap((event) => event.actor?.includes("@") ? [event.actor.toLowerCase()] : []))];
+    if (actorEmails.length) {
+      const userNames = await db.select({ email: users.email, fullName: users.fullName }).from(users).where(inArray(users.email, actorEmails));
+      namesByEmail = new Map(userNames.filter((item) => item.fullName).map((item) => [item.email.toLowerCase(), item.fullName!]));
+    }
+  } catch (error) {
+    console.warn("[careerbridge] actor names unavailable; using audit actor identifiers", error);
+  }
   const institutions = await getInstitutions({});
   const namesByCode = new Map(institutions.map((institution) => [institution.code, institution.name]));
   const entries: HistoryEntry[] = records.map((event) => ({
     id: event.id,
-    actor: event.actor ?? "System",
+    actor: event.actor ? namesByEmail.get(event.actor.toLowerCase()) ?? actorFallback(event.actor) : "System",
+    actorEmail: event.actor?.includes("@") ? event.actor : null,
     action: event.action,
     entityType: event.entityType ?? "other",
     entityRef: event.entityRef ?? "",
@@ -41,7 +58,7 @@ export default async function AdminChangeHistoryPage() {
     createdAt: event.createdAt.toISOString(),
   }));
   const now = new Date();
-  const from = new Date(now);
-  from.setDate(from.getDate() - 30);
-  return <AdminPortalShell active="history" breadcrumb="Change history"><ChangeHistoryWorkspace entries={entries} initialFrom={dateOnly(from)} initialTo={dateOnly(now)} /></AdminPortalShell>;
+  const from = new Date(now.getFullYear(), now.getMonth(), 1);
+  const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return <AdminPortalShell active="history" breadcrumb="Change history"><ChangeHistoryWorkspace entries={entries} initialFrom={dateOnly(from)} initialTo={dateOnly(to)} /></AdminPortalShell>;
 }
