@@ -21,7 +21,9 @@ export default async function AdminSourceRefreshSettingsPage({ searchParams }: P
   let sourceKey = "";
   try { sourceKey = normaliseSourceUrl(query.sourceKey ?? ""); } catch { sourceKey = ""; }
   const { sources } = await getAdminSourceRegistry();
-  const source = sources.find((item) => item.sourceKey === sourceKey);
+  const source = query.sourceKey
+    ? sources.find((item) => item.sourceKey === sourceKey)
+    : sources[0];
   if (!source) redirect("/admin/sources");
 
   let initialEnabled = false;
@@ -38,7 +40,7 @@ export default async function AdminSourceRefreshSettingsPage({ searchParams }: P
     console.warn("[careerbridge] source refresh preference could not be loaded", error);
   }
 
-  return <AdminPortalShell active="sources" breadcrumb="Source refresh settings">
+  return <AdminPortalShell active="settings" breadcrumb="Source refresh settings">
     <SourceRefreshSettings source={source} initialEnabled={initialEnabled} initialFrequency={initialFrequency} recordedSettingAt={recordedSettingAt} />
   </AdminPortalShell>;
 }

@@ -8,10 +8,8 @@ const navItems = [
   { label: "Sources", href: "/admin/sources", icon: Link2, key: "sources" },
   { label: "Imports", href: "/admin/imports", icon: FileUp, key: "imports" },
   { label: "Change history", href: "/admin/change-history", icon: Clock3, key: "history" },
+  { label: "Settings", href: "/admin/sources/settings", icon: Settings, key: "settings" },
 ] as const;
-const plannedItems = [
-  { label: "Settings", icon: Settings },
-];
 
 export function AdminPortalShell({
   children,
@@ -19,7 +17,7 @@ export function AdminPortalShell({
   breadcrumb,
 }: {
   children: ReactNode;
-  active?: "queue" | "catalogue" | "sources" | "imports" | "history";
+  active?: "queue" | "catalogue" | "sources" | "imports" | "history" | "settings";
   breadcrumb: string;
 }) {
   return (
@@ -36,12 +34,6 @@ export function AdminPortalShell({
               return <Link key={key} href={href} aria-current={selected ? "page" : undefined} className={`flex items-center gap-3 rounded-lg border-l-[3px] px-3 py-3 text-sm font-semibold transition ${selected ? "border-[#12664f] bg-[#dff0e8] text-[#10573f] shadow-sm" : "border-transparent text-[#344d43] hover:bg-white hover:text-[#10573f]"}`}><Icon aria-hidden className="h-5 w-5" />{label}</Link>;
             })}
           </nav>
-          <div className="px-5 pt-2">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[.12em] text-[#52665d]">More sections</p>
-            <ul className="space-y-1">
-              {plannedItems.map(({ label, icon: Icon }) => <li key={label} title={`${label} workflow is not available yet`} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-[#687970]"><Icon aria-hidden className="h-4 w-4" />{label}<span className="ml-auto rounded-full bg-[#edf1ef] px-2 py-0.5 text-[10px] font-semibold text-[#56675f]">Planned</span></li>)}
-            </ul>
-          </div>
         </div>
         <div className="border-t border-[#d7e1dc] px-5 py-5 text-xs leading-relaxed text-[#52665d]">Evidence before publication.<br />Keep student-facing facts current.</div>
       </aside>
