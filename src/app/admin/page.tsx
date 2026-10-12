@@ -1,68 +1,353 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, BookOpenCheck, Building2, CheckCircle2, ClipboardList, CloudUpload, Eye, FileCheck2, Gift, HelpCircle, Home, Landmark, MoreVertical, Settings, ShieldCheck, UploadCloud } from "lucide-react";
-import { Badge, Callout, Card, VerificationBadge, formatDate } from "@/components/ui";
-import { getCourses, getExams, getInstitutions, getOpportunities, getScholarships } from "@/services/catalog";
-import { aiStatus } from "@/ai";
-import { authProviderName } from "@/auth";
-import { mapsConfigured } from "@/maps";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BookOpen,
+  Building2,
+  CheckCircle2,
+  Clock3,
+  FileClock,
+  FileUp,
+  Link2Off,
+  ListChecks,
+  Upload,
+} from "lucide-react";
 import { db } from "@/db";
-import { dataImports, knowledgeChunks, knowledgeDocuments } from "@/db/schema";
-import { sql } from "drizzle-orm";
+import {
+  auditEvents,
+  dataImports,
+  institutionCourses,
+  institutionSources,
+} from "@/db/schema";
+import {
+  getCourses,
+  getExams,
+  getInstitutions,
+  getOpportunities,
+  getScholarships,
+} from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Admin dashboard" };
+export const metadata = { title: "Admin review queue" };
 
-async function safeCount(table: "knowledge_documents" | "knowledge_chunks") {
+type QueueItem = {
+  id: string;
+  item: string;
+  type: string;
+  issue: string;
+  source: string;
+  checkedAt: Date | null;
+  href: string;
+  tone: "amber" | "red" | "blue";
+};
+
+const verifiedStatuses = new Set(["verified", "current", "recently_verified", "published_verified"]);
+const unavailableStatuses = new Set(["unavailable", "blocked", "source_unavailable"]);
+const needsCorrectionStatuses = new Set(["needs_correction", "correction_required"]);
+const daysAgo = (date: Date, days: number) => date.getTime() < Date.now() - days * 24 * 60 * 60 * 1000;
+
+function checkedLabel(date: Date | null) {
+  if (!date) return "Not checked";
+  const days = Math.max(0, Math.floor((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000)));
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days} days ago`;
+  if (days < 60) return "1 month ago";
+  if (days < 365) return `${Math.floor(days / 30)} months ago`;
+  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function statusIssue(status: string, checkedAt: Date | null) {
+  if (unavailableStatuses.has(status)) return { issue: "Source unavailable", tone: "red" as const };
+  if (needsCorrectionStatuses.has(status)) return { issue: "Needs correction", tone: "red" as const };
+  if (verifiedStatuses.has(status)) {
+    return checkedAt && daysAgo(checkedAt, 90)
+      ? { issue: "Review overdue", tone: "amber" as const }
+      : null;
+  }
+  return { issue: "Needs verification", tone: "amber" as const };
+}
+
+function safeSource(value?: string | null) {
+  if (!value) return "No source recorded";
   try {
-    const rows = table === "knowledge_documents" ? await db.select({ n: sql<number>`count(*)::int` }).from(knowledgeDocuments) : await db.select({ n: sql<number>`count(*)::int` }).from(knowledgeChunks);
-    return rows[0]?.n ?? 0;
+    return new URL(value).hostname.replace(/^www\./, "");
   } catch {
-    return 0;
+    return "Source recorded";
   }
 }
 
-const navItems = [
-  { label: "Dashboard", href: "/admin", icon: Home },
-  { label: "Imports", href: "/admin/imports", icon: CloudUpload },
-  { label: "Institutions", href: "/institutions", icon: Landmark },
-  { label: "Entrance tests", href: "/exams", icon: ClipboardList },
-  { label: "Scholarships", href: "/scholarships", icon: Gift },
-  { label: "Audit log", href: "/admin?view=audit", icon: FileCheck2 },
-  { label: "Settings", href: "/admin?view=settings", icon: Settings },
-];
+function AttentionCard({
+  value,
+  label,
+  detail,
+  href,
+  tone,
+  icon: Icon,
+}: {
+  value: number | string;
+  label: string;
+  detail: string;
+  href: string;
+  tone: "amber" | "red" | "blue";
+  icon: typeof AlertTriangle;
+}) {
+  const tones = {
+    amber: "border-[#f0dfb8] bg-[#fff9ec] text-[#805913]",
+    red: "border-[#f2d4d4] bg-[#fff4f4] text-[#963d3d]",
+    blue: "border-[#d8e5f4] bg-[#f3f8ff] text-[#355f92]",
+  };
+  return (
+    <Link
+      href={href}
+      className={`group flex min-h-[106px] items-center justify-between gap-3 rounded-xl border p-4 transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#287f68] ${tones[tone]}`}
+    >
+      <span className="flex min-w-0 items-center gap-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/80">
+          <Icon aria-hidden className="h-5 w-5" />
+        </span>
+        <span>
+          <span className="block text-2xl font-semibold leading-none">{value}</span>
+          <span className="mt-1 block text-sm font-semibold leading-snug">{label}</span>
+          <span className="mt-1 block text-xs opacity-75">{detail}</span>
+        </span>
+      </span>
+      <ArrowRight aria-hidden className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+    </Link>
+  );
+}
+
+function issuePill(tone: QueueItem["tone"], issue: string) {
+  const tones = {
+    amber: "bg-[#fff2d8] text-[#875c12]",
+    red: "bg-[#fde8e8] text-[#a13e3e]",
+    blue: "bg-[#e8f1ff] text-[#3569a5]",
+  };
+  return <span className={`inline-flex whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium ${tones[tone]}`}>{issue}</span>;
+}
 
 export default async function AdminPage() {
-  const [institutions, courses, exams, scholarships, opportunities, docs, chunks] = await Promise.all([getInstitutions({}), getCourses({}), getExams(), getScholarships({}), getOpportunities({}), safeCount("knowledge_documents"), safeCount("knowledge_chunks")]);
+  const [institutions, courses, exams, scholarships, opportunities] = await Promise.all([
+    getInstitutions({}),
+    getCourses({}),
+    getExams(),
+    getScholarships({}),
+    getOpportunities({}),
+  ]);
+
+  const courseBySlug = new Map(courses.map((course) => [course.slug, course]));
+  const institutionByCode = new Map(institutions.map((institution) => [institution.code, institution]));
+  let courseLinks: (typeof institutionCourses.$inferSelect)[] = [];
+  let sourceRows: (typeof institutionSources.$inferSelect)[] = [];
   let imports: (typeof dataImports.$inferSelect)[] = [];
+  let activity: (typeof auditEvents.$inferSelect)[] = [];
   try {
-    imports = await db.select().from(dataImports).orderBy(sql`created_at desc`).limit(5);
-  } catch {
-    imports = [];
+    [courseLinks, sourceRows, imports, activity] = await Promise.all([
+      db.select().from(institutionCourses),
+      db.select().from(institutionSources),
+      db.select().from(dataImports).orderBy(dataImports.createdAt).limit(8),
+      db.select().from(auditEvents).orderBy(auditEvents.createdAt).limit(5),
+    ]);
+    imports.reverse();
+    activity.reverse();
+  } catch (error) {
+    console.error("[careerbridge] admin review queue query failed", error);
   }
-  const statusCounts = institutions.reduce<Record<string, number>>((acc, institution) => { acc[institution.verificationStatus] = (acc[institution.verificationStatus] ?? 0) + 1; return acc; }, {});
-  const verified = Object.entries(statusCounts).filter(([status]) => ["verified", "current", "recently_verified"].includes(status)).reduce((sum, [, count]) => sum + count, 0);
-  const needsReview = Object.entries(statusCounts).filter(([status]) => status.includes("verification") || status.includes("review")).reduce((sum, [, count]) => sum + count, 0);
-  const imported = Math.max(institutions.length - verified - needsReview, 0);
-  const total = Math.max(institutions.length, 1);
-  const verifiedPct = Math.round((verified / total) * 1000) / 10;
-  const ai = aiStatus();
-  const stats = [
-    { label: "Institutions", value: institutions.length, note: "Active in catalogue", icon: Building2, tone: "bg-[#e8f6f0] text-[#287f68]" },
-    { label: "Entrance tests", value: exams.length, note: "Active in catalogue", icon: ClipboardList, tone: "bg-[#f0eaff] text-[#7054b2]" },
-    { label: "Scholarships", value: scholarships.length, note: "Active in catalogue", icon: Gift, tone: "bg-[#e8f6f0] text-[#287f68]" },
-    { label: "Imports awaiting review", value: imports.length, note: "Requires your attention", icon: UploadCloud, tone: "bg-[#eaf3ff] text-[#3f70b1]" },
+
+  const queue: QueueItem[] = [];
+  for (const record of institutions) {
+    const issue = statusIssue(record.verificationStatus, record.lastVerifiedAt);
+    if (!issue) continue;
+    queue.push({
+      id: `institution-${record.code}`,
+      item: record.name,
+      type: "Institution",
+      ...issue,
+      source: safeSource(record.sourceUrl ?? record.officialWebsite),
+      checkedAt: record.lastVerifiedAt,
+      href: `/institutions/${encodeURIComponent(record.code)}`,
+    });
+  }
+  for (const record of courseLinks) {
+    const issue = statusIssue(record.verificationStatus, record.lastVerifiedAt);
+    if (!issue) continue;
+    const institution = institutionByCode.get(record.institutionCode);
+    const course = courseBySlug.get(record.courseSlug);
+    if (!institution) continue;
+    queue.push({
+      id: `course-link-${record.id}`,
+      item: `${course?.name ?? record.courseSlug} — ${institution.name}`,
+      type: "Course offering",
+      ...issue,
+      source: safeSource(record.sourceUrl),
+      checkedAt: record.lastVerifiedAt,
+      href: `/institutions/${encodeURIComponent(institution.code)}`,
+    });
+  }
+  for (const record of exams) {
+    const issue = statusIssue(record.verificationStatus, record.lastVerifiedAt);
+    if (!issue) continue;
+    queue.push({
+      id: `exam-${record.slug}`,
+      item: record.name,
+      type: "Entrance exam",
+      ...issue,
+      source: safeSource(record.sourceUrl ?? record.officialWebsite),
+      checkedAt: record.lastVerifiedAt,
+      href: `/exams/${encodeURIComponent(record.slug)}`,
+    });
+  }
+  for (const record of scholarships) {
+    const issue = statusIssue(record.verificationStatus, record.lastVerifiedAt);
+    if (!issue) continue;
+    queue.push({
+      id: `scholarship-${record.slug}`,
+      item: record.name,
+      type: "Scholarship",
+      ...issue,
+      source: safeSource(record.sourceUrl ?? record.officialUrl),
+      checkedAt: record.lastVerifiedAt,
+      href: `/scholarships/${encodeURIComponent(record.slug)}`,
+    });
+  }
+  for (const record of opportunities) {
+    const issue = statusIssue(record.verificationStatus, record.lastVerifiedAt);
+    if (!issue) continue;
+    queue.push({
+      id: `opportunity-${record.slug}`,
+      item: record.title,
+      type: "Opportunity",
+      ...issue,
+      source: safeSource(record.sourceUrl ?? record.url),
+      checkedAt: record.lastVerifiedAt,
+      href: `/opportunities/${encodeURIComponent(record.slug)}`,
+    });
+  }
+  for (const record of imports) {
+    if (daysAgo(record.createdAt, 7)) continue;
+    queue.push({
+      id: `import-${record.id}`,
+      item: record.fileName ?? `${record.datasetLabel} import`,
+      type: "Import",
+      issue: "Recently imported",
+      tone: "blue",
+      source: record.fileName ?? record.datasetLabel,
+      checkedAt: record.createdAt,
+      href: "/admin/imports",
+    });
+  }
+
+  const unavailableSources = sourceRows.filter((source) => unavailableStatuses.has(source.status)).length;
+  const verificationCount = queue.filter((item) => item.issue === "Needs verification" || item.issue === "Needs correction").length;
+  const staleCount = queue.filter((item) => item.checkedAt && daysAgo(item.checkedAt, 90)).length;
+  const errorCount = "—"; // Validation results are not represented by the current import schema.
+  const sortPriority: Record<QueueItem["tone"], number> = { red: 0, amber: 1, blue: 2 };
+  queue.sort((a, b) => sortPriority[a.tone] - sortPriority[b.tone] || (a.checkedAt?.getTime() ?? 0) - (b.checkedAt?.getTime() ?? 0));
+  const visibleQueue = queue.slice(0, 8);
+  const recentImports = imports.slice(-3).reverse();
+
+  const navItems = [
+    { label: "Review queue", href: "/admin", icon: ListChecks, active: true },
+    { label: "Catalogue", href: "/institutions", icon: BookOpen, active: false },
+    { label: "Sources", href: "/admin?view=sources", icon: Link2Off, active: false },
+    { label: "Imports", href: "/admin/imports", icon: Upload, active: false },
+    { label: "Change history", href: "/admin?view=audit", icon: FileClock, active: false },
+    { label: "Settings", href: "/admin?view=settings", icon: Building2, active: false },
   ];
 
-  return <div className="min-h-screen bg-[#fbfcfe] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
-    <aside className="hidden border-r border-[#e1e8f0] bg-[#f7f9fc] lg:flex lg:min-h-screen lg:flex-col lg:justify-between"><div><div className="flex h-20 items-center gap-2 border-b border-[#e1e8f0] px-6"><span className="grid h-9 w-9 place-items-center rounded-lg bg-[#4e9ee9] text-xl font-black italic text-white">A</span><span className="text-xl font-semibold tracking-[-0.04em] text-[#182f56]">CareerBridge <em className="font-medium not-italic text-[#4b9d7f]">Admin</em></span></div><nav className="space-y-1 px-4 py-6" aria-label="Admin navigation">{navItems.map(({ label, href, icon: Icon }, index) => <Link key={label} href={href} className={`flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-medium transition ${index === 0 ? "bg-[#e8f6f0] text-[#287f68]" : "text-[#284263] hover:bg-white hover:text-[#287f68]"}`}><Icon className="h-5 w-5" />{label}</Link>)}</nav></div><div className="m-5 rounded-2xl border border-[#d3eee4] bg-[#eaf8f3] p-5"><div className="flex items-center gap-3"><HelpCircle className="h-6 w-6 text-[#3c9678]" /><p className="font-semibold text-[#234f46]">Need help?</p></div><Link href="/about" className="mt-3 block text-sm font-medium text-[#2870aa] underline underline-offset-2">Talk to support <ArrowRight className="ml-1 inline h-3.5 w-3.5" /></Link></div></aside>
-    <main className="min-w-0 overflow-hidden"><header className="flex h-20 items-center justify-between border-b border-[#e1e8f0] bg-white px-5 sm:px-8 lg:px-10"><div className="flex items-center gap-3 text-sm font-semibold text-[#243b5b]"><span className="lg:hidden grid h-8 w-8 place-items-center rounded-md bg-[#4e9ee9] text-sm font-black italic text-white">A</span>Nagaland catalogue<span className="text-ink-400">⌄</span></div><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-[#f0eaff] text-sm font-semibold text-[#7054b2]">AR</span><div className="hidden text-right sm:block"><p className="text-sm font-semibold text-[#243b5b]">Aarav Rao</p><p className="text-xs text-ink-500">Admin</p></div><span className="text-ink-400">⌄</span></div></header>
-      <div className="px-5 py-8 sm:px-8 lg:px-10 lg:py-12"><div className="mx-auto max-w-[1500px]"><div className="flex flex-wrap items-end justify-between gap-5"><div><h1 className="text-4xl font-semibold tracking-[-0.04em] text-[#071533] sm:text-5xl">Keep the catalogue trustworthy.</h1><p className="mt-3 text-lg text-ink-500">Review, approve and maintain the information students use.</p></div><div className="hidden items-center gap-2 rounded-full bg-[#edf5ff] px-4 py-2 text-sm font-medium text-[#3f70b1] lg:flex"><BarChart3 className="h-4 w-4" />{courses.length + opportunities.length} learning records</div></div>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, note, icon: Icon, tone }) => <Card key={label} className="p-5"><div className="flex items-start gap-4"><span className={`grid h-14 w-14 shrink-0 place-items-center rounded-full ${tone}`}><Icon className="h-6 w-6" /></span><div><p className="text-3xl font-semibold text-[#1d765f]">{value}</p><p className="mt-1 font-semibold text-[#172b49]">{label}</p><p className="mt-2 text-sm text-ink-500">{note}</p></div></div></Card>)}</div>
-        <div className="mt-7 flex flex-wrap gap-3"><Link href="/admin/imports" className="inline-flex items-center gap-2 rounded-lg bg-[#2f9b76] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#287f68]"><UploadCloud className="h-4 w-4" />Upload workbook</Link><Link href="/institutions" className="inline-flex items-center gap-2 rounded-lg border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-[#243b5b] transition hover:border-[#8fb8d8]"><Eye className="h-4 w-4" />View catalogue</Link></div>
-        <div className="mt-7 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.7fr)]"><Card className="overflow-hidden p-0"><div className="flex items-center justify-between border-b border-ink-100 px-5 py-4"><div><h2 className="font-semibold text-[#172b49]">Recent imports</h2><p className="mt-1 text-xs text-ink-500">Review the latest catalogue workbooks.</p></div><Link href="/admin/imports" className="text-sm font-medium text-[#2870aa] hover:underline">View all imports <ArrowRight className="ml-1 inline h-4 w-4" /></Link></div><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-[#f8fafc] text-xs text-ink-500"><tr><th className="px-5 py-3 font-medium">Dataset</th><th className="px-5 py-3 font-medium">File</th><th className="px-5 py-3 font-medium">Rows</th><th className="px-5 py-3 font-medium">Status</th><th className="px-5 py-3 font-medium">Last reviewed</th><th className="px-5 py-3 font-medium">Actions</th></tr></thead><tbody>{imports.length ? imports.map((entry) => <tr key={entry.id} className="border-t border-ink-100"><td className="px-5 py-4 font-medium text-[#243b5b]">{entry.datasetLabel}</td><td className="px-5 py-4 text-ink-600">{entry.fileName ?? "Workbook"}</td><td className="px-5 py-4 text-ink-600">{entry.recordCount}</td><td className="px-5 py-4"><Badge tone="neutral">Imported</Badge></td><td className="px-5 py-4 text-ink-500">—</td><td className="px-5 py-4"><Link href={`/admin?review=${entry.id}`} className="rounded-md border border-ink-200 px-3 py-1.5 text-xs font-medium text-[#243b5b] hover:border-[#7ca8d0]">Review</Link><MoreVertical className="ml-2 inline h-4 w-4 text-ink-400" /></td></tr>) : <tr><td colSpan={6} className="px-5 py-10 text-center text-sm text-ink-500">No imports have been recorded yet. Upload a workbook to start a review queue.</td></tr>}</tbody></table></div></Card><Card className="p-6"><h2 className="font-semibold text-[#172b49]">Catalogue trust</h2><p className="mt-2 text-sm leading-relaxed text-ink-500">Overview of the verification status across the Nagaland catalogue.</p><div className="mt-6 flex items-center gap-5"><div className="grid h-36 w-36 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#2f9b76 0 ${verifiedPct}%, #f1bf4a ${verifiedPct}% ${Math.min(verifiedPct + (needsReview / total) * 100, 100)}%, #4f9adb ${Math.min(verifiedPct + (needsReview / total) * 100, 100)}% 100%)` }}><div className="grid h-20 w-20 place-items-center rounded-full bg-white text-center"><span className="text-xl font-semibold text-[#172b49]">{verifiedPct}%</span><span className="text-[10px] text-ink-500">verified</span></div></div><ul className="space-y-3 text-sm">{Object.entries(statusCounts).slice(0, 4).map(([status, count]) => <li key={status} className="flex items-center justify-between gap-4"><span className="flex items-center gap-2 text-ink-600"><span className="h-2.5 w-2.5 rounded-full bg-[#2f9b76]" />{status.replaceAll("_", " ")}</span><span className="font-semibold text-[#172b49]">{count}</span></li>)}{!Object.keys(statusCounts).length ? <li className="text-ink-500">No verification data yet.</li> : null}</ul></div><div className="mt-6 flex gap-3 rounded-xl bg-[#eef8f5] p-4"><ShieldCheck className="h-6 w-6 shrink-0 text-[#2f9b76]" /><div><p className="font-semibold text-[#234f46]">Trust drives impact</p><p className="mt-1 text-sm leading-relaxed text-ink-600">Keeping data accurate ensures students can make confident decisions.</p></div></div></Card></div>
-        <div className="mt-6 grid gap-6 lg:grid-cols-2"><Card className="p-6"><div className="flex items-center justify-between"><h2 className="font-semibold text-[#172b49]">Platform configuration</h2><Settings className="h-5 w-5 text-ink-400" /></div><ul className="mt-4 space-y-3 text-sm"><li className="flex justify-between gap-3"><span className="text-ink-600">Authentication provider</span><Badge tone={authProviderName() === "clerk" ? "forest" : "neutral"}>{authProviderName()}</Badge></li><li className="flex justify-between gap-3"><span className="text-ink-600">AI provider</span><Badge tone={ai.configured ? "forest" : "neutral"}>{ai.provider}</Badge></li><li className="flex justify-between gap-3"><span className="text-ink-600">Google Maps Platform</span><Badge tone={mapsConfigured() ? "forest" : "neutral"}>{mapsConfigured() ? "configured" : "not configured"}</Badge></li><li className="flex justify-between gap-3"><span className="text-ink-600">Retrieval store</span><Badge tone="forest">postgres + hashed embeddings</Badge></li></ul></Card><Card className="p-6"><div className="flex items-center gap-3"><BookOpenCheck className="h-5 w-5 text-[#3f70b1]" /><h2 className="font-semibold text-[#172b49]">Data coverage</h2></div><div className="mt-4 grid grid-cols-2 gap-4 text-sm"><div><p className="text-2xl font-semibold text-[#172b49]">{docs}</p><p className="text-ink-500">Knowledge documents</p></div><div><p className="text-2xl font-semibold text-[#172b49]">{chunks}</p><p className="text-ink-500">Retrieval chunks</p></div><div><p className="text-2xl font-semibold text-[#172b49]">{opportunities.length}</p><p className="text-ink-500">Opportunities</p></div><div><p className="text-2xl font-semibold text-[#172b49]">{new Set(institutions.map((institution) => institution.district)).size}</p><p className="text-ink-500">Districts covered</p></div></div></Card></div>
-        <div className="mt-6"><Callout tone="amber" title="V1 dataset honesty"><p>The institution catalogue is a clearly labelled sample dataset used to demonstrate the import pipeline. Fees, seat counts, deadlines and admission dates are populated only from official sources with a source URL and retrieval timestamp.</p></Callout></div>
-      </div></div>
-    </main>
-  </div>;
+  return (
+    <div className="min-h-screen bg-[#fbfcfb] text-[#172b35] lg:grid lg:grid-cols-[236px_minmax(0,1fr)]">
+      <aside className="hidden border-r border-[#e2e9e7] bg-[#f7faf9] lg:flex lg:min-h-screen lg:flex-col lg:justify-between">
+        <div>
+          <Link href="/admin" className="flex h-20 items-center gap-3 border-b border-[#e2e9e7] px-6" aria-label="CareerBridge Admin home">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#0e6a53] text-sm font-bold text-white">CB</span>
+            <span className="leading-tight"><span className="block text-lg font-semibold tracking-[-0.04em] text-[#17392f]">CareerBridge</span><span className="text-xs text-[#668078]">Admin workspace</span></span>
+          </Link>
+          <nav className="space-y-1 px-3 py-6" aria-label="Admin navigation">
+            {navItems.map(({ label, href, icon: Icon, active }) => (
+              <Link key={label} href={href} aria-current={active ? "page" : undefined} className={`flex items-center gap-3 rounded-lg border-l-[3px] px-3 py-3 text-sm font-medium transition ${active ? "border-[#17745a] bg-[#e8f4ef] text-[#17664f]" : "border-transparent text-[#425a55] hover:bg-white hover:text-[#17664f]"}`}>
+                <Icon aria-hidden className="h-5 w-5" />{label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+        <div className="px-5 pb-6 text-xs leading-relaxed text-[#70837e]">Better information.<br />Brighter futures for<br />Nagaland’s students.</div>
+      </aside>
+
+      <main className="min-w-0">
+        <header className="flex h-16 items-center justify-between border-b border-[#e2e9e7] bg-white px-5 sm:px-8">
+          <div className="flex items-center gap-3 text-sm font-medium text-[#476059]"><span className="grid h-8 w-8 place-items-center rounded-lg bg-[#e8f4ef] text-xs font-bold text-[#17664f] lg:hidden">CB</span><span className="hidden sm:inline">CareerBridge Admin</span><span className="text-[#a0afaa]">/</span><span className="text-[#17392f]">Review queue</span></div>
+          <div className="flex items-center gap-2 rounded-full border border-[#e5ece9] bg-white px-2 py-1.5 text-sm text-[#344e47]"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#e9f0ed] text-xs font-semibold text-[#315d4e]">AD</span><span className="pr-1">Admin</span></div>
+        </header>
+
+        <div className="px-5 py-7 sm:px-8 lg:px-10 lg:py-9">
+          <div className="mx-auto max-w-[1500px]">
+            <section className="flex flex-wrap items-start justify-between gap-5" aria-labelledby="page-title">
+              <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#27755c]">Catalogue trust workspace</p><h1 id="page-title" className="mt-2 text-3xl font-semibold tracking-[-0.045em] text-[#123d31] sm:text-4xl">Keep the catalogue trustworthy.</h1><p className="mt-2 max-w-2xl text-base leading-relaxed text-[#667772]">Review changes, verify sources, and keep student-facing information current.</p></div>
+              <div className="flex flex-wrap gap-2">
+                <Link href={visibleQueue[0]?.href ?? "/admin/imports"} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#12664f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0d5742] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f] focus-visible:ring-offset-2">Review next item<ArrowRight aria-hidden className="h-4 w-4" /></Link>
+                <Link href="/admin/imports" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#cad8d3] bg-white px-4 py-2.5 text-sm font-semibold text-[#254d41] transition hover:bg-[#f4f8f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f]"><FileUp aria-hidden className="h-4 w-4" />Upload data</Link>
+              </div>
+            </section>
+
+            <section className="mt-7" aria-labelledby="attention-title">
+              <h2 id="attention-title" className="mb-3 text-lg font-semibold tracking-[-0.02em] text-[#17362e]">Needs your attention</h2>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <AttentionCard value={verificationCount} label="records need verification" detail="Catalogue records awaiting a check" href="/admin?filter=needs_verification" tone="amber" icon={AlertTriangle} />
+                <AttentionCard value={unavailableSources} label="sources are unavailable" detail="Failed or blocked source records" href="/admin?filter=source_unavailable" tone="red" icon={Link2Off} />
+                <AttentionCard value={errorCount} label="import rows have errors" detail="Validation results are not recorded" href="/admin/imports" tone="red" icon={AlertTriangle} />
+                <AttentionCard value={staleCount} label="records not checked in 90 days" detail="Based on recorded verification dates" href="/admin?filter=stale" tone="amber" icon={Clock3} />
+              </div>
+            </section>
+
+            <section className="mt-6 overflow-hidden rounded-xl border border-[#dfe7e4] bg-white shadow-[0_2px_10px_-8px_rgba(20,55,43,.28)]" aria-labelledby="queue-title">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e7eeeb] px-5 py-4">
+                <div><h2 id="queue-title" className="text-lg font-semibold text-[#17362e]">Review queue</h2><p className="mt-0.5 text-sm text-[#71817c]">Items are ordered by issue severity and age of last verification.</p></div>
+                <span className="text-sm font-medium text-[#26755b]">{queue.length} {queue.length === 1 ? "item" : "items"}</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[820px] text-left text-sm">
+                  <thead className="bg-[#f5f8f7] text-xs text-[#60716c]"><tr><th scope="col" className="px-5 py-3 font-semibold">Item</th><th scope="col" className="px-4 py-3 font-semibold">Type</th><th scope="col" className="px-4 py-3 font-semibold">Issue</th><th scope="col" className="px-4 py-3 font-semibold">Source</th><th scope="col" className="px-4 py-3 font-semibold">Last checked</th><th scope="col" className="px-5 py-3 text-right font-semibold">Action</th></tr></thead>
+                  <tbody>
+                    {visibleQueue.map((item) => (
+                      <tr key={item.id} className="border-t border-[#edf1ef] transition hover:bg-[#fbfdfc]">
+                        <td className="max-w-[300px] px-5 py-3.5 font-medium text-[#213f35]"><span className="block truncate" title={item.item}>{item.item}</span></td>
+                        <td className="whitespace-nowrap px-4 py-3.5 text-[#5b6e68]">{item.type}</td>
+                        <td className="px-4 py-3.5">{issuePill(item.tone, item.issue)}</td>
+                        <td className="max-w-[190px] px-4 py-3.5 text-[#596b66]"><span className="block truncate" title={item.source}>{item.source}</span></td>
+                        <td className="whitespace-nowrap px-4 py-3.5 text-[#596b66]">{checkedLabel(item.checkedAt)}</td>
+                        <td className="px-5 py-3.5 text-right"><Link href={item.href} className="inline-flex min-h-9 items-center justify-center rounded-md bg-[#12664f] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#0d5742] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f]">Review</Link></td>
+                      </tr>
+                    ))}
+                    {!visibleQueue.length && <tr><td colSpan={6} className="px-5 py-12 text-center"><CheckCircle2 aria-hidden className="mx-auto h-8 w-8 text-[#287b60]" /><p className="mt-2 font-semibold text-[#24483b]">Nothing in the review queue</p><p className="mt-1 text-sm text-[#71817c]">Newly imported or unverified records will appear here when available.</p></td></tr>}
+                  </tbody>
+                </table>
+              </div>
+              {queue.length > visibleQueue.length && <div className="flex justify-end border-t border-[#edf1ef] px-5 py-3"><Link href="/admin?view=all-review-items" className="inline-flex items-center gap-1 text-sm font-semibold text-[#216b53] hover:underline">View all items<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>}
+            </section>
+
+            <div className="mt-5 grid gap-5 xl:grid-cols-2">
+              <section className="rounded-xl border border-[#dfe7e4] bg-white p-5" aria-labelledby="catalogue-title">
+                <div className="flex items-center justify-between gap-3"><div><h2 id="catalogue-title" className="text-lg font-semibold text-[#17362e]">Catalogue at a glance</h2><p className="mt-1 text-sm text-[#71817c]">Current catalogue coverage</p></div><Link href="/institutions" className="inline-flex items-center gap-1 text-sm font-medium text-[#26755b] hover:underline">View catalogue<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  {[{ label: "Institutions", value: institutions.length, icon: Building2 }, { label: "Courses", value: courses.length, icon: BookOpen }, { label: "Entrance exams", value: exams.length, icon: ListChecks }, { label: "Scholarships", value: scholarships.length, icon: FileClock }].map(({ label, value, icon: Icon }, index) => <div key={label} className={`flex items-center gap-3 rounded-lg p-3 ${index % 2 ? "bg-[#eff5fb]" : "bg-[#eef7f2]"}`}><Icon aria-hidden className="h-5 w-5 shrink-0 text-[#245b49]" /><div><p className="text-xs text-[#63756f]">{label}</p><p className="text-xl font-semibold leading-tight text-[#193c31]">{value}</p></div></div>)}
+                </div>
+              </section>
+
+              <section className="rounded-xl border border-[#dfe7e4] bg-white p-5" aria-labelledby="activity-title">
+                <div className="flex items-center justify-between gap-3"><div><h2 id="activity-title" className="text-lg font-semibold text-[#17362e]">Recent activity</h2><p className="mt-1 text-sm text-[#71817c]">Recorded administrative events and imports</p></div><Link href="/admin?view=audit" className="inline-flex items-center gap-1 text-sm font-medium text-[#26755b] hover:underline">View activity<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>
+                <ul className="mt-3 divide-y divide-[#edf1ef]">
+                  {activity.map((event) => <li key={`event-${event.id}`} className="flex items-start justify-between gap-3 py-3"><span className="flex min-w-0 items-start gap-3"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e8f5ef] text-[#247456]"><CheckCircle2 aria-hidden className="h-4 w-4" /></span><span className="min-w-0"><span className="block truncate text-sm font-medium text-[#29483d]">{event.action.replaceAll("_", " ")}</span><span className="block truncate text-xs text-[#7a8984]">{[event.entityType, event.entityRef, event.actor].filter(Boolean).join(" · ") || "Administrative event"}</span></span></span><time className="shrink-0 text-xs text-[#7a8984]">{checkedLabel(event.createdAt)}</time></li>)}
+                  {!activity.length && recentImports.map((entry) => <li key={`import-activity-${entry.id}`} className="flex items-start justify-between gap-3 py-3"><span className="flex min-w-0 items-start gap-3"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e8f5ef] text-[#247456]"><Upload aria-hidden className="h-4 w-4" /></span><span className="min-w-0"><span className="block truncate text-sm font-medium text-[#29483d]">Catalogue import recorded</span><span className="block truncate text-xs text-[#7a8984]">{entry.fileName ?? entry.datasetLabel} · {entry.recordCount} records</span></span></span><time className="shrink-0 text-xs text-[#7a8984]">{checkedLabel(entry.createdAt)}</time></li>)}
+                  {!activity.length && !recentImports.length && <li className="py-8 text-center text-sm text-[#71817c]">No administrative activity has been recorded yet.</li>}
+                </ul>
+              </section>
+            </div>
+
+            <p className="mt-4 text-xs leading-relaxed text-[#71817c]">Review queue items are based on catalogue verification statuses and recorded source/import metadata. The current system does not yet store validation errors or perform source refreshes; no approval or publication is triggered from this page.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }
