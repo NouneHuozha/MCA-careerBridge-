@@ -246,7 +246,7 @@ export default async function AdminPage() {
               </section>
             </div>
 
-            <p className="mt-5 rounded-xl border border-[#d8e1dc] bg-[#edf2ef] p-4 text-sm leading-relaxed text-[#455b51]">Workflow scope: the queue changes verification status for institutions only. Course and admission details remain read-only, and import validation/source refresh monitoring is not yet stored by the app.</p>
+            <p className="mt-5 rounded-xl border border-[#d8e1dc] bg-[#edf2ef] p-4 text-sm leading-relaxed text-[#455b51]">Workflow scope: the queue changes verification status for institutions only. Course and admission details remain read-only. Source refresh preferences can be recorded, but automated fetching and refresh-run monitoring are not connected yet.</p>
     </AdminPortalShell>
   );
 }

@@ -26,6 +26,7 @@ function actionLabel(action: string) {
     institution_created: "Created institution",
     institution_source_added: "Added institution source",
     institution_marked_verified: "Verified institution",
+    source_refresh_settings_updated: "Updated source refresh settings",
   };
   return labels[action] ?? pretty(action);
 }
@@ -65,8 +66,8 @@ function eventValues(entry: HistoryEntry) {
     data.newStatus !== undefined ? `Status: ${pretty(String(data.newStatus))}` : null,
     data.sourceUrl ? `Source: ${String(data.sourceUrl)}` : null,
   ].filter((value): value is string => Boolean(value));
-  const previous = data.previousValue ?? (previousParts.length ? previousParts.join(" · ") : data.oldValue);
-  const next = data.newValue ?? (nextParts.length ? nextParts.join(" · ") : data.title ?? data.name ?? data.url ?? data.status);
+  const previous = data.previousValue ?? (previousParts.length ? previousParts.join(" · ") : data.oldValue ?? data.previous);
+  const next = data.newValue ?? (nextParts.length ? nextParts.join(" · ") : data.title ?? data.name ?? data.url ?? data.status ?? data.next);
   const source = data.sourceUrl ?? data.url ?? data.evidenceSource;
   const sourceType = typeof data.sourceType === "string" ? pretty(data.sourceType) : entry.action === "institution_marked_verified" ? "Official site" : null;
   return { previous: display(previous), next: display(next), source: display(source), sourceHref: externalUrl(source), sourceType };

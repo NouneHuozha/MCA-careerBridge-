@@ -53,7 +53,11 @@ export default async function AdminChangeHistoryPage() {
     action: event.action,
     entityType: event.entityType ?? "other",
     entityRef: event.entityRef ?? "",
-    entityName: event.entityType === "institution" && event.entityRef ? namesByCode.get(event.entityRef) ?? event.entityRef : event.entityRef || "Unspecified record",
+    entityName: event.entityType === "source" && typeof event.metadata?.sourceTitle === "string"
+      ? event.metadata.sourceTitle
+      : event.entityType === "institution" && event.entityRef
+        ? namesByCode.get(event.entityRef) ?? event.entityRef
+        : event.entityRef || "Unspecified record",
     metadata: event.metadata ?? {},
     createdAt: event.createdAt.toISOString(),
   }));

@@ -32,3 +32,9 @@ The browser suite is in `tests/ux.spec.ts`, with configuration in `playwright.co
 Use `CAREERBRIDGE_TEST_URL` to target a different preview. Tests never launch an additional app server. Screenshots are written to ignored `artifacts/`; traces are in `/tmp/careerbridge-test-results`.
 
 Tests create isolated student accounts under `example.test`; they do not modify the institution catalogue or existing student accounts.
+
+## Admin source refresh settings
+
+- `/admin/sources/settings` stores a source-specific refresh preference (daily, weekly, monthly, quarterly, or manual) and writes every change to the audit history.
+- Apply `src/db/migrations/0001_source_refresh_settings.sql` before using the save action in a database-backed environment.
+- The scheduled fetcher, parser, and refresh-run history are not implemented yet. The UI labels saved cadence as a preference only and does not claim that a check ran or is scheduled.

@@ -451,6 +451,15 @@ export const institutionSources = pgTable(
   (t) => [index("institution_sources_inst_idx").on(t.institutionCode)],
 );
 
+export const sourceRefreshSettings = pgTable("source_refresh_settings", {
+  sourceKey: text("source_key").primaryKey(),
+  refreshEnabled: boolean("refresh_enabled").notNull().default(false),
+  refreshFrequency: varchar("refresh_frequency", { length: 20 }).notNull().default("manual"),
+  fetchMethod: varchar("fetch_method", { length: 20 }).notNull().default("manual"),
+  updatedBy: varchar("updated_by", { length: 191 }),
+  updatedAt: updatedAt(),
+});
+
 export const admissionInformation = pgTable(
   "admission_information",
   {
