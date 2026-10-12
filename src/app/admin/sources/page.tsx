@@ -80,7 +80,7 @@ export default async function AdminSourcesPage() {
       return;
     }
     grouped.set(key, {
-      id: input.id,
+      id: `source-${encodeURIComponent(key)}`,
       title: input.title || new URL(input.url).hostname,
       sourceType: input.sourceType || "official_site",
       organisations: input.organisation ? [input.organisation] : [],
