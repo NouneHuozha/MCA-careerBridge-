@@ -29,6 +29,13 @@ export function pathwayStreamFit(
     };
   }
 
+  if (stream === "science-pcmb" && ["technology", "engineering", "healthcare", "science-research", "agriculture-environment"].includes(fieldSlug)) {
+    return {
+      score: 5,
+      reason: "Builds on your science background with both mathematics and biology.",
+    };
+  }
+
   // Class 10 students and legacy records may only have the broad Science value.
   if (stream === "science" && ["healthcare", "engineering", "technology", "science-research"].includes(fieldSlug)) {
     return {

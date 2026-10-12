@@ -153,6 +153,9 @@ function ChoiceQuestion({ questionKey, title, helper, state, setAnswer, disabled
   if (!question) return null;
   const options = questionOptions(questionKey);
   if (question.allowOther && !options.some((option) => option.value === "other")) options.push({ value: "other", label: "Something else" });
+  const selectedValues = questionKey === "stream_current" && answer.values.some((value) => ["science-pcm", "science-pcb", "science-pcmb"].includes(value))
+    ? ["science"]
+    : answer.values;
   const single = question.answerType === "single";
   const values = [...options];
   const hasNotSureOption = values.some((option) => option.value === "not-sure" || option.value === "unsure");
@@ -177,7 +180,7 @@ function ChoiceQuestion({ questionKey, title, helper, state, setAnswer, disabled
     {helper && <p className="mt-1 text-sm leading-relaxed text-[#67736c]">{helper}</p>}
     <div className={`mt-3 grid gap-2 ${gridClass}`}>
       {values.map((option) => {
-        const checked = answer.values.includes(option.value);
+        const checked = selectedValues.includes(option.value);
         const isRadio = single;
         const inputId = `${questionKey}-${option.value}`;
         return <label key={option.value} htmlFor={inputId} className={`flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg border px-3.5 py-2 text-sm transition focus-within:ring-2 focus-within:ring-[#397e70]/30 ${checked ? "border-[#87b29f] bg-[#edf6f0] text-[#244b3f]" : "border-[#e1e6e1] bg-white text-[#46534b] hover:bg-[#f8fbf9]"}`}>

@@ -46,6 +46,8 @@ const preferenceLabels: Record<string, string> = {
 function labelsFor(state: SessionState, key: string, kind?: "subject" | "interest" | "strength" | "goal" | "value") {
   const values = state.answers[key]?.values ?? [];
   const question = findQuestion(key);
+  const streamLabels: Record<string, string> = { "science-pcm": "Science with Mathematics", "science-pcb": "Science with Biology", "science-pcmb": "Science with Mathematics and Biology" };
+  if (key === "stream_current") return values.map((value) => streamLabels[value] ?? question?.options?.find((option) => option.value === value)?.label ?? value.replace(/-/g, " "));
   return values.map((value) => value === "not-sure" ? "Not sure yet" : value === "other" && kind === "interest" ? "Something else" : question?.options?.find((option) => option.value === value)?.label ?? (kind ? labelFor(kind, value) : preferenceLabels[value] ?? value.replace(/-/g, " ")));
 }
 

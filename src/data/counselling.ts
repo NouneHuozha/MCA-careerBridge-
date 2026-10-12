@@ -189,8 +189,6 @@ export const QUESTIONS: CounsellingQuestion[] = [
     answerType: "single",
     stages: ["class12"],
     options: [
-      { value: "science-pcm", label: "Science with Mathematics" },
-      { value: "science-pcb", label: "Science with Biology" },
       { value: "science", label: "Science" },
       { value: "commerce", label: "Commerce" },
       { value: "arts", label: "Arts / Humanities" },

@@ -57,6 +57,9 @@ export async function POST(request: Request) {
     }
     const values = [...new Set((rawValues as string[]).map((value) => value.trim()).filter(Boolean))];
     const allowed = new Set([...(question.options ?? []).map((option) => option.value), "not-sure", ...(question.allowOther ? ["other"] : [])]);
+    if (key === "stream_current") {
+      for (const value of ["science-pcm", "science-pcb", "science-pcmb"]) allowed.add(value);
+    }
     const max = question.answerType === "single" ? 1 : question.maxSelections ?? 20;
     if (values.some((value) => value.length > 80 || (!allowed.has(value) && !question.allowOther)) || values.length > max) {
       return NextResponse.json({ error: "Please use the available answers for each profile field." }, { status: 400 });

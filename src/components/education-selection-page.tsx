@@ -48,8 +48,7 @@ const pageConfig: Record<PageKind, {
     afterHelper: "Not sure yet is okay.",
     specialOther: "other",
     options: [
-      { value: "science-pcm", label: "Science with Mathematics" },
-      { value: "science-pcb", label: "Science with Biology" },
+      { value: "science", label: "Science" },
       { value: "commerce", label: "Commerce" },
       { value: "arts", label: "Arts / Humanities" },
       { value: "vocational", label: "Vocational" },
@@ -59,16 +58,28 @@ const pageConfig: Record<PageKind, {
   },
 };
 
+const scienceCombinationLabels: Record<string, string> = {
+  "science-pcm": "Mathematics",
+  "science-pcb": "Biology",
+  "science-pcmb": "Both Mathematics and Biology",
+};
+
 const optionValues: Record<PageKind, Set<string>> = {
   class10: new Set(pageConfig.class10.options.map((option) => option.value)),
-  // The generic Science value was used by the first Class 12 rollout; keep it loadable without showing it for new answers.
-  class12: new Set([...pageConfig.class12.options.map((option) => option.value), "science"]),
+  // Continue loading prior answer IDs while showing only one Science choice.
+  class12: new Set([...pageConfig.class12.options.map((option) => option.value), ...Object.keys(scienceCombinationLabels)]),
 };
 
 function initialChoice(kind: PageKind, answer: Answer | null) {
   const value = answer?.values.find((entry) => optionValues[kind].has(entry));
+  if (kind === "class12" && value && value in scienceCombinationLabels) return "science";
   if (value) return value;
   return "";
+}
+
+function initialScienceCombination(kind: PageKind, answer: Answer | null) {
+  if (kind !== "class12") return "";
+  return answer?.values.find((value) => value in scienceCombinationLabels) ?? "";
 }
 
 function EducationSelectionPage({ kind, sessionId, initialAnswer, editing = false, firstStep = false, returnTo }: Props & { kind: PageKind }) {
@@ -76,6 +87,7 @@ function EducationSelectionPage({ kind, sessionId, initialAnswer, editing = fals
   const config = pageConfig[kind];
   const storageKey = `careerbridge:${sessionId}:${config.questionKey}-draft`;
   const [selected, setSelected] = useState(() => initialChoice(kind, initialAnswer));
+  const [scienceCombination, setScienceCombination] = useState(() => initialScienceCombination(kind, initialAnswer));
   const [text, setText] = useState(initialAnswer?.text ?? "");
   const [expanded, setExpanded] = useState(Boolean(initialAnswer?.text || (config.specialOther && initialAnswer?.values.includes(config.specialOther))));
   const [draftReady, setDraftReady] = useState(false);
@@ -85,17 +97,19 @@ function EducationSelectionPage({ kind, sessionId, initialAnswer, editing = fals
   const headingId = `${config.questionKey}-title`;
   const contextId = `${config.questionKey}-context`;
   const textId = `${config.questionKey}-text`;
-  const selectionOptions = kind === "class12" && selected === "science"
-    ? [{ value: "science", label: "Science" }, ...config.options]
-    : config.options;
+  const selectionOptions = config.options;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
         const raw = window.sessionStorage.getItem(storageKey);
         if (raw) {
-          const draft = JSON.parse(raw) as { value?: unknown; text?: unknown };
-          if (typeof draft.value === "string" && (optionValues[kind].has(draft.value) || draft.value === "")) setSelected(draft.value);
+          const draft = JSON.parse(raw) as { value?: unknown; text?: unknown; scienceCombination?: unknown };
+          if (typeof draft.value === "string" && (optionValues[kind].has(draft.value) || draft.value === "")) {
+            const oldCombination = kind === "class12" && draft.value in scienceCombinationLabels ? draft.value : "";
+            setSelected(oldCombination ? "science" : draft.value);
+            setScienceCombination(typeof draft.scienceCombination === "string" && draft.scienceCombination in scienceCombinationLabels ? draft.scienceCombination : oldCombination);
+          }
           if (typeof draft.text === "string") {
             setText(draft.text);
             if (draft.text) setExpanded(true);
@@ -111,9 +125,9 @@ function EducationSelectionPage({ kind, sessionId, initialAnswer, editing = fals
     return () => window.clearTimeout(timer);
   }, [config.specialOther, kind, storageKey]);
 
-  function cacheDraft(value: string, nextText: string) {
+  function cacheDraft(value: string, nextText: string, nextScienceCombination = scienceCombination) {
     try {
-      window.sessionStorage.setItem(storageKey, JSON.stringify({ value, text: nextText }));
+      window.sessionStorage.setItem(storageKey, JSON.stringify({ value, text: nextText, scienceCombination: nextScienceCombination }));
     } catch {
       // The current form remains usable if browser storage is unavailable.
     }
@@ -131,13 +145,14 @@ function EducationSelectionPage({ kind, sessionId, initialAnswer, editing = fals
     setPending(true);
     try {
       if (selected || text.trim()) {
+        const answerValue = kind === "class12" && selected === "science" ? scienceCombination || "science" : selected;
         const response = await fetch("/api/counselling", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             action: "answer",
             questionKey: config.questionKey,
-            values: selected ? [selected] : [],
+            values: answerValue ? [answerValue] : [],
             text: text.trim() || null,
             stage: config.stage,
           }),
@@ -226,8 +241,9 @@ function EducationSelectionPage({ kind, sessionId, initialAnswer, editing = fals
                           onChange={() => {
                             setSelected(option.value);
                             setError(null);
+                            if (kind === "class12" && option.value !== "science") setScienceCombination("");
                             if (kind === "class10" && config.specialOther === option.value) setExpanded(true);
-                            cacheDraft(option.value, text);
+                            cacheDraft(option.value, text, kind === "class12" && option.value === "science" ? scienceCombination : "");
                           }}
                           className="peer sr-only"
                         />
@@ -264,6 +280,16 @@ function EducationSelectionPage({ kind, sessionId, initialAnswer, editing = fals
                   );
                 })}
               </div>
+              {kind === "class12" && selected === "science" && <fieldset className="mt-5 rounded-xl border border-[#dce7df] bg-[#f8fbf8] p-4 sm:p-5">
+                <legend className="px-1 text-sm font-semibold text-[#34453c]">If you know your Science combination <span className="font-normal text-[#748078]">(optional)</span></legend>
+                <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                  {Object.entries(scienceCombinationLabels).map(([value, label]) => <label key={value} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border px-3 text-sm transition ${scienceCombination === value ? "border-[#438573] bg-white text-[#214f43]" : "border-[#e1e8e2] bg-white text-[#34453c] hover:border-[#8db3a7]"}`}>
+                    <input type="radio" name="science-combination" value={value} checked={scienceCombination === value} onChange={() => { setScienceCombination(value); cacheDraft("science", text, value); }} className="h-4 w-4 accent-[#397e70]" />
+                    <span>{label}</span>
+                  </label>)}
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-[#747a79]">You can leave this blank if you’re unsure or studied another combination.</p>
+              </fieldset>}
             </fieldset>
 
             {kind === "class10" && <div className="mt-8">

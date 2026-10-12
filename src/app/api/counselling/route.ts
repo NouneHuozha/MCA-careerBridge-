@@ -37,6 +37,9 @@ export async function POST(request: Request) {
     const values = [...new Set(raw.filter((v): v is string => typeof v === "string").map((v) => v.trim()).filter(Boolean))];
     const text = typeof body.text === "string" ? body.text.trim() : null;
     const allowed = new Set([...(question.options ?? []).map((o) => o.value), "not-sure"]);
+    if (questionKey === "stream_current") {
+      for (const value of ["science-pcm", "science-pcb", "science-pcmb"]) allowed.add(value);
+    }
     if (values.some((v) => v.length > 80) || values.length > (question.answerType === "single" ? 1 : question.maxSelections ?? 20) || (text?.length ?? 0) > 600 || (!question.allowOther && question.answerType !== "text" && values.some((v) => !allowed.has(v)))) {
       return NextResponse.json({ error: "Please use one of the available options, or the ‘Something else’ field where shown." }, { status: 400 });
     }

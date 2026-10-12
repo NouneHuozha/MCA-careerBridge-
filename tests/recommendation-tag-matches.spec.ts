@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { FIELD_SEEDS } from "../src/data/fields";
+import { findQuestion } from "../src/data/counselling";
 import { matchedWorkStyle, matchingAnswerValues } from "../src/recommendation/tag-matches";
 import { pathwayStreamFit } from "../src/recommendation/pathway-fit";
 
@@ -8,6 +9,12 @@ function field(slug: string) {
   if (!match) throw new Error(`Missing field seed: ${slug}`);
   return match;
 }
+
+test("Class 12 stream choices show one Science option, not separate PCM and PCB entries", () => {
+  const streamChoices = findQuestion("stream_current")?.options ?? [];
+  expect(streamChoices.filter((option) => option.label.toLowerCase().includes("science")))
+    .toEqual([{ value: "science", label: "Science" }]);
+});
 
 test("new subject, strength, and value answers match recommendation tags while preserving their answer IDs", () => {
   expect(matchingAnswerValues(field("technology").subjectTags, ["information-technology"], "subject"))
@@ -43,6 +50,10 @@ test("Class 12 PCM and PCB pathway recommendations stay stream-specific", () => 
   expect(pathwayStreamFit("science-pcb", "professional", "healthcare")?.reason)
     .toContain("science-with-biology");
   expect(pathwayStreamFit("science-pcb", "academic", "engineering")).toBeNull();
+  expect(pathwayStreamFit("science-pcmb", "academic", "technology")?.reason)
+    .toContain("both mathematics and biology");
+  expect(pathwayStreamFit("science-pcmb", "professional", "healthcare")?.score).toBeGreaterThan(0);
+  expect(pathwayStreamFit("science-pcmb", "academic", "engineering")?.score).toBeGreaterThan(0);
 });
 
 test("broad Science, vocational, commerce, and arts answers lead to matching pathways", () => {
