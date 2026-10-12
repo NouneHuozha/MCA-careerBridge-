@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 const navItems = [
   { label: "Review queue", href: "/admin", icon: ListChecks, key: "queue" },
   { label: "Catalogue", href: "/admin/catalogue/institutions", icon: BookOpen, key: "catalogue" },
+  { label: "Imports", href: "/admin/imports", icon: FileUp, key: "imports" },
 ] as const;
 const plannedItems = [
   { label: "Global sources", icon: Link2 },
@@ -19,7 +20,7 @@ export function AdminPortalShell({
   breadcrumb,
 }: {
   children: ReactNode;
-  active?: "queue" | "catalogue";
+  active?: "queue" | "catalogue" | "imports";
   breadcrumb: string;
 }) {
   return (
