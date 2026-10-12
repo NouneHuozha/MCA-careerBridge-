@@ -14,7 +14,6 @@ import {
 } from "@/db/schema";
 import { getCurrentUser, getOrCreateProfileId } from "@/auth";
 import {
-  ACKNOWLEDGEMENTS,
   GOAL_OPTIONS,
   INTEREST_OPTIONS,
   STRENGTH_OPTIONS,
@@ -386,10 +385,6 @@ export function progressFor(stage: Stage, answeredKeys: string[]) {
   return { answered, total: list.length };
 }
 
-export function acknowledgementFor(questionKey: string) {
-  return ACKNOWLEDGEMENTS[questionKey] ?? "Thanks for sharing that.";
-}
-
 /* ---------------------- persist structured student profile ---------------------- */
 
 export async function persistSnapshot(snapshot: StudentSnapshot) {
@@ -476,13 +471,5 @@ export async function completeSession(sessionId: number) {
   await db
     .update(counsellingSessions)
     .set({ status: "completed", completedAt: new Date(), updatedAt: new Date() })
-    .where(eq(counsellingSessions.id, sessionId));
-}
-
-export async function resetSession(sessionId: number) {
-  await db.delete(counsellingResponses).where(eq(counsellingResponses.sessionId, sessionId));
-  await db
-    .update(counsellingSessions)
-    .set({ status: "in_progress", completedAt: null, updatedAt: new Date() })
     .where(eq(counsellingSessions.id, sessionId));
 }

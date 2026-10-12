@@ -62,17 +62,9 @@ export type CounsellingQuestion = {
   /**
    * Core questions form the short guided flow. Everything else is optional
    * depth the student can choose to add later — we never pile it on up front.
-   */
+  */
   core?: boolean;
 };
-
-export const SECTIONS: { key: CounsellingQuestion["section"]; label: string }[] = [
-  { key: "academics", label: "Your studies" },
-  { key: "interests", label: "What interests you" },
-  { key: "strengths", label: "What you're good at" },
-  { key: "goals", label: "What matters to you" },
-  { key: "practical", label: "Practical realities" },
-];
 
 export const SUBJECT_OPTIONS: QuestionOption[] = [
   { value: "mathematics", label: "Mathematics" },
@@ -389,24 +381,3 @@ export function allQuestionsForStage(stage: Stage): CounsellingQuestion[] {
 export function findQuestion(key: string): CounsellingQuestion | undefined {
   return QUESTIONS.find((q) => q.key === key);
 }
-
-/** Mentor-style acknowledgements keep the conversation human without pretending to be certain. */
-export const ACKNOWLEDGEMENTS: Record<string, string> = {
-  subjects_enjoy: "Thanks — that already tells us something useful about how you like to think.",
-  subjects_difficult: "Good to know. Difficulty in a subject rules out fewer routes than most students expect.",
-  stream_intent: "Noted. Streams open doors rather than close them, and we'll show you what each one keeps open.",
-  stream_current: "Thanks. We'll focus on routes that build on what you've already studied.",
-  interests: "That's helpful. Interests are usually a better long-term signal than marks alone.",
-  interest_story: "Thank you for sharing that.",
-  strengths: "Noted — strengths matter as much as subjects when a course starts getting hard.",
-  work_style: "That's useful. Day-to-day working style is something students often discover too late.",
-  goals: "Thanks. We'll keep these in mind, and you can change them any time.",
-  values: "Understood. When two options look similar, values are usually what separates them.",
-  location_pref: "Thank you — this affects which institutions are realistic for you.",
-  home_district: "Thanks. We'll use this only to show nearby options and travel distance.",
-  budget: "Thank you. We'll flag lower-cost routes and scholarships where they exist.",
-  scholarship_need: "Noted.",
-  institution_pref: "Thanks.",
-  hostel: "Noted — this matters more than students expect when comparing colleges.",
-  anything_else: "Thank you. That context helps.",
-};

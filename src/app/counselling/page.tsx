@@ -10,7 +10,7 @@ import { ScholarshipInformationDetail } from "@/components/guidance/scholarship-
 import { HostelRequirementDetail } from "@/components/guidance/hostel-requirement-detail";
 import { AnythingElseDetail } from "@/components/guidance/anything-else-detail";
 import { counsellingStages, type CounsellingStageKey } from "@/data/counselling-journey";
-import { findQuestion, questionsForStage, SECTIONS, type CounsellingQuestion } from "@/data/counselling";
+import { findQuestion, questionsForStage, type CounsellingQuestion } from "@/data/counselling";
 import { getSessionState, nextQuestion, progressFor } from "@/services/profile";
 
 export const dynamic = "force-dynamic";
@@ -130,6 +130,6 @@ export default async function CounsellingPage({ searchParams }: { searchParams: 
   const returnTo = params.returnTo === "/guidance/review" || params.returnTo === "/guidance/review/details" || params.returnTo === "/counselling" ? params.returnTo : undefined;
   const shellVariant = question?.key === "subjects_enjoy" || question?.key === "interests" || question?.key === "strengths" || question?.key === "work_style" || question?.key === "goals" || question?.key === "values" || question?.key === "location_pref" || question?.key === "budget" ? "grouped" : "standard";
   return <CounsellingJourneyShell currentSection={currentSection} completedSections={completedSections} progress={questionProgress} variant={shellVariant}><main className={shellVariant === "grouped" ? "w-full min-w-0" : "cb-container cb-page cb-counselling-page"}>
-    <CounsellingExperience key={params.edit ?? String(state.sessionId)} focusKey={focus?.key} returnTo={returnTo} initial={{ started: true, stage: state.stage, stageDetail: state.stageDetail, snapshot: state.snapshot, answers: state.answers, question, progress, sections: SECTIONS, completed: state.status === "completed" || !question }} />
+    <CounsellingExperience key={params.edit ?? String(state.sessionId)} focusKey={focus?.key} returnTo={returnTo} initial={{ stage: state.stage, stageDetail: state.stageDetail, snapshot: state.snapshot, answers: state.answers, question, progress, completed: state.status === "completed" || !question }} />
   </main></CounsellingJourneyShell>;
 }

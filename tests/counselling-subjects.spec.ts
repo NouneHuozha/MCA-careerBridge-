@@ -139,3 +139,30 @@ test("starting again after a completed session opens a fresh flow instead of ski
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Which subjects do you enjoy the most?" })).toBeVisible();
 });
+
+test("final answer opens the new review directly without the retired reflection interstitial", async ({ page }) => {
+  await startAtSubjects(page);
+
+  await page.getByRole("radio", { name: "I’m not sure yet" }).check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "What kinds of things genuinely interest you?" })).toBeVisible();
+
+  await page.getByRole("radio", { name: "I’m not sure yet" }).check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("checkbox", { name: "I’m not sure yet" }).check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+
+  // Work style is optional; continuing without a selection records a skip.
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("checkbox", { name: "I’m not sure yet" }).check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("checkbox", { name: "I’m not sure yet" }).check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("radio", { name: "I’m not sure yet" }).check();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+
+  await expect(page).toHaveURL(/\/guidance\/review\/?$/);
+  await expect(page.getByRole("heading", { name: "Here’s what we understood" })).toBeVisible();
+  await expect(page.getByText("Your reflection is ready", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("A thoughtful starting point is waiting for you.", { exact: true })).toHaveCount(0);
+});
