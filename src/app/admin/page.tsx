@@ -7,16 +7,18 @@ import {
   CheckCircle2,
   Clock3,
   FileClock,
-  FileUp,
   Link2Off,
   ListChecks,
   Upload,
 } from "lucide-react";
+import { redirect } from "next/navigation";
+import { desc } from "drizzle-orm";
+import { getCurrentUser } from "@/auth";
+import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { db } from "@/db";
 import {
   auditEvents,
   dataImports,
-  institutionCourses,
   institutionSources,
 } from "@/db/schema";
 import {
@@ -61,7 +63,7 @@ function statusIssue(status: string, checkedAt: Date | null) {
   if (unavailableStatuses.has(status)) return { issue: "Source unavailable", tone: "red" as const };
   if (needsCorrectionStatuses.has(status)) return { issue: "Needs correction", tone: "red" as const };
   if (verifiedStatuses.has(status)) {
-    return checkedAt && daysAgo(checkedAt, 90)
+    return !checkedAt || daysAgo(checkedAt, 90)
       ? { issue: "Review overdue", tone: "amber" as const }
       : null;
   }
@@ -88,7 +90,7 @@ function AttentionCard({
   value: number | string;
   label: string;
   detail: string;
-  href: string;
+  href?: string;
   tone: "amber" | "red" | "blue";
   icon: typeof AlertTriangle;
 }) {
@@ -97,11 +99,8 @@ function AttentionCard({
     red: "border-[#f2d4d4] bg-[#fff4f4] text-[#963d3d]",
     blue: "border-[#d8e5f4] bg-[#f3f8ff] text-[#355f92]",
   };
-  return (
-    <Link
-      href={href}
-      className={`group flex min-h-[106px] items-center justify-between gap-3 rounded-xl border p-4 transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#287f68] ${tones[tone]}`}
-    >
+  const className = `group flex min-h-[106px] items-center justify-between gap-3 rounded-xl border p-4 ${tones[tone]} ${href ? "transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#287f68]" : "opacity-80"}`;
+  const content = <>
       <span className="flex min-w-0 items-center gap-3">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/80">
           <Icon aria-hidden className="h-5 w-5" />
@@ -113,8 +112,10 @@ function AttentionCard({
         </span>
       </span>
       <ArrowRight aria-hidden className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
-    </Link>
-  );
+    </>;
+  return href
+    ? <Link href={href} className={className}>{content}</Link>
+    : <div className={className} aria-disabled="true" title="Import validation results are not stored yet">{content}</div>;
 }
 
 function issuePill(tone: QueueItem["tone"], issue: string) {
@@ -127,6 +128,10 @@ function issuePill(tone: QueueItem["tone"], issue: string) {
 }
 
 export default async function AdminPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin")}`);
+  if (user.role !== "admin") redirect("/");
+
   const [institutions, courses, exams, scholarships, opportunities] = await Promise.all([
     getInstitutions({}),
     getCourses({}),
@@ -135,21 +140,15 @@ export default async function AdminPage() {
     getOpportunities({}),
   ]);
 
-  const courseBySlug = new Map(courses.map((course) => [course.slug, course]));
-  const institutionByCode = new Map(institutions.map((institution) => [institution.code, institution]));
-  let courseLinks: (typeof institutionCourses.$inferSelect)[] = [];
   let sourceRows: (typeof institutionSources.$inferSelect)[] = [];
   let imports: (typeof dataImports.$inferSelect)[] = [];
   let activity: (typeof auditEvents.$inferSelect)[] = [];
   try {
-    [courseLinks, sourceRows, imports, activity] = await Promise.all([
-      db.select().from(institutionCourses),
+    [sourceRows, imports, activity] = await Promise.all([
       db.select().from(institutionSources),
-      db.select().from(dataImports).orderBy(dataImports.createdAt).limit(8),
-      db.select().from(auditEvents).orderBy(auditEvents.createdAt).limit(5),
+      db.select().from(dataImports).orderBy(desc(dataImports.createdAt)).limit(8),
+      db.select().from(auditEvents).orderBy(desc(auditEvents.createdAt)).limit(5),
     ]);
-    imports.reverse();
-    activity.reverse();
   } catch (error) {
     console.error("[careerbridge] admin review queue query failed", error);
   }
@@ -165,138 +164,35 @@ export default async function AdminPage() {
       ...issue,
       source: safeSource(record.sourceUrl ?? record.officialWebsite),
       checkedAt: record.lastVerifiedAt,
-      href: `/institutions/${encodeURIComponent(record.code)}`,
+      href: `/admin/catalogue/institutions/${encodeURIComponent(record.code)}`,
     });
   }
-  for (const record of courseLinks) {
-    const issue = statusIssue(record.verificationStatus, record.lastVerifiedAt);
-    if (!issue) continue;
-    const institution = institutionByCode.get(record.institutionCode);
-    const course = courseBySlug.get(record.courseSlug);
-    if (!institution) continue;
-    queue.push({
-      id: `course-link-${record.id}`,
-      item: `${course?.name ?? record.courseSlug} — ${institution.name}`,
-      type: "Course offering",
-      ...issue,
-      source: safeSource(record.sourceUrl),
-      checkedAt: record.lastVerifiedAt,
-      href: `/institutions/${encodeURIComponent(institution.code)}`,
-    });
-  }
-  for (const record of exams) {
-    const issue = statusIssue(record.verificationStatus, record.lastVerifiedAt);
-    if (!issue) continue;
-    queue.push({
-      id: `exam-${record.slug}`,
-      item: record.name,
-      type: "Entrance exam",
-      ...issue,
-      source: safeSource(record.sourceUrl ?? record.officialWebsite),
-      checkedAt: record.lastVerifiedAt,
-      href: `/exams/${encodeURIComponent(record.slug)}`,
-    });
-  }
-  for (const record of scholarships) {
-    const issue = statusIssue(record.verificationStatus, record.lastVerifiedAt);
-    if (!issue) continue;
-    queue.push({
-      id: `scholarship-${record.slug}`,
-      item: record.name,
-      type: "Scholarship",
-      ...issue,
-      source: safeSource(record.sourceUrl ?? record.officialUrl),
-      checkedAt: record.lastVerifiedAt,
-      href: `/scholarships/${encodeURIComponent(record.slug)}`,
-    });
-  }
-  for (const record of opportunities) {
-    const issue = statusIssue(record.verificationStatus, record.lastVerifiedAt);
-    if (!issue) continue;
-    queue.push({
-      id: `opportunity-${record.slug}`,
-      item: record.title,
-      type: "Opportunity",
-      ...issue,
-      source: safeSource(record.sourceUrl ?? record.url),
-      checkedAt: record.lastVerifiedAt,
-      href: `/opportunities/${encodeURIComponent(record.slug)}`,
-    });
-  }
-  for (const record of imports) {
-    if (daysAgo(record.createdAt, 7)) continue;
-    queue.push({
-      id: `import-${record.id}`,
-      item: record.fileName ?? `${record.datasetLabel} import`,
-      type: "Import",
-      issue: "Recently imported",
-      tone: "blue",
-      source: record.fileName ?? record.datasetLabel,
-      checkedAt: record.createdAt,
-      href: "/admin/imports",
-    });
-  }
-
   const unavailableSources = sourceRows.filter((source) => unavailableStatuses.has(source.status)).length;
   const verificationCount = queue.filter((item) => item.issue === "Needs verification" || item.issue === "Needs correction").length;
-  const staleCount = queue.filter((item) => item.checkedAt && daysAgo(item.checkedAt, 90)).length;
+  const staleCount = queue.filter((item) => !item.checkedAt || daysAgo(item.checkedAt, 90)).length;
   const errorCount = "—"; // Validation results are not represented by the current import schema.
   const sortPriority: Record<QueueItem["tone"], number> = { red: 0, amber: 1, blue: 2 };
   queue.sort((a, b) => sortPriority[a.tone] - sortPriority[b.tone] || (a.checkedAt?.getTime() ?? 0) - (b.checkedAt?.getTime() ?? 0));
   const visibleQueue = queue.slice(0, 8);
-  const recentImports = imports.slice(-3).reverse();
-
-  const navItems = [
-    { label: "Review queue", href: "/admin", icon: ListChecks, active: true },
-    { label: "Catalogue", href: "/institutions", icon: BookOpen, active: false },
-    { label: "Sources", href: "/admin?view=sources", icon: Link2Off, active: false },
-    { label: "Imports", href: "/admin/imports", icon: Upload, active: false },
-    { label: "Change history", href: "/admin?view=audit", icon: FileClock, active: false },
-    { label: "Settings", href: "/admin?view=settings", icon: Building2, active: false },
-  ];
+  const recentImports = imports.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-[#fbfcfb] text-[#172b35] lg:grid lg:grid-cols-[236px_minmax(0,1fr)]">
-      <aside className="hidden border-r border-[#e2e9e7] bg-[#f7faf9] lg:flex lg:min-h-screen lg:flex-col lg:justify-between">
-        <div>
-          <Link href="/admin" className="flex h-20 items-center gap-3 border-b border-[#e2e9e7] px-6" aria-label="CareerBridge Admin home">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#0e6a53] text-sm font-bold text-white">CB</span>
-            <span className="leading-tight"><span className="block text-lg font-semibold tracking-[-0.04em] text-[#17392f]">CareerBridge</span><span className="text-xs text-[#668078]">Admin workspace</span></span>
-          </Link>
-          <nav className="space-y-1 px-3 py-6" aria-label="Admin navigation">
-            {navItems.map(({ label, href, icon: Icon, active }) => (
-              <Link key={label} href={href} aria-current={active ? "page" : undefined} className={`flex items-center gap-3 rounded-lg border-l-[3px] px-3 py-3 text-sm font-medium transition ${active ? "border-[#17745a] bg-[#e8f4ef] text-[#17664f]" : "border-transparent text-[#425a55] hover:bg-white hover:text-[#17664f]"}`}>
-                <Icon aria-hidden className="h-5 w-5" />{label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-        <div className="px-5 pb-6 text-xs leading-relaxed text-[#70837e]">Better information.<br />Brighter futures for<br />Nagaland’s students.</div>
-      </aside>
-
-      <main className="min-w-0">
-        <header className="flex h-16 items-center justify-between border-b border-[#e2e9e7] bg-white px-5 sm:px-8">
-          <div className="flex items-center gap-3 text-sm font-medium text-[#476059]"><span className="grid h-8 w-8 place-items-center rounded-lg bg-[#e8f4ef] text-xs font-bold text-[#17664f] lg:hidden">CB</span><span className="hidden sm:inline">CareerBridge Admin</span><span className="text-[#a0afaa]">/</span><span className="text-[#17392f]">Review queue</span></div>
-          <div className="flex items-center gap-2 rounded-full border border-[#e5ece9] bg-white px-2 py-1.5 text-sm text-[#344e47]"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#e9f0ed] text-xs font-semibold text-[#315d4e]">AD</span><span className="pr-1">Admin</span></div>
-        </header>
-
-        <div className="px-5 py-7 sm:px-8 lg:px-10 lg:py-9">
-          <div className="mx-auto max-w-[1500px]">
+    <AdminPortalShell active="queue" breadcrumb="Review queue">
             <section className="flex flex-wrap items-start justify-between gap-5" aria-labelledby="page-title">
               <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#27755c]">Catalogue trust workspace</p><h1 id="page-title" className="mt-2 text-3xl font-semibold tracking-[-0.045em] text-[#123d31] sm:text-4xl">Keep the catalogue trustworthy.</h1><p className="mt-2 max-w-2xl text-base leading-relaxed text-[#667772]">Review changes, verify sources, and keep student-facing information current.</p></div>
               <div className="flex flex-wrap gap-2">
-                <Link href={visibleQueue[0]?.href ?? "/admin/imports"} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#12664f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0d5742] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f] focus-visible:ring-offset-2">Review next item<ArrowRight aria-hidden className="h-4 w-4" /></Link>
-                <Link href="/admin/imports" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#cad8d3] bg-white px-4 py-2.5 text-sm font-semibold text-[#254d41] transition hover:bg-[#f4f8f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f]"><FileUp aria-hidden className="h-4 w-4" />Upload data</Link>
+                <Link href={visibleQueue[0]?.href ?? "/admin/catalogue/institutions"} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#12664f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0d5742] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f] focus-visible:ring-offset-2">Review next item<ArrowRight aria-hidden className="h-4 w-4" /></Link>
+                <Link href="/admin/catalogue/institutions" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#cad8d3] bg-white px-4 py-2.5 text-sm font-semibold text-[#254d41] transition hover:bg-[#f4f8f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f]"><Building2 aria-hidden className="h-4 w-4" />Browse catalogue</Link>
               </div>
             </section>
 
             <section className="mt-7" aria-labelledby="attention-title">
               <h2 id="attention-title" className="mb-3 text-lg font-semibold tracking-[-0.02em] text-[#17362e]">Needs your attention</h2>
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <AttentionCard value={verificationCount} label="records need verification" detail="Catalogue records awaiting a check" href="/admin?filter=needs_verification" tone="amber" icon={AlertTriangle} />
-                <AttentionCard value={unavailableSources} label="sources are unavailable" detail="Failed or blocked source records" href="/admin?filter=source_unavailable" tone="red" icon={Link2Off} />
-                <AttentionCard value={errorCount} label="import rows have errors" detail="Validation results are not recorded" href="/admin/imports" tone="red" icon={AlertTriangle} />
-                <AttentionCard value={staleCount} label="records not checked in 90 days" detail="Based on recorded verification dates" href="/admin?filter=stale" tone="amber" icon={Clock3} />
+                <AttentionCard value={verificationCount} label="records need verification" detail="Catalogue records awaiting a check" href="/admin/catalogue/institutions?filter=needs_verification" tone="amber" icon={AlertTriangle} />
+                <AttentionCard value={unavailableSources} label="sources are unavailable" detail="Failed or blocked source records" href="/admin/catalogue/institutions?filter=source_unavailable" tone="red" icon={Link2Off} />
+                <AttentionCard value={errorCount} label="import rows have errors" detail="Validation results are not recorded" tone="red" icon={AlertTriangle} />
+                <AttentionCard value={staleCount} label="records not checked in 90 days" detail="Based on recorded verification dates" href="/admin/catalogue/institutions?filter=stale" tone="amber" icon={Clock3} />
               </div>
             </section>
 
@@ -319,23 +215,23 @@ export default async function AdminPage() {
                         <td className="px-5 py-3.5 text-right"><Link href={item.href} className="inline-flex min-h-9 items-center justify-center rounded-md bg-[#12664f] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#0d5742] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f]">Review</Link></td>
                       </tr>
                     ))}
-                    {!visibleQueue.length && <tr><td colSpan={6} className="px-5 py-12 text-center"><CheckCircle2 aria-hidden className="mx-auto h-8 w-8 text-[#287b60]" /><p className="mt-2 font-semibold text-[#24483b]">Nothing in the review queue</p><p className="mt-1 text-sm text-[#71817c]">Newly imported or unverified records will appear here when available.</p></td></tr>}
+                    {!visibleQueue.length && <tr><td colSpan={6} className="px-5 py-12 text-center"><CheckCircle2 aria-hidden className="mx-auto h-8 w-8 text-[#287b60]" /><p className="mt-2 font-semibold text-[#24483b]">Nothing in the review queue</p><p className="mt-1 text-sm text-[#71817c]">Institutions with pending or overdue verification will appear here.</p></td></tr>}
                   </tbody>
                 </table>
               </div>
-              {queue.length > visibleQueue.length && <div className="flex justify-end border-t border-[#edf1ef] px-5 py-3"><Link href="/admin?view=all-review-items" className="inline-flex items-center gap-1 text-sm font-semibold text-[#216b53] hover:underline">View all items<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>}
+              {queue.length > visibleQueue.length && <div className="flex justify-end border-t border-[#edf1ef] px-5 py-3"><Link href="/admin/catalogue/institutions" className="inline-flex items-center gap-1 text-sm font-semibold text-[#216b53] hover:underline">View all institutions<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>}
             </section>
 
             <div className="mt-5 grid gap-5 xl:grid-cols-2">
               <section className="rounded-xl border border-[#dfe7e4] bg-white p-5" aria-labelledby="catalogue-title">
-                <div className="flex items-center justify-between gap-3"><div><h2 id="catalogue-title" className="text-lg font-semibold text-[#17362e]">Catalogue at a glance</h2><p className="mt-1 text-sm text-[#71817c]">Current catalogue coverage</p></div><Link href="/institutions" className="inline-flex items-center gap-1 text-sm font-medium text-[#26755b] hover:underline">View catalogue<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>
+                <div className="flex items-center justify-between gap-3"><div><h2 id="catalogue-title" className="text-lg font-semibold text-[#17362e]">Catalogue at a glance</h2><p className="mt-1 text-sm text-[#71817c]">Current catalogue coverage</p></div><Link href="/admin/catalogue/institutions" className="inline-flex items-center gap-1 text-sm font-medium text-[#26755b] hover:underline">View catalogue<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   {[{ label: "Institutions", value: institutions.length, icon: Building2 }, { label: "Courses", value: courses.length, icon: BookOpen }, { label: "Entrance exams", value: exams.length, icon: ListChecks }, { label: "Scholarships", value: scholarships.length, icon: FileClock }].map(({ label, value, icon: Icon }, index) => <div key={label} className={`flex items-center gap-3 rounded-lg p-3 ${index % 2 ? "bg-[#eff5fb]" : "bg-[#eef7f2]"}`}><Icon aria-hidden className="h-5 w-5 shrink-0 text-[#245b49]" /><div><p className="text-xs text-[#63756f]">{label}</p><p className="text-xl font-semibold leading-tight text-[#193c31]">{value}</p></div></div>)}
                 </div>
               </section>
 
               <section className="rounded-xl border border-[#dfe7e4] bg-white p-5" aria-labelledby="activity-title">
-                <div className="flex items-center justify-between gap-3"><div><h2 id="activity-title" className="text-lg font-semibold text-[#17362e]">Recent activity</h2><p className="mt-1 text-sm text-[#71817c]">Recorded administrative events and imports</p></div><Link href="/admin?view=audit" className="inline-flex items-center gap-1 text-sm font-medium text-[#26755b] hover:underline">View activity<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>
+                <div className="flex items-center justify-between gap-3"><div><h2 id="activity-title" className="text-lg font-semibold text-[#17362e]">Recent activity</h2><p className="mt-1 text-sm text-[#71817c]">Recorded administrative events and imports</p></div><Link href="/admin/catalogue/institutions" className="inline-flex items-center gap-1 text-sm font-medium text-[#26755b] hover:underline">Review catalogue<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>
                 <ul className="mt-3 divide-y divide-[#edf1ef]">
                   {activity.map((event) => <li key={`event-${event.id}`} className="flex items-start justify-between gap-3 py-3"><span className="flex min-w-0 items-start gap-3"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e8f5ef] text-[#247456]"><CheckCircle2 aria-hidden className="h-4 w-4" /></span><span className="min-w-0"><span className="block truncate text-sm font-medium text-[#29483d]">{event.action.replaceAll("_", " ")}</span><span className="block truncate text-xs text-[#7a8984]">{[event.entityType, event.entityRef, event.actor].filter(Boolean).join(" · ") || "Administrative event"}</span></span></span><time className="shrink-0 text-xs text-[#7a8984]">{checkedLabel(event.createdAt)}</time></li>)}
                   {!activity.length && recentImports.map((entry) => <li key={`import-activity-${entry.id}`} className="flex items-start justify-between gap-3 py-3"><span className="flex min-w-0 items-start gap-3"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e8f5ef] text-[#247456]"><Upload aria-hidden className="h-4 w-4" /></span><span className="min-w-0"><span className="block truncate text-sm font-medium text-[#29483d]">Catalogue import recorded</span><span className="block truncate text-xs text-[#7a8984]">{entry.fileName ?? entry.datasetLabel} · {entry.recordCount} records</span></span></span><time className="shrink-0 text-xs text-[#7a8984]">{checkedLabel(entry.createdAt)}</time></li>)}
@@ -344,10 +240,7 @@ export default async function AdminPage() {
               </section>
             </div>
 
-            <p className="mt-4 text-xs leading-relaxed text-[#71817c]">Review queue items are based on catalogue verification statuses and recorded source/import metadata. The current system does not yet store validation errors or perform source refreshes; no approval or publication is triggered from this page.</p>
-          </div>
-        </div>
-      </main>
-    </div>
+            <p className="mt-4 text-xs leading-relaxed text-[#71817c]">Actionable review-queue items are limited to institution records. Course links and admission records are shown read-only until their own change-approval workflows exist; import validation errors and source refreshes are not stored by the current system.</p>
+    </AdminPortalShell>
   );
 }
