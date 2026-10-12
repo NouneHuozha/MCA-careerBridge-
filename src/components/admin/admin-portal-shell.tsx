@@ -1,16 +1,15 @@
 import Link from "next/link";
-import { BookOpen, Clock3, FileUp, ListChecks, Link2, Settings } from "lucide-react";
+import { BookOpen, Clock3, FileUp, Link2, ListChecks, Settings } from "lucide-react";
 import type { ReactNode } from "react";
 
 const navItems = [
   { label: "Review queue", href: "/admin", icon: ListChecks, key: "queue" },
   { label: "Catalogue", href: "/admin/catalogue/institutions", icon: BookOpen, key: "catalogue" },
+  { label: "Sources", href: "/admin/sources", icon: Link2, key: "sources" },
   { label: "Imports", href: "/admin/imports", icon: FileUp, key: "imports" },
 ] as const;
 const plannedItems = [
-  { label: "Global sources", icon: Link2 },
-  { label: "Import workflow", icon: FileUp },
-  { label: "Audit log", icon: Clock3 },
+  { label: "Change history", icon: Clock3 },
   { label: "Settings", icon: Settings },
 ];
 
@@ -20,7 +19,7 @@ export function AdminPortalShell({
   breadcrumb,
 }: {
   children: ReactNode;
-  active?: "queue" | "catalogue" | "imports";
+  active?: "queue" | "catalogue" | "sources" | "imports";
   breadcrumb: string;
 }) {
   return (
