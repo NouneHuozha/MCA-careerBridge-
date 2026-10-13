@@ -18,6 +18,7 @@ export default async function AdminCatalogCategoryPage({ params, searchParams }:
   if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/catalogue")}`);
   if (user.role !== "admin") redirect("/");
   const [{ category }, query] = await Promise.all([params, searchParams]);
+  if (category === "opportunities") redirect("/admin/catalogue/pathways?tab=opportunities");
   if (!["scholarships", "pathways", "opportunities", "admission-information"].includes(category)) notFound();
   const q = query.q?.trim().slice(0, 120).toLowerCase() ?? "";
   const titles: Record<string, string> = { scholarships: "Scholarships", pathways: "Pathways", opportunities: "Opportunities", "admission-information": "Admission information" };

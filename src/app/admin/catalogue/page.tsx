@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertCircle, ArrowRight, Award, Building2, ChevronRight, FileText, FileUp, GitBranch, GraduationCap, Info, Link2, Lightbulb, Plus, Search } from "lucide-react";
+import { AlertCircle, ArrowRight, Award, Building2, ChevronRight, FileText, FileUp, GitBranch, GraduationCap, Info, Link2, Plus, Search } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
@@ -55,8 +55,7 @@ export default async function AdminCatalogueOverview({ searchParams }: { searchP
       { name: "Admission information", description: "Application windows, process, documents, and fee notes.", count: numberLabel(admissions.length, "record"), review: admissions.filter((item) => !acceptedVerification.has(item.verificationStatus)).length, href: "/admin/catalogue/admission-information", icon: FileText, emptyAttention: admissions.length === 0 },
     ] },
     { title: "Guidance catalogue", items: [
-      { name: "Pathways", description: "CareerBridge-organized routes connecting directions, courses, and next steps.", count: numberLabel(pathways.length, "pathway"), review: null, href: "/admin/catalogue/pathways", icon: GitBranch },
-      { name: "Opportunities", description: "Projects, internships, competitions, certifications, and learning options.", count: numberLabel(opportunities.length, "opportunity"), review: countReview(opportunities), href: "/admin/catalogue/opportunities", icon: Lightbulb },
+      { name: "Pathways and opportunities", description: "CareerBridge-organized routes, learning options, projects, and early experiences.", count: `${numberLabel(pathways.length, "pathway")} · ${numberLabel(opportunities.length, "opportunity")}`, review: null, href: "/admin/catalogue/pathways", icon: GitBranch },
     ] },
   ];
   const normalized = q.toLowerCase();
