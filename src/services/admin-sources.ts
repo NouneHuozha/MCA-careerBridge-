@@ -46,7 +46,7 @@ export async function getAdminSourceRegistry(): Promise<AdminSourceRegistry> {
   const settingsByKey = new Map(settings.map((setting) => [setting.sourceKey, setting]));
   const byCode = new Map(catalogueInstitutions.map((institution) => [institution.code, institution]));
   const grouped = new Map<string, Omit<SourceItem, "organisations" | "recordNames" | "institutionCodes"> & {
-    organisations: string[]; recordNames: string[]; institutionCodes: string[]; rank: number;
+    organisations: string[]; recordNames: string[]; institutionCodes: string[]; sourceRecordIds: number[]; rank: number;
   }>();
 
   function add(input: {
@@ -59,6 +59,7 @@ export async function getAdminSourceRegistry(): Promise<AdminSourceRegistry> {
     checkType: "Fetched" | "Verified" | null;
     recordName: string;
     institutionCode?: string;
+    sourceRecordId?: number;
     rank?: number;
   }) {
     if (!input.url) return;
@@ -75,6 +76,7 @@ export async function getAdminSourceRegistry(): Promise<AdminSourceRegistry> {
       if (!existing.recordNames.includes(input.recordName)) existing.recordNames.push(input.recordName);
       if (input.organisation && !existing.organisations.includes(input.organisation)) existing.organisations.push(input.organisation);
       if (input.institutionCode && !existing.institutionCodes.includes(input.institutionCode)) existing.institutionCodes.push(input.institutionCode);
+      if (input.sourceRecordId && !existing.sourceRecordIds.includes(input.sourceRecordId)) existing.sourceRecordIds.push(input.sourceRecordId);
       if ((input.rank ?? 0) > existing.rank) {
         existing.title = input.title || existing.title;
         existing.sourceType = input.sourceType || existing.sourceType;
@@ -100,6 +102,7 @@ export async function getAdminSourceRegistry(): Promise<AdminSourceRegistry> {
       refreshFrequency: saved?.refreshEnabled ? `${saved.refreshFrequency} · preference only (scheduler offline)` : null,
       recordNames: [input.recordName],
       institutionCodes: input.institutionCode ? [input.institutionCode] : [],
+      sourceRecordIds: input.sourceRecordId ? [input.sourceRecordId] : [],
       rank: input.rank ?? 0,
     });
   }
@@ -116,6 +119,7 @@ export async function getAdminSourceRegistry(): Promise<AdminSourceRegistry> {
       checkType: "Fetched",
       recordName: institution?.name ?? `Institution ${source.institutionCode}`,
       institutionCode: source.institutionCode,
+      sourceRecordId: source.id,
       rank: 2,
     });
   }

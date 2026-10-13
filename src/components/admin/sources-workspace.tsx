@@ -19,6 +19,7 @@ export type SourceItem = {
   refreshFrequency: string | null;
   recordNames: string[];
   institutionCodes: string[];
+  sourceRecordIds: number[];
 };
 type InstitutionOption = { code: string; name: string };
 type Props = { sources: SourceItem[]; institutions: InstitutionOption[]; now: string };

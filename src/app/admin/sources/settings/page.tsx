@@ -28,19 +28,21 @@ export default async function AdminSourceRefreshSettingsPage({ searchParams }: P
 
   let initialEnabled = false;
   let initialFrequency = "manual";
+  let initialFetchMethod = "manual";
   let recordedSettingAt: string | null = null;
   try {
     const [setting] = await db.select().from(sourceRefreshSettings).where(eq(sourceRefreshSettings.sourceKey, source.sourceKey)).limit(1);
     if (setting) {
       initialEnabled = setting.refreshEnabled;
       initialFrequency = setting.refreshFrequency;
+      initialFetchMethod = setting.fetchMethod;
       recordedSettingAt = setting.updatedAt.toISOString();
     }
   } catch (error) {
     console.warn("[careerbridge] source refresh preference could not be loaded", error);
   }
 
-  return <AdminPortalShell active="settings" breadcrumb="Source refresh settings">
-    <SourceRefreshSettings source={source} initialEnabled={initialEnabled} initialFrequency={initialFrequency} recordedSettingAt={recordedSettingAt} />
+  return <AdminPortalShell active="sources" breadcrumb={`Sources / ${source.title}`}>
+    <SourceRefreshSettings key={source.sourceKey} source={source} initialEnabled={initialEnabled} initialFrequency={initialFrequency} initialFetchMethod={initialFetchMethod} recordedSettingAt={recordedSettingAt} />
   </AdminPortalShell>;
 }

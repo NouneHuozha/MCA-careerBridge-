@@ -27,6 +27,7 @@ function actionLabel(action: string) {
     institution_source_added: "Added institution source",
     institution_marked_verified: "Verified institution",
     source_refresh_settings_updated: "Updated source refresh settings",
+    source_record_updated: "Updated source details",
   };
   return labels[action] ?? pretty(action);
 }
