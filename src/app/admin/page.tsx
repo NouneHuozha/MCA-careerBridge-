@@ -108,7 +108,7 @@ function AttentionCard({
         <span>
           <span className="block text-[26px] font-bold leading-none tracking-tight">{value}</span>
           <span className="mt-2 block text-sm font-bold leading-snug">{label}</span>
-          <span className="mt-1 block text-xs font-medium leading-relaxed opacity-90">{detail}</span>
+          <span className="mt-1 block text-sm font-medium leading-relaxed opacity-90">{detail}</span>
         </span>
       </span>
       {href && <ArrowRight aria-hidden className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />}
@@ -237,7 +237,7 @@ export default async function AdminPage() {
               </section>
 
               <section className="rounded-2xl border border-[#d4dfda] bg-white p-5 shadow-sm sm:p-6" aria-labelledby="activity-title">
-                <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.1em] text-[#53665d]">Audit trail</p><h2 id="activity-title" className="mt-1 text-xl font-bold text-[#17362e]">Recent activity</h2><p className="mt-1 text-sm text-[#53665e]">Recorded admin events and imports</p></div><Link href="/admin/catalogue/institutions" className="inline-flex min-h-10 items-center gap-1 rounded-lg px-3 text-sm font-bold text-[#145c42] hover:bg-[#eef5f1] hover:underline">View catalogue<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>
+                <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.1em] text-[#53665d]">Audit trail</p><h2 id="activity-title" className="mt-1 text-xl font-bold text-[#17362e]">Recent activity</h2><p className="mt-1 text-sm text-[#53665e]">Recorded admin events and imports</p></div><Link href="/admin/change-history" className="inline-flex min-h-10 items-center gap-1 rounded-lg px-3 text-sm font-bold text-[#145c42] hover:bg-[#eef5f1] hover:underline">View activity<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>
                 <ul className="mt-3 divide-y divide-[#edf1ef]">
                   {activity.map((event) => <li key={`event-${event.id}`} className="flex items-start justify-between gap-3 py-3"><span className="flex min-w-0 items-start gap-3"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e8f5ef] text-[#247456]"><CheckCircle2 aria-hidden className="h-4 w-4" /></span><span className="min-w-0"><span className="block truncate text-sm font-medium text-[#29483d]">{event.action.replaceAll("_", " ")}</span><span className="block truncate text-xs text-[#53665e]">{[event.entityType, event.entityRef, event.actor].filter(Boolean).join(" · ") || "Administrative event"}</span></span></span><time className="shrink-0 text-xs text-[#53665e]">{checkedLabel(event.createdAt)}</time></li>)}
                   {!activity.length && recentImports.map((entry) => <li key={`import-activity-${entry.id}`} className="flex items-start justify-between gap-3 py-3"><span className="flex min-w-0 items-start gap-3"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e8f5ef] text-[#247456]"><Upload aria-hidden className="h-4 w-4" /></span><span className="min-w-0"><span className="block truncate text-sm font-medium text-[#29483d]">Catalogue import recorded</span><span className="block truncate text-xs text-[#53665e]">{entry.fileName ?? entry.datasetLabel} · {entry.recordCount} records</span></span></span><time className="shrink-0 text-xs text-[#53665e]">{checkedLabel(entry.createdAt)}</time></li>)}

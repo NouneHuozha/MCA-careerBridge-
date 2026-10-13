@@ -14,7 +14,7 @@ type Props = {
   requiredFields: string[];
   knownCodes: string[];
   onBack: () => void;
-  onSaveDraft: () => void;
+  onSaveDraft: () => { message: string; error: boolean };
 };
 type ReviewRow = {
   index: number;
@@ -35,6 +35,7 @@ export function ImportReviewPanel({ datasetLabel, datasetId, fileName, rows, fie
   const [page, setPage] = useState(1);
   const [inspected, setInspected] = useState<ReviewRow | null>(null);
   const [decision, setDecision] = useState("");
+  const [decisionError, setDecisionError] = useState(false);
   const pageSize = 4;
   const known = useMemo(() => new Set(knownCodes.map((code) => code.toLocaleLowerCase())), [knownCodes]);
   const reviewRows: ReviewRow[] = useMemo(() => rows.map((record, index) => {
@@ -83,8 +84,8 @@ export function ImportReviewPanel({ datasetLabel, datasetId, fileName, rows, fie
   return <div className="space-y-5">
     <header>
       <p className="text-xs font-bold uppercase tracking-[.12em] text-[#53665d]">Imports <span className="px-1 text-[#899790]">/</span> {datasetLabel} <span className="px-1 text-[#899790]">/</span> {fileName}</p>
-      <h1 className="mt-2 text-3xl font-bold tracking-[-.04em] text-[#142e27] sm:text-4xl">Review before it enters the catalogue.</h1>
-      <p className="mt-2 text-sm leading-relaxed text-[#596a63]">Check warnings, approve valid rows, and keep the original workbook for audit.</p>
+      <h1 className="mt-2 text-3xl font-bold tracking-[-.04em] text-[#142e27] sm:text-4xl">Review import preview.</h1>
+      <p className="mt-2 text-sm leading-relaxed text-[#596a63]">Check warnings and row eligibility. Decisions here are a preview only and are not saved server-side.</p>
     </header>
 
     <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-5" aria-label="Import summary">
@@ -113,8 +114,8 @@ export function ImportReviewPanel({ datasetLabel, datasetId, fileName, rows, fie
       </aside>
     </div>
 
-    {decision && <div role="status" className="rounded-lg border border-[#c8ded3] bg-[#eef7f2] px-4 py-3 text-sm text-[#245844]">{decision}</div>}
-    <footer className="flex flex-col gap-3 border-t border-[#d7e1dc] pt-4 sm:flex-row sm:items-center sm:justify-between"><button onClick={onBack} className="inline-flex min-h-11 w-fit items-center gap-2 rounded-lg border border-[#cbd8d2] bg-white px-4 text-sm font-bold text-[#344e47]"><ArrowLeft className="h-4 w-4" />Back to mapping</button><div className="flex flex-wrap items-center justify-end gap-2"><p className="mr-2 flex items-center gap-2 text-xs text-[#596a63]"><Info className="h-4 w-4" />Prototype only—decisions aren’t saved server-side.</p><button onClick={onSaveDraft} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#b7cec2] px-3 text-sm font-bold text-[#17634b]">Save draft</button><button disabled={!validCount} onClick={() => setDecision(`${validCount} valid row(s) marked approved in this preview only. No records or audit events were written.`)} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#0e6a53] px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"><Check className="h-4 w-4" />Approve valid rows</button><button onClick={() => setDecision("Import marked rejected in this preview only. No server-side records were changed.")} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#e4b9b5] px-4 text-sm font-bold text-[#a23e38]"><X className="h-4 w-4" />Reject import</button></div></footer>
+    {decision && <div role={decisionError ? "alert" : "status"} className={`rounded-lg border px-4 py-3 text-sm ${decisionError ? "border-[#eac8c3] bg-[#fff3f1] text-[#87382e]" : "border-[#c8ded3] bg-[#eef7f2] text-[#245844]"}`}>{decision}</div>}
+    <footer className="flex flex-col gap-3 border-t border-[#d7e1dc] pt-4 sm:flex-row sm:items-center sm:justify-between"><button onClick={onBack} className="inline-flex min-h-11 w-fit items-center gap-2 rounded-lg border border-[#cbd8d2] bg-white px-4 text-sm font-bold text-[#344e47]"><ArrowLeft className="h-4 w-4" />Back to mapping</button><div className="flex flex-wrap items-center justify-end gap-2"><p className="mr-2 flex items-center gap-2 text-xs text-[#596a63]"><Info className="h-4 w-4" />Prototype only—decisions aren’t saved server-side.</p><button onClick={() => { const result = onSaveDraft(); setDecision(result.message); setDecisionError(result.error); }} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#b7cec2] px-3 text-sm font-bold text-[#17634b]">Save draft</button><button disabled={!validCount} onClick={() => { setDecisionError(false); setDecision(`${validCount} valid row(s) marked approved in this preview only. No records or audit events were written.`); }} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#0e6a53] px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"><Check className="h-4 w-4" />Approve valid rows</button><button onClick={() => { setDecisionError(false); setDecision("Import marked rejected in this preview only. No server-side records were changed."); }} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#e4b9b5] px-4 text-sm font-bold text-[#a23e38]"><X className="h-4 w-4" />Reject import</button></div></footer>
 
     {inspected && <div role="presentation" className="fixed inset-0 z-50 flex items-center justify-center bg-[#10251d]/45 p-4" onClick={() => setInspected(null)}><section role="dialog" aria-modal="true" aria-labelledby="inspect-title" className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-5 shadow-2xl sm:p-6" onClick={(event) => event.stopPropagation()}><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.12em] text-[#687970]">Workbook row {inspected.rowNumber}</p><h2 id="inspect-title" className="mt-1 text-xl font-bold text-[#172b35]">{inspected.name}</h2></div><button onClick={() => setInspected(null)} aria-label="Close row details" className="grid h-9 w-9 place-items-center rounded-lg border border-[#d4dfda]"><X className="h-4 w-4" /></button></div><div className="mt-5 rounded-lg border border-[#ead8a9] bg-[#fff8e7] p-3 text-sm text-[#62430b]"><strong>{inspected.error ? "Cannot import" : inspected.warning ? "Needs verification" : "Ready to import"}</strong><p className="mt-1">{inspected.reason}</p></div><dl className="mt-4 divide-y divide-[#e7ece9]">{fields.map((field) => <div key={field.key} className="grid gap-1 py-3 sm:grid-cols-[190px_1fr]"><dt className="text-xs font-semibold text-[#687970]">{field.label}</dt><dd className="break-words text-sm text-[#263b33]">{text(inspected.record[field.key]) || "—"}</dd></div>)}</dl><div className="mt-5 flex justify-end"><button onClick={() => setInspected(null)} className="min-h-10 rounded-lg bg-[#0e6a53] px-4 text-sm font-bold text-white">Done</button></div></section></div>}
   </div>;

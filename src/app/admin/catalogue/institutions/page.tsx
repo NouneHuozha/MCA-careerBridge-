@@ -194,17 +194,10 @@ export default async function AdminInstitutionsPage({ searchParams }: { searchPa
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <AddInstitutionDialog />
-          <button
-            type="button"
-            disabled
-            title="Workbook import is part of the next admin workflow."
-            aria-describedby="import-coming-soon"
-            className="inline-flex min-h-11 cursor-not-allowed items-center gap-2 rounded-lg border border-[#cbd8d2] bg-white px-4 text-sm font-bold text-[#6c7c74] opacity-75"
-          >
+          <Link href="/admin/imports" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#b7cec2] bg-white px-4 text-sm font-bold text-[#17634b] transition hover:bg-[#f0f7f3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#145c42] focus-visible:ring-offset-2">
             <Upload aria-hidden className="h-4 w-4" />
             Import workbook
-          </button>
-          <span id="import-coming-soon" className="sr-only">Workbook import is not available yet.</span>
+          </Link>
         </div>
       </header>
 

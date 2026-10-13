@@ -31,7 +31,7 @@ export function AdminPortalShell({
           <nav className="space-y-1 px-3 py-5" aria-label="Admin navigation">
             {navItems.map(({ label, href, icon: Icon, key }) => {
               const selected = active === key;
-              return <Link key={key} href={href} aria-current={selected ? "page" : undefined} className={`flex items-center gap-3 rounded-lg border-l-[3px] px-3 py-3 text-sm font-semibold transition ${selected ? "border-[#12664f] bg-[#dff0e8] text-[#10573f] shadow-sm" : "border-transparent text-[#344d43] hover:bg-white hover:text-[#10573f]"}`}><Icon aria-hidden className="h-5 w-5" />{label}</Link>;
+              return <Link key={key} href={href} aria-current={selected ? "page" : undefined} className={`flex items-center gap-3 rounded-lg border-l-[3px] px-3 py-3 text-[15px] font-semibold transition ${selected ? "border-[#12664f] bg-[#dff0e8] text-[#10573f] shadow-sm" : "border-transparent text-[#344d43] hover:bg-white hover:text-[#10573f]"}`}><Icon aria-hidden className="h-5 w-5" />{label}</Link>;
             })}
           </nav>
         </div>
@@ -43,7 +43,7 @@ export function AdminPortalShell({
           <div className="flex items-center gap-2 rounded-full border border-[#d7e1dc] bg-white px-2 py-1.5 text-sm font-semibold text-[#344e47]"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#e0efe8] text-xs font-bold text-[#245844]">AD</span><span className="pr-1">Admin</span></div>
         </header>
         <nav className="flex gap-2 overflow-x-auto border-b border-[#d7e1dc] bg-white px-5 py-2.5 lg:hidden" aria-label="Admin navigation">
-          {navItems.map(({ label, href, icon: Icon, key }) => <Link key={key} href={href} aria-current={active === key ? "page" : undefined} className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-semibold ${active === key ? "bg-[#dff0e8] text-[#10573f]" : "text-[#344d43] hover:bg-[#f1f5f3]"}`}><Icon aria-hidden className="h-4 w-4" />{label}</Link>)}
+          {navItems.map(({ label, href, icon: Icon, key }) => <Link key={key} href={href} aria-current={active === key ? "page" : undefined} className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-[15px] font-semibold ${active === key ? "bg-[#dff0e8] text-[#10573f]" : "text-[#344d43] hover:bg-[#f1f5f3]"}`}><Icon aria-hidden className="h-4 w-4" />{label}</Link>)}
         </nav>
         <div className="px-4 py-5 sm:px-7 sm:py-7 lg:px-10 lg:py-9"><div className="mx-auto max-w-[1500px]">{children}</div></div>
       </main>
