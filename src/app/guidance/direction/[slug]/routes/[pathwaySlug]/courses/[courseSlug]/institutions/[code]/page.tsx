@@ -15,8 +15,15 @@ function VerifyRow({ number, children }: { number: number; children: React.React
 
 function verificationLabel(value: string | null | undefined) {
   if (value === "verified" || value === "current") return "Verified";
+  if (value === "offered") return "Confirmed as offered";
+  if (value === "not_offered") return "Confirmed not offered";
+  if (value === "historically_offered") return "Historically offered; current status unconfirmed";
+  if (value === "not_currently_confirmed") return "Current availability needs verification";
+  if (value === "unknown") return "Availability unknown; check with institution";
   if (value === "outdated") return "Source may be outdated";
   if (value === "conflicting") return "Conflicting records";
+  if (value === "conflict_detected") return "Conflicting records";
+  if (value === "source_unavailable" || value === "blocked") return "Official source unavailable";
   if (value === "unavailable") return "Awaiting official verification";
   return "Needs verification";
 }

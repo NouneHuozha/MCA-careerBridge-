@@ -29,6 +29,8 @@ function actionLabel(action: string) {
     course_created: "Created course",
     course_marked_verified: "Verified course",
     course_draft_saved: "Saved course draft",
+    institution_course_link_created: "Added institution-course link",
+    institution_course_availability_reviewed: "Reviewed course availability",
     source_refresh_settings_updated: "Updated source refresh settings",
     source_record_updated: "Updated source details",
   };
@@ -37,6 +39,8 @@ function actionLabel(action: string) {
 function eventStatus(entry: HistoryEntry): Status {
   const action = entry.action.toLowerCase();
   const recordedStatus = String(entry.metadata.status ?? entry.metadata.verificationStatus ?? "").toLowerCase();
+  const availability = String(entry.metadata.availability ?? "").toLowerCase();
+  if (action === "institution_course_availability_reviewed") return ["offered", "not_offered", "historically_offered"].includes(availability) ? "Approved" : "Needs review";
   if (action.includes("reject") || recordedStatus.includes("rejected")) return "Rejected";
   if (action.includes("detected") || action.includes("proposed") || action.includes("needs_review") || recordedStatus.includes("unverified") || recordedStatus.includes("needs_verification") || recordedStatus.includes("needs_review")) return "Needs review";
   if (action.includes("verified") || action.includes("approved") || recordedStatus === "verified") return "Approved";
@@ -64,10 +68,12 @@ function eventValues(entry: HistoryEntry) {
   const data = entry.metadata;
   const previousParts = [
     data.previousStatus !== undefined ? `Status: ${pretty(String(data.previousStatus))}` : null,
+    data.previousAvailability !== undefined ? `Availability: ${pretty(String(data.previousAvailability))}` : null,
     data.previousSourceUrl ? `Source: ${String(data.previousSourceUrl)}` : null,
   ].filter((value): value is string => Boolean(value));
   const nextParts = [
     data.newStatus !== undefined ? `Status: ${pretty(String(data.newStatus))}` : null,
+    data.availability !== undefined ? `Availability: ${pretty(String(data.availability))}` : null,
     data.sourceUrl ? `Source: ${String(data.sourceUrl)}` : null,
   ].filter((value): value is string => Boolean(value));
   const previous = data.previousValue ?? (previousParts.length ? previousParts.join(" · ") : data.oldValue ?? data.previous);
