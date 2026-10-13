@@ -33,7 +33,7 @@ function AddRecordMenu() {
 
 export default async function AdminCatalogueOverview({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/catalogue")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue")}`);
   if (user.role !== "admin") redirect("/");
   const { q: rawQuery } = await searchParams;
   const q = rawQuery?.trim().slice(0, 120) ?? "";

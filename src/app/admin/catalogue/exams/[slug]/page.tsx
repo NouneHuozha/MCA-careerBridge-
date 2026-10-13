@@ -23,7 +23,7 @@ function stringArray(value: unknown, fallback: string[] = []) { return Array.isA
 export default async function AdminEntranceExamDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent(`/admin/catalogue/exams/${slug}`)}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent(`/admin/catalogue/exams/${slug}`)}`);
   if (user.role !== "admin") notFound();
   const exam = await getExam(slug);
   if (!exam) notFound();

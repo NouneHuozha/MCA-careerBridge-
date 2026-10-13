@@ -15,7 +15,7 @@ const pretty = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, (l
 
 export default async function AdminCatalogCategoryPage({ params, searchParams }: { params: Promise<{ category: string }>; searchParams: Promise<{ q?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/catalogue")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue")}`);
   if (user.role !== "admin") redirect("/");
   const [{ category }, query] = await Promise.all([params, searchParams]);
   if (category === "opportunities") redirect("/admin/catalogue/pathways?tab=opportunities");

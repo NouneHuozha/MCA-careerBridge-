@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
 export default async function AdminInstitutionPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent(`/admin/catalogue/institutions/${code}`)}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent(`/admin/catalogue/institutions/${code}`)}`);
   if (user.role !== "admin") notFound();
 
   const institution = await getInstitution(code);

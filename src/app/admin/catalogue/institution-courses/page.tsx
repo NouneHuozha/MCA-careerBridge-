@@ -9,7 +9,7 @@ export const metadata = { title: "Course availability by institution · Admin ca
 
 export default async function InstitutionCourseLinksPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/catalogue/institution-courses")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/institution-courses")}`);
   if (user.role !== "admin") redirect("/");
   const [links, institutions, courses] = await Promise.all([getAllInstitutionCourseLinks(), getInstitutions({}), getCourses({})]);
   const institutionByCode = new Map(institutions.map((item) => [item.code, item]));

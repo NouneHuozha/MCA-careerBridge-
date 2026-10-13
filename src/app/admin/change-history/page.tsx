@@ -27,7 +27,7 @@ function dateOnly(date: Date) {
 
 export default async function AdminChangeHistoryPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/change-history")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/change-history")}`);
   if (user.role !== "admin") redirect("/");
 
   let records: (typeof auditEvents.$inferSelect)[] = [];

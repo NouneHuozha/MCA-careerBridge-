@@ -11,7 +11,7 @@ export const metadata = { title: "Scholarships · Admin catalogue" };
 
 export default async function AdminScholarshipsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/catalogue/scholarships")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/scholarships")}`);
   if (user.role !== "admin") redirect("/");
   const scholarships = await getScholarships();
   return <AdminPortalShell active="catalogue" breadcrumb="Catalogue / Scholarships">

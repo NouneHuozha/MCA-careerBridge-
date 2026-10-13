@@ -28,7 +28,7 @@ function hrefFor(params: Record<string, string | undefined>) {
 
 export default async function AdminEntranceExamsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/catalogue/exams")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/exams")}`);
   if (user.role !== "admin") redirect("/");
   const params = await searchParams;
   const get = (key: string) => typeof params[key] === "string" ? params[key] as string : "";

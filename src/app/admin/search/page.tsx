@@ -13,7 +13,7 @@ type Props = { searchParams: Promise<{ q?: string }> };
 
 export default async function AdminSearchPage({ searchParams }: Props) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/search")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/search")}`);
   if (user.role !== "admin") redirect("/");
 
   const params = await searchParams;

@@ -18,7 +18,7 @@ const statusLabel = (status: string) => status === "needs_review" ? "Needs revie
 
 export default async function ProposedChangeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/change-history")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/change-history")}`);
   if (user.role !== "admin") redirect("/");
   const id = Number((await params).id);
   if (!Number.isSafeInteger(id) || id < 1) notFound();

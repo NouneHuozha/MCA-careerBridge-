@@ -15,7 +15,7 @@ const statusLabel = (value: string) => value === "needs_decision" ? "Needs decis
 
 export default async function SourceConflictsQueuePage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/change-history/conflicts")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/change-history/conflicts")}`);
   if (user.role !== "admin") redirect("/");
   let conflicts: (typeof catalogueSourceConflicts.$inferSelect)[] = [];
   let storeAvailable = true;

@@ -98,7 +98,7 @@ function matchesLastChecked(date: Date | null, filter: string) {
 
 export default async function AdminInstitutionsPage({ searchParams }: { searchParams: SearchParams }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/catalogue/institutions")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/institutions")}`);
   if (user.role !== "admin") redirect("/");
 
   const params = await searchParams;

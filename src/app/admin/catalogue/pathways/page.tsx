@@ -9,7 +9,7 @@ export const metadata = { title: "Pathways and opportunities · Admin workspace"
 
 export default async function AdminPathwaysPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/catalogue/pathways")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/pathways")}`);
   if (user.role !== "admin") redirect("/");
   const [{ tab }, pathways, opportunities, courses, institutionLinks, fields, exams] = await Promise.all([
     searchParams,

@@ -14,7 +14,7 @@ const statusNames: Record<string, string> = { needs_review: "Needs review", appr
 
 export default async function ProposedChangesQueuePage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/change-history/proposed")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/change-history/proposed")}`);
   if (user.role !== "admin") redirect("/");
   const params = await searchParams;
   const selectedStatus = ["needs_review", "approved", "kept_current", "rejected", "all"].includes(params.status ?? "") ? params.status ?? "needs_review" : "needs_review";

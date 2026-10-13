@@ -13,7 +13,7 @@ export const metadata = { title: "Feedback flags · Admin workspace" };
 
 export default async function AdminFeedbackFlagsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/feedback-flags")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/feedback-flags")}`);
   if (user.role !== "admin") redirect("/");
   let records: (typeof flags.$inferSelect)[] = [];
   let storageAvailable = true;

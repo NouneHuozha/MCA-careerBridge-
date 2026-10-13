@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ caseKey: 
 }
 export default async function SourceConflictDetailPage({ params }: { params: Promise<{ caseKey: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/change-history/conflicts")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/change-history/conflicts")}`);
   if (user.role !== "admin") redirect("/");
   const { caseKey } = await params;
   let conflict: typeof catalogueSourceConflicts.$inferSelect | null = null;

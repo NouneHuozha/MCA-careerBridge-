@@ -67,7 +67,7 @@ function titleCase(value: string) { return value.replaceAll("_", " ").replace(/\
 
 export default async function AdminCoursesPage({ searchParams }: { searchParams: Params }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/catalogue/courses")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/courses")}`);
   if (user.role !== "admin") redirect("/");
   const params = await searchParams;
   const [allCourses, fields, institutionCourseLinks] = await Promise.all([getCourses(), getFields(), getAllInstitutionCourseLinks()]);

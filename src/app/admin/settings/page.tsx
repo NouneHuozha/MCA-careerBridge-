@@ -14,7 +14,7 @@ const defaults = { refreshFrequency: "weekly", automaticRefresh: false, reviewFi
 
 export default async function AdminSettingsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/settings")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/settings")}`);
   if (user.role !== "admin") redirect("/");
   let initialPreferences = defaults;
   let team: { id: number; name: string | null; email: string; role: string; createdAt: string }[] = [];

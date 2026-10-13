@@ -130,12 +130,15 @@ export async function signUpWithPassword(input: {
   return { ok: true, user };
 }
 
-export async function signInWithPassword(input: { email: string; password: string }): Promise<AuthResult> {
+export async function signInWithPassword(input: { email: string; password: string; requiredRole?: string }): Promise<AuthResult> {
   const email = normaliseEmail(input.email);
   const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);
   const record = rows[0];
-  if (!record || !verifyPassword(input.password, record.passwordHash)) {
-    return { ok: false, error: "We couldn't match that email and password." };
+  if (!record || !verifyPassword(input.password, record.passwordHash) || (input.requiredRole && record.role !== input.requiredRole)) {
+    const error = input.requiredRole === "admin"
+      ? "We couldn't verify an administrator account with those details."
+      : "We couldn't match that email and password.";
+    return { ok: false, error };
   }
   await createSession(record.id);
   return {

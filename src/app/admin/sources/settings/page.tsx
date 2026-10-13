@@ -14,7 +14,7 @@ type Props = { searchParams: Promise<{ sourceKey?: string }> };
 
 export default async function AdminSourceRefreshSettingsPage({ searchParams }: Props) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/sources")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/sources")}`);
   if (user.role !== "admin") redirect("/");
 
   const query = await searchParams;

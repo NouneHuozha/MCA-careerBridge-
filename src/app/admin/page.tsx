@@ -131,7 +131,7 @@ function issuePill(tone: QueueItem["tone"], issue: string) {
 
 export default async function AdminPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin")}`);
   if (user.role !== "admin") redirect("/");
 
   const [institutions, courses, exams, scholarships, opportunities] = await Promise.all([

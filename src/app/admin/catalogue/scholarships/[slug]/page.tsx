@@ -24,7 +24,7 @@ function dateInput(value: Date | string | null | undefined) {
 export default async function AdminScholarshipDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent(`/admin/catalogue/scholarships/${slug}`)}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent(`/admin/catalogue/scholarships/${slug}`)}`);
   if (user.role !== "admin") notFound();
   const scholarship = (await getScholarships()).find((item) => item.slug === slug);
   if (!scholarship) notFound();

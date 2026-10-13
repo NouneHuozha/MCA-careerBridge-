@@ -8,7 +8,7 @@ export const metadata = { title: "Import history · Admin workspace" };
 
 export default async function AdminImportHistoryPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/imports/history")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/imports/history")}`);
   if (user.role !== "admin") redirect("/");
 
   return <AdminPortalShell active="imports" referenceNav breadcrumb="Imports / Import history">

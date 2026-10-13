@@ -14,7 +14,7 @@ type SearchParams = Promise<{ recordId?: string; draftId?: string }>;
 
 export default async function AdminAdmissionInformationPage({ params, searchParams }: { params: Promise<{ code: string }>; searchParams: SearchParams }) {
   const [{ code }, query, user] = await Promise.all([params, searchParams, getCurrentUser()]);
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent(`/admin/catalogue/institutions/${code}/admission`)}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent(`/admin/catalogue/institutions/${code}/admission`)}`);
   if (user.role !== "admin") notFound();
   const institution = await getInstitution(code);
   if (!institution) notFound();

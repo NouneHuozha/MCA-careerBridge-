@@ -9,7 +9,7 @@ export const metadata = { title: "Imports · Admin workspace" };
 
 export default async function AdminImportsPage({ searchParams }: { searchParams: Promise<{ dataset?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/imports")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/imports")}`);
   if (user.role !== "admin") redirect("/");
   const params = await searchParams;
   const datasets: ImportDataset[] = ["institutions", "courses", "institution_courses", "pathways", "entrance_exams", "scholarships", "opportunities"];

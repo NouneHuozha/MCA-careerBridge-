@@ -9,7 +9,7 @@ export const metadata = { title: "Sources · Admin workspace" };
 
 export default async function AdminSourcesPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/sign-in?next=${encodeURIComponent("/admin/sources")}`);
+  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/sources")}`);
   if (user.role !== "admin") redirect("/");
 
   const { sources, institutions } = await getAdminSourceRegistry();

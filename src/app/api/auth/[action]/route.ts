@@ -41,12 +41,14 @@ export async function POST(request: Request, context: { params: Promise<{ action
   const email = String(form.get("email") ?? "");
   const password = String(form.get("password") ?? "");
   const next = safeReturnPath(form.get("next"));
+  const adminDestination = next === "/admin" || next.startsWith("/admin/");
+  const signInPath = adminDestination ? "/admin/login" : "/sign-in";
 
   try {
     if (action === "sign-in") {
-      const result = await signInWithPassword({ email, password });
-      if (!result.ok) return redirectTo(request, `/sign-in?error=${encodeURIComponent(result.error)}&next=${encodeURIComponent(next)}`);
-      await keepJourneyWithAccount();
+      const result = await signInWithPassword({ email, password, requiredRole: adminDestination ? "admin" : undefined });
+      if (!result.ok) return redirectTo(request, `${signInPath}?error=${encodeURIComponent(result.error)}&next=${encodeURIComponent(next)}`);
+      if (!adminDestination) await keepJourneyWithAccount();
       return redirectTo(request, next);
     }
 
@@ -65,9 +67,12 @@ export async function POST(request: Request, context: { params: Promise<{ action
     return NextResponse.json({ error: "Unknown action." }, { status: 404 });
   } catch (error) {
     console.error("[careerbridge] auth action failed", error);
+    if (action === "sign-in") {
+      return redirectTo(request, `${signInPath}?error=${encodeURIComponent("We couldn't complete that just now. Please try again.")}&next=${encodeURIComponent(next)}`);
+    }
     return redirectTo(
       request,
-      `/${action === "sign-up" ? "sign-up" : "sign-in"}?error=${encodeURIComponent("We couldn't complete that just now. Please try again.")}`,
+      `/sign-up?error=${encodeURIComponent("We couldn't complete that just now. Please try again.")}`,
     );
   }
 }
