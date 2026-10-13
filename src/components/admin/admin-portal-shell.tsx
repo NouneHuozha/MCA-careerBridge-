@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, Clock3, FileUp, Link2, ListChecks, Search, Settings } from "lucide-react";
+import { BookOpen, ClipboardCheck, Clock3, FileUp, Link2, ListChecks, Search, Settings } from "lucide-react";
 import type { ReactNode } from "react";
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { label: "Sources", href: "/admin/sources", icon: Link2, key: "sources" },
   { label: "Imports", href: "/admin/imports", icon: FileUp, key: "imports" },
   { label: "Change history", href: "/admin/change-history", icon: Clock3, key: "history" },
+  { label: "Proposed changes", href: "/admin/change-history/proposed", icon: ClipboardCheck, key: "proposals" },
   { label: "Settings", href: "/admin/sources/settings", icon: Settings, key: "settings" },
 ] as const;
 
@@ -17,7 +18,7 @@ export function AdminPortalShell({
   breadcrumb,
 }: {
   children: ReactNode;
-  active?: "queue" | "catalogue" | "sources" | "imports" | "history" | "settings";
+  active?: "queue" | "catalogue" | "sources" | "imports" | "history" | "proposals" | "settings";
   breadcrumb: string;
 }) {
   return (

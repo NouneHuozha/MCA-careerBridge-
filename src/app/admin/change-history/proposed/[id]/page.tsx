@@ -28,7 +28,7 @@ export default async function ProposedChangeDetailPage({ params }: { params: Pro
   catch (error) { console.warn("[careerbridge] proposed change detail unavailable", error); storageUnavailable = true; }
   if (!proposal && !storageUnavailable) notFound();
 
-  return <AdminPortalShell active="history" breadcrumb="Change history / Proposed change">
+  return <AdminPortalShell active="proposals" breadcrumb="Change history / Proposed change">
     <Link href="/admin/change-history" className="inline-flex min-h-9 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-[#145c42] hover:bg-[#e9f3ee]"><ArrowLeft aria-hidden className="h-4 w-4"/>Change history</Link>
     {storageUnavailable || !proposal ? <section className="mt-5 rounded-xl border border-[#efdfbd] bg-[#fff8e8] p-5 text-sm leading-relaxed text-[#71551d]"><div className="flex items-start gap-3"><AlertTriangle aria-hidden className="mt-0.5 h-5 w-5 shrink-0"/><div><h1 className="font-bold">Proposal review storage is not available</h1><p className="mt-1">Apply the catalogue change proposals migration before reviewing proposed changes.</p></div></div></section> : <>
       <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,.95fr)]">
