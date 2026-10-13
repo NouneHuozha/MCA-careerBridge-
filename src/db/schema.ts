@@ -475,15 +475,55 @@ export const admissionInformation = pgTable(
     courseSlug: varchar("course_slug", { length: 80 }),
     cycleLabel: varchar("cycle_label", { length: 80 }),
     applicationWindow: varchar("application_window", { length: 160 }),
-    importantDates: jsonb("important_dates").$type<{ label: string; value: string }[]>().default([]),
+    importantDates: jsonb("important_dates").$type<{ label: string; value: string; sourceTitle?: string | null; sourceUrl?: string | null; verificationStatus?: string }[]>().default([]),
     process: jsonb("process").$type<string[]>().default([]),
     documents: jsonb("documents").$type<string[]>().default([]),
+    documentRequirements: jsonb("document_requirements").$type<{ label: string; status: "required" | "not_confirmed" | "not_required"; sourceUrl?: string | null }[]>().notNull().default([]),
+    applicationStartDate: varchar("application_start_date", { length: 10 }),
+    applicationEndDate: varchar("application_end_date", { length: 10 }),
+    applicationWindowStatus: varchar("application_window_status", { length: 24 }).notNull().default("not_confirmed"),
+    applicationFeeNote: text("application_fee_note"),
+    courseFeeNote: text("course_fee_note"),
     feesNote: text("fees_note"),
+    sourceTitle: varchar("source_title", { length: 200 }),
     sourceUrl: text("source_url"),
     retrievedAt: timestamp("retrieved_at", { withTimezone: true }),
+    lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),
     verificationStatus: varchar("verification_status", { length: 32 }).notNull().default("unavailable"),
   },
   (t) => [index("admission_information_inst_idx").on(t.institutionCode)],
+);
+
+export type AdmissionEditorPayload = {
+  courseSlug: string | null;
+  cycleLabel: string;
+  applicationStartDate: string;
+  applicationEndDate: string;
+  applicationWindowStatus: "confirmed" | "not_confirmed";
+  importantDates: { label: string; value: string; sourceTitle: string; sourceUrl: string; verificationStatus: "verified" | "needs_verification" | "not_available" }[];
+  process: string[];
+  documentRequirements: { label: string; status: "required" | "not_confirmed" | "not_required"; sourceUrl: string }[];
+  applicationFeeNote: string;
+  courseFeeNote: string;
+  sourceTitle: string;
+  sourceUrl: string;
+  sourceRetrievedAt: string;
+  confirmations: { cycle: boolean; applicationWindow: boolean; process: boolean; documents: boolean; feeNote: boolean; applicationLink: boolean };
+};
+
+export const admissionInformationDrafts = pgTable(
+  "admission_information_drafts",
+  {
+    id: serial("id").primaryKey(),
+    admissionId: integer("admission_id"),
+    institutionCode: varchar("institution_code", { length: 64 }).notNull(),
+    payload: jsonb("payload").$type<AdmissionEditorPayload>().notNull(),
+    reviewNote: text("review_note"),
+    savedBy: varchar("saved_by", { length: 191 }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("admission_drafts_record_idx").on(t.admissionId), index("admission_drafts_institution_idx").on(t.institutionCode)],
 );
 
 export const entranceExams = pgTable(

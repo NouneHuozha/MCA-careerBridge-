@@ -52,3 +52,10 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - Reports enter `/admin/feedback-flags` and the admin home Review queue. The workspace filters by status, issue, entity and report date, supports search and CSV export, and provides assignment, review, resolve, and duplicate-dismiss actions.
 - Resolving or dismissing requires a closure reason. Reports are audited and never directly edit student-facing catalogue data; admins inspect the linked catalogue record and separately decide any correction.
 - Apply `src/db/migrations/0003_feedback_flag_review.sql` before using report intake and the review workflow in a database-backed environment. If storage is unavailable, the admin page explains the migration prerequisite.
+
+## Institution admission information (item 18)
+
+- `/admin/catalogue/institutions/[code]/admission` manages institution- and course-specific admission cycles, dates, process steps, document requirement statuses, fee notes, source evidence, and reviewer checks. It is linked from the institution verification workspace.
+- Drafts are stored separately from approved admission records. Save draft never changes student-facing data; Mark verified requires all six reviewer checks, a source title/URL, a cycle, and a reviewer note, then updates the approved record and writes an audit event.
+- Student application pages only read verified admission records, show the cycle label and last verification date, and preserve `Not confirmed` separately from `Not required`. Draft changes remain hidden.
+- Apply `src/db/migrations/0005_admission_information_editor.sql` before saving drafts or publishing verified values in a database-backed environment. Source links are recorded but are not fetched automatically.

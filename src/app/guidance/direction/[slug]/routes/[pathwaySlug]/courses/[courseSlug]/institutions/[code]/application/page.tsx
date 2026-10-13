@@ -48,7 +48,7 @@ const documentLabels = [
 ];
 
 function statusLabel(value: string | null | undefined) {
-  if (value === "verified") return "Verified official source";
+  if (["verified", "current", "recently_verified", "published_verified", "approved"].includes(value ?? "")) return "Verified official source";
   if (value === "unavailable") return "Awaiting official verification";
   if (value === "conflicting") return "Conflicting sources";
   return "Awaiting official verification";
@@ -81,7 +81,13 @@ export default async function ApplicationRequirementsPage({ params }: { params: 
   if (state.status !== "completed") redirect("/counselling");
   if (!field || !route || !course || !route.courseSlugs?.includes(course.slug) || !institution) notFound();
 
-  const record = admissions.find((item) => item.courseSlug === course.slug) ?? admissions.find((item) => item.courseSlug == null);
+  const cycleYear = (label: string | null) => Number(label?.match(/20\d{2}/)?.[0] ?? 0);
+  const approvedAdmissions = admissions.filter((item) => ["verified", "current", "recently_verified", "published_verified", "approved"].includes(item.verificationStatus)).sort((a, b) => {
+    const yearDiff = cycleYear(b.cycleLabel) - cycleYear(a.cycleLabel);
+    if (yearDiff) return yearDiff;
+    return (b.lastVerifiedAt?.getTime() ?? b.retrievedAt?.getTime() ?? 0) - (a.lastVerifiedAt?.getTime() ?? a.retrievedAt?.getTime() ?? 0);
+  });
+  const record = approvedAdmissions.find((item) => item.courseSlug === course.slug) ?? approvedAdmissions.find((item) => item.courseSlug == null);
   const detail = `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(pathwaySlug)}/courses/${encodeURIComponent(courseSlug)}/institutions/${encodeURIComponent(code)}`;
   const officialHref = record?.sourceUrl ?? institution.officialWebsite ?? institution.sourceUrl;
   const status = statusLabel(record?.verificationStatus);
@@ -98,7 +104,7 @@ export default async function ApplicationRequirementsPage({ params }: { params: 
             <header>
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="font-serif text-[clamp(2.1rem,4vw,3.45rem)] leading-[1.05] tracking-[-.045em] text-[#102c43]">Applying for {course.name} at {institution.name}</h1>
-                <span className="inline-flex shrink-0 rounded-full bg-[#fff0cb] px-3 py-1.5 text-xs font-semibold text-[#735b25]">Sample record</span>
+                <span className="inline-flex shrink-0 rounded-full bg-[#fff0cb] px-3 py-1.5 text-xs font-semibold text-[#735b25]">{record ? record.cycleLabel ?? "Verified record" : "Illustrative guidance"}</span>
               </div>
               <p className="mt-2 text-lg text-[#68746d]">A clear checklist for preparing, checking, and applying.</p>
             </header>
@@ -108,6 +114,14 @@ export default async function ApplicationRequirementsPage({ params }: { params: 
               <div><p className="font-semibold">Institution-specific application instructions are not verified in this sample.</p><p className="mt-1 text-sm text-[#716b55]">Details such as dates, fees, eligibility, and required documents can change. Always refer to the official source of the institution.</p></div>
             </div>
 
+            {record && <section aria-labelledby="cycle-details-title" className="mt-5 rounded-xl border border-[#dce6df] bg-white p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 id="cycle-details-title" className="font-serif text-[1.35rem] font-semibold text-[#253342]">Admission cycle details</h2><p className="mt-1 text-sm text-[#69766f]">{record.cycleLabel || "Cycle not specified"}{record.courseSlug ? ` · ${course.name}` : " · Institution-wide"}</p></div><span className="rounded-full bg-[#e7f5ed] px-3 py-1.5 text-xs font-semibold text-[#17634b]">{statusLabel(record.verificationStatus)}</span></div>
+              <dl className="mt-4 grid gap-4 border-t border-[#e7ece8] pt-4 sm:grid-cols-2"><div><dt className="text-xs font-semibold uppercase tracking-wide text-[#69766f]">Application window</dt><dd className="mt-1 text-sm font-semibold text-[#263d32]">{record.applicationWindowStatus === "confirmed" ? `${record.applicationStartDate ? formatDate(new Date(`${record.applicationStartDate}T12:00:00`)) : "Start not specified"} – ${record.applicationEndDate ? formatDate(new Date(`${record.applicationEndDate}T12:00:00`)) : "End not specified"}` : "Not currently confirmed"}</dd></div><div><dt className="text-xs font-semibold uppercase tracking-wide text-[#69766f]">Application fee</dt><dd className="mt-1 text-sm font-semibold text-[#263d32]">{record.applicationFeeNote || "Not currently confirmed"}</dd></div><div><dt className="text-xs font-semibold uppercase tracking-wide text-[#69766f]">Course fee note</dt><dd className="mt-1 text-sm font-semibold text-[#263d32]">{record.courseFeeNote || "Not currently confirmed"}</dd></div><div><dt className="text-xs font-semibold uppercase tracking-wide text-[#69766f]">Last verified</dt><dd className="mt-1 text-sm font-semibold text-[#263d32]">{formatDate(record.lastVerifiedAt)}</dd></div></dl>
+              {record.process?.length ? <div className="mt-4 border-t border-[#e7ece8] pt-4"><h3 className="text-sm font-semibold text-[#263d32]">Institution-specific process</h3><ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-[#596a63]">{record.process.map((step, index) => <li key={`${index}-${step}`}>{step}</li>)}</ol></div> : null}
+              {record.importantDates?.some((item) => item.verificationStatus === "verified" || item.verificationStatus === "not_available") && <div className="mt-4 border-t border-[#e7ece8] pt-4"><h3 className="text-sm font-semibold text-[#263d32]">Important dates</h3><ul className="mt-2 space-y-2">{record.importantDates.filter((item) => item.verificationStatus === "verified" || item.verificationStatus === "not_available").map((item, index) => <li key={`${index}-${item.label}`} className="flex flex-wrap items-start justify-between gap-2 text-sm"><span className="font-medium text-[#455b51]">{item.label}</span><span className="text-right text-[#263d32]">{item.verificationStatus === "not_available" ? "Not available in the official source" : item.value}</span></li>)}</ul></div>}
+              {record.sourceUrl && /^https?:\/\//i.test(record.sourceUrl) && <a href={record.sourceUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#176b5d] underline">{record.sourceTitle || "Open official source"}<ExternalLink className="h-4 w-4"/></a>}
+            </section>}
+
             <section aria-labelledby="prepare-title" className="mt-5 overflow-hidden rounded-xl border border-[#dce6df] bg-[#eff7f3]">
               <div className="px-6 pb-3 pt-5"><h2 id="prepare-title" className="font-serif text-[1.65rem] font-semibold text-[#173d4a]">How to prepare</h2><p className="mt-1 text-[.95rem] text-[#6b7b73]">Follow these steps to get ready for your application.</p></div>
               <div className="grid gap-3 px-5 pb-5 md:grid-cols-3">
@@ -115,6 +129,7 @@ export default async function ApplicationRequirementsPage({ params }: { params: 
               </div>
               <div className="border-t border-[#dce6df] bg-white/55 px-6 pb-4 pt-4"><h2 className="font-serif text-[1.3rem] font-semibold text-[#253342]">Documents that may be requested</h2><p className="mt-1 text-[.9rem] text-[#707b75]">The exact list varies by institution and admission cycle.</p><div className="mt-4 flex flex-wrap gap-2.5">{(documents.length ? documents.slice(0, 4).map((label) => ({ label, icon: FileText })) : documentLabels).map(({ label, icon: Icon }) => <span key={label} className="inline-flex items-center gap-2 rounded-full bg-[#e7f4ee] px-4 py-2 text-xs font-medium text-[#32695d]"><Icon aria-hidden className="h-4 w-4" />{label}</span>)}</div></div>
             </section>
+            {record?.documentRequirements?.length ? <section className="mt-5 rounded-xl border border-[#dce6df] bg-white p-5"><h2 className="font-serif text-[1.3rem] font-semibold text-[#253342]">Institution document status</h2><ul className="mt-3 divide-y divide-[#e7ece8]">{record.documentRequirements.map((item, index) => <li key={`${index}-${item.label}`} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"><span className="font-medium text-[#344b41]">{item.label}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.status === "required" ? "bg-[#e7f5ed] text-[#17634b]" : item.status === "not_required" ? "bg-[#eef1ef] text-[#52645a]" : "bg-[#fff5df] text-[#805d13]"}`}>{item.status === "required" ? "Required" : item.status === "not_required" ? "Not required" : "Not confirmed"}</span>{item.sourceUrl && /^https?:\/\//i.test(item.sourceUrl) ? <a href={item.sourceUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-[#176b5d] underline">Source</a> : null}</li>)}</ul><p className="mt-3 text-xs leading-relaxed text-[#687970]">Not confirmed means the source did not establish whether the document is required; it does not mean the document is not required.</p></section> : null}
           </div>
 
           <aside className="rounded-xl border border-[#e0e5df] bg-[#fffefa] px-5 py-4 shadow-[0_5px_22px_-20px_rgba(40,69,60,.45)]">

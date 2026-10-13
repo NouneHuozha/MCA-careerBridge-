@@ -146,6 +146,8 @@ export function InstitutionVerificationWorkspace({ institution, courses, admissi
       </div>
     </header>
 
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#d6e3dc] bg-[#f4f8f6] p-4"><div><p className="text-sm font-bold text-[#29483d]">Admission cycle editor</p><p className="mt-1 text-xs leading-relaxed text-[#53665e]">Manage application windows, process steps, documents, fees, and evidence for this institution.</p></div><Link href={`/admin/catalogue/institutions/${encodeURIComponent(institution.code)}/admission`} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#145c42] px-4 text-sm font-bold text-white hover:bg-[#104d38]"><FileText className="h-4 w-4"/>Manage admission information</Link></div>
+
     <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(350px,.8fr)]">
       <div className="min-w-0 space-y-5">
         <section className="rounded-2xl border border-[#d4dfda] bg-white p-5 shadow-sm sm:p-6" aria-labelledby="details-heading">
