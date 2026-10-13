@@ -7,12 +7,13 @@ import {
   CheckCircle2,
   Clock3,
   FileClock,
+  Flag,
   Link2Off,
   ListChecks,
   Upload,
 } from "lucide-react";
 import { redirect } from "next/navigation";
-import { desc } from "drizzle-orm";
+import { desc, inArray } from "drizzle-orm";
 import { getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { db } from "@/db";
@@ -20,6 +21,7 @@ import {
   auditEvents,
   dataImports,
   institutionSources,
+  flags,
 } from "@/db/schema";
 import {
   getCourses,
@@ -167,9 +169,50 @@ export default async function AdminPage() {
       href: `/admin/catalogue/institutions/${encodeURIComponent(record.code)}`,
     });
   }
+  let pendingFlags: (typeof flags.$inferSelect)[] = [];
+  let feedbackFlagStoreAvailable = true;
+  try {
+    pendingFlags = await db.select().from(flags).where(inArray(flags.status, ["open", "in_review"])).orderBy(desc(flags.createdAt)).limit(500);
+  } catch (error) {
+    feedbackFlagStoreAvailable = false;
+    console.warn("[careerbridge] feedback flags are unavailable; apply migration 0003_feedback_flag_review.sql", error);
+  }
+  const courseNames = new Map(courses.map((record) => [record.slug, record.name]));
+  const examNames = new Map(exams.map((record) => [record.slug, record.shortName ?? record.name]));
+  const scholarshipNames = new Map(scholarships.map((record) => [record.slug, record.name]));
+  const opportunityNames = new Map(opportunities.map((record) => [record.slug, record.title]));
+  const reportNames: Record<string, Record<string, string>> = {
+    institution: Object.fromEntries(institutions.map((record) => [record.code, record.name])),
+    course: Object.fromEntries(courseNames),
+    entrance_exam: Object.fromEntries(examNames),
+    scholarship: Object.fromEntries(scholarshipNames),
+    opportunity: Object.fromEntries(opportunityNames),
+  };
+  const reportIssues: Record<string, string> = {
+    incorrect_detail: "Incorrect detail",
+    broken_application_link: "Broken application link",
+    outdated_deadline: "Deadline may be outdated",
+    wrong_course_availability: "Course availability",
+    missing_source: "Missing source",
+    other: "Other issue",
+  };
+  for (const report of pendingFlags) {
+    const entityName = reportNames[report.entityType]?.[report.entityRef] ?? report.entityRef;
+    queue.push({
+      id: `flag-${report.id}`,
+      item: entityName,
+      type: "Student report",
+      issue: reportIssues[report.issueType] ?? "Student report",
+      source: safeSource(report.sourceUrl),
+      checkedAt: report.createdAt,
+      href: "/admin/feedback-flags",
+      tone: report.status === "in_review" ? "blue" : "amber",
+    });
+  }
   const unavailableSources = sourceRows.filter((source) => unavailableStatuses.has(source.status)).length;
-  const verificationCount = queue.filter((item) => item.issue === "Needs verification" || item.issue === "Needs correction").length;
-  const staleCount = queue.filter((item) => !item.checkedAt || daysAgo(item.checkedAt, 90)).length;
+  const catalogueQueue = queue.filter((item) => item.type !== "Student report");
+  const verificationCount = catalogueQueue.filter((item) => item.issue === "Needs verification" || item.issue === "Needs correction").length;
+  const staleCount = catalogueQueue.filter((item) => !item.checkedAt || daysAgo(item.checkedAt, 90)).length;
   const sortPriority: Record<QueueItem["tone"], number> = { red: 0, amber: 1, blue: 2 };
   queue.sort((a, b) => sortPriority[a.tone] - sortPriority[b.tone] || (a.checkedAt?.getTime() ?? 0) - (b.checkedAt?.getTime() ?? 0));
   const visibleQueue = queue.slice(0, 8);
@@ -190,11 +233,12 @@ export default async function AdminPage() {
 
             <section className="mt-8" aria-labelledby="attention-title">
               <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.12em] text-[#53685e]">Priority overview</p><h2 id="attention-title" className="mt-1 text-xl font-bold tracking-[-.02em] text-[#142e27]">What needs attention</h2></div><p className="text-sm font-medium text-[#52665d]">Red = blocked · Amber = review due · Grey = not tracked</p></div>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                 <AttentionCard value={unavailableSources} label="Sources unavailable" detail="Blocked evidence sources" href="/admin/catalogue/institutions?filter=source_unavailable" tone="red" icon={Link2Off} />
                 <AttentionCard value={verificationCount} label="Need verification" detail="Unverified institution records" href="/admin/catalogue/institutions?filter=needs_verification" tone="amber" icon={AlertTriangle} />
                 <AttentionCard value={staleCount} label="Overdue for review" detail="Never checked or older than 90 days" href="/admin/catalogue/institutions?filter=stale" tone="amber" icon={Clock3} />
                 <AttentionCard value="—" label="Import validation" detail="Error tracking is not available yet" tone="blue" icon={Upload} />
+                <AttentionCard value={feedbackFlagStoreAvailable ? pendingFlags.length : "—"} label="Student reports" detail={feedbackFlagStoreAvailable ? "Issues waiting for review" : "Apply migration to enable reports"} href="/admin/feedback-flags" tone="amber" icon={Flag} />
               </div>
             </section>
 
@@ -217,7 +261,7 @@ export default async function AdminPage() {
                         <td className="px-5 py-4 text-right"><Link href={item.href} className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[#12664f] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0d5742] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f]">Review</Link></td>
                       </tr>
                     ))}
-                    {!visibleQueue.length && <tr><td colSpan={6} className="px-5 py-14 text-center"><CheckCircle2 aria-hidden className="mx-auto h-9 w-9 text-[#287b60]" /><p className="mt-3 font-bold text-[#24483b]">Nothing in the review queue</p><p className="mt-1 text-sm text-[#53665e]">Institutions with pending or overdue verification will appear here.</p></td></tr>}
+                    {!visibleQueue.length && <tr><td colSpan={6} className="px-5 py-14 text-center"><CheckCircle2 aria-hidden className="mx-auto h-9 w-9 text-[#287b60]" /><p className="mt-3 font-bold text-[#24483b]">Nothing in the review queue</p><p className="mt-1 text-sm text-[#53665e]">Records needing verification and student reports will appear here.</p></td></tr>}
                   </tbody>
                 </table>
               </div>

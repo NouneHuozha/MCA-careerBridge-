@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { BookOpen, ClipboardCheck, Clock3, FileUp, Link2, ListChecks, Search, Settings } from "lucide-react";
+import { BookOpen, ClipboardCheck, Clock3, FileUp, Flag, Link2, ListChecks, Search, Settings } from "lucide-react";
 import type { ReactNode } from "react";
 
 const navItems = [
   { label: "Review queue", href: "/admin", icon: ListChecks, key: "queue" },
+  { label: "Feedback flags", href: "/admin/feedback-flags", icon: Flag, key: "flags" },
   { label: "Catalogue", href: "/admin/catalogue", icon: BookOpen, key: "catalogue" },
   { label: "Sources", href: "/admin/sources", icon: Link2, key: "sources" },
   { label: "Imports", href: "/admin/imports", icon: FileUp, key: "imports" },
@@ -18,7 +19,7 @@ export function AdminPortalShell({
   breadcrumb,
 }: {
   children: ReactNode;
-  active?: "queue" | "catalogue" | "sources" | "imports" | "history" | "proposals" | "settings";
+  active?: "queue" | "flags" | "catalogue" | "sources" | "imports" | "history" | "proposals" | "settings";
   breadcrumb: string;
 }) {
   return (

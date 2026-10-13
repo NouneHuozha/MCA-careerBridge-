@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Badge, ButtonLink, Eyebrow, SourceLink, VerificationBadge } from "@/components/ui";
 import { SaveButton } from "@/components/save-button";
+import { ReportCatalogueIssue } from "@/components/report-catalogue-issue";
 import { getFields, getOpportunities } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
@@ -163,6 +164,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
           <ButtonLink href={`/guidance/action-plan?focus=opportunity:${opportunity.slug}`} variant="secondary" className="w-full"><Bookmark className="h-4 w-4" />Add to my action plan</ButtonLink>
         </aside>
       </main>
+      <div className="mt-6"><ReportCatalogueIssue entityType="opportunity" entityRef={opportunity.slug} entityName={opportunity.title} sourceUrl={primarySource} /></div>
     </div>
   );
 }

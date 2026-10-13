@@ -45,3 +45,10 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - Apply `src/db/migrations/0002_catalogue_change_proposals.sql` before using proposal storage or decisions in a database-backed environment. The change-history page distinguishes unavailable storage from an empty queue.
 - Approved values are applied only to allowlisted text fields after checking that the current catalogue value still matches the proposal's captured value. A concurrent edit leaves the proposal unchanged and returns a conflict message.
 - Proposals may be created through the admin-only `/api/admin/change-proposals` endpoint. The scheduled source fetcher/parser that would discover and submit proposals remains unimplemented; no proposal is fabricated from sample data.
+
+## Student feedback flags (item 15)
+
+- Students can report incorrect details, broken application links, outdated deadlines, course availability, missing sources, or another issue from institution, course, scholarship, entrance-exam, and opportunity detail pages. Submission requires a signed-in account.
+- Reports enter `/admin/feedback-flags` and the admin home Review queue. The workspace filters by status, issue, entity and report date, supports search and CSV export, and provides assignment, review, resolve, and duplicate-dismiss actions.
+- Resolving or dismissing requires a closure reason. Reports are audited and never directly edit student-facing catalogue data; admins inspect the linked catalogue record and separately decide any correction.
+- Apply `src/db/migrations/0003_feedback_flag_review.sql` before using report intake and the review workflow in a database-backed environment. If storage is unavailable, the admin page explains the migration prerequisite.

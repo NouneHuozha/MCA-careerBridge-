@@ -767,7 +767,12 @@ export const flags = pgTable("feedback_flags", {
   userId: integer("user_id"),
   entityType: varchar("entity_type", { length: 60 }).notNull(),
   entityRef: varchar("entity_ref", { length: 120 }).notNull(),
+  issueType: varchar("issue_type", { length: 48 }).notNull().default("other"),
   reason: text("reason").notNull(),
+  sourceUrl: text("source_url"),
   status: varchar("status", { length: 24 }).notNull().default("open"),
+  assignedTo: varchar("assigned_to", { length: 191 }),
+  resolutionReason: text("resolution_reason"),
   createdAt: createdAt(),
+  updatedAt: updatedAt(),
 });
