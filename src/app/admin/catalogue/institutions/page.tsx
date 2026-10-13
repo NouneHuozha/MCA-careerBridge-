@@ -188,7 +188,7 @@ export default async function AdminInstitutionsPage({ searchParams }: { searchPa
     <AdminPortalShell active="catalogue" breadcrumb="Catalogue / Institutions">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[.12em] text-[#53665d]">Catalogue management</p>
+          <p className="text-xs font-bold uppercase tracking-[.12em] text-[#53665d]">Catalogue management <span className="mx-1 text-[#8b9992]">·</span><Link href="/admin/catalogue/courses" className="text-[#17634b] underline underline-offset-2">Courses</Link></p>
           <h1 className="mt-1 text-3xl font-bold tracking-[-.04em] text-[#142e27] sm:text-4xl">Institutions</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#455b51]">Review institution identity, location, course links, and source freshness.</p>
         </div>

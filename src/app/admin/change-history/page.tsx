@@ -5,7 +5,7 @@ import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { ChangeHistoryWorkspace, type HistoryEntry } from "@/components/admin/change-history-workspace";
 import { db } from "@/db";
 import { auditEvents, users } from "@/db/schema";
-import { getInstitutions } from "@/services/catalog";
+import { getCourses, getInstitutions } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Change history · Admin workspace" };
@@ -44,8 +44,9 @@ export default async function AdminChangeHistoryPage() {
   } catch (error) {
     console.warn("[careerbridge] actor names unavailable; using audit actor identifiers", error);
   }
-  const institutions = await getInstitutions({});
+  const [institutions, courses] = await Promise.all([getInstitutions({}), getCourses()]);
   const namesByCode = new Map(institutions.map((institution) => [institution.code, institution.name]));
+  const namesByCourse = new Map(courses.map((course) => [course.slug, course.name]));
   const entries: HistoryEntry[] = records.map((event) => ({
     id: event.id,
     actor: event.actor ? namesByEmail.get(event.actor.toLowerCase()) ?? actorFallback(event.actor) : "System",
@@ -57,6 +58,8 @@ export default async function AdminChangeHistoryPage() {
       ? event.metadata.sourceTitle
       : event.entityType === "institution" && event.entityRef
         ? namesByCode.get(event.entityRef) ?? event.entityRef
+        : event.entityType === "course" && event.entityRef
+          ? namesByCourse.get(event.entityRef) ?? event.entityRef
         : event.entityRef || "Unspecified record",
     metadata: event.metadata ?? {},
     createdAt: event.createdAt.toISOString(),

@@ -37,6 +37,10 @@ export default async function AdminSearchPage({ searchParams }: Props) {
       const code = result.href.split("/").filter(Boolean).at(-1) ?? "";
       return { key: `${result.type}:${result.href}`, type: "Institution", title: result.title, subtitle: result.subtitle, href: `/admin/catalogue/institutions/${encodeURIComponent(code)}`, adminAction: true };
     }
+    if (result.type === "course") {
+      const slug = result.href.split("/").filter(Boolean).at(-1) ?? "";
+      return { key: `${result.type}:${result.href}`, type: "Course", title: result.title, subtitle: result.subtitle, href: `/admin/catalogue/courses/${encodeURIComponent(slug)}`, adminAction: true };
+    }
     return { key: `${result.type}:${result.href}`, type: result.type.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase()), title: result.title, subtitle: result.subtitle, href: result.href, adminAction: false };
   });
   const sourceResults = sources.map((source) => ({ key: `source:${source.sourceKey}`, type: "Source", title: source.title, subtitle: `${source.organisations.join(", ") || "Organisation not recorded"} · ${source.recordNames.length} linked records`, href: `/admin/sources/settings?sourceKey=${encodeURIComponent(source.sourceKey)}`, adminAction: true }));

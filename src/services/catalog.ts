@@ -204,6 +204,13 @@ export async function getInstitutionLinksForCourse(courseSlug: string): Promise<
   );
 }
 
+export async function getAllInstitutionCourseLinks(): Promise<InstitutionCourse[]> {
+  return query<InstitutionCourse>(
+    () => db.select().from(institutionCourses),
+    () => asRows<InstitutionCourse>(INSTITUTION_COURSE_SEEDS),
+  );
+}
+
 export async function getInstitutionsForCourse(courseSlug: string): Promise<Institution[]> {
   const links = await getInstitutionLinksForCourse(courseSlug);
   if (!links.length) return [];

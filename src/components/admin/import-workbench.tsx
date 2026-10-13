@@ -5,9 +5,9 @@ import { AlertTriangle, ArrowRight, Check, CheckCircle2, ChevronDown, FileSpread
 import * as ExcelJS from "exceljs";
 import { ImportReviewPanel } from "@/components/admin/import-review-panel";
 
-type Dataset = "institutions" | "courses" | "institution_courses" | "pathways" | "entrance_exams" | "scholarships" | "opportunities";
+export type ImportDataset = "institutions" | "courses" | "institution_courses" | "pathways" | "entrance_exams" | "scholarships" | "opportunities";
 type ColumnMapping = Record<string, string>;
-const datasets: { id: Dataset; label: string; fields: { key: string; label: string }[] }[] = [
+const datasets: { id: ImportDataset; label: string; fields: { key: string; label: string }[] }[] = [
   { id: "institutions", label: "Institutions", fields: [{ key: "code", label: "Institution code" }, { key: "name", label: "Institution name" }, { key: "type", label: "Institution type" }, { key: "district", label: "District" }, { key: "city", label: "City" }, { key: "state", label: "State" }, { key: "ownership", label: "Ownership" }, { key: "official_website", label: "Official website" }, { key: "source_url", label: "Source URL" }, { key: "verification_status", label: "Verification status" } ] },
   { id: "courses", label: "Courses", fields: [{ key: "slug", label: "Course slug" }, { key: "name", label: "Course name" }, { key: "level", label: "Education level" }, { key: "stream", label: "Stream" }, { key: "description", label: "Description" }, { key: "source_url", label: "Source URL" }] },
   { id: "institution_courses", label: "Institution-course links", fields: [{ key: "institution_code", label: "Institution code" }, { key: "course_slug", label: "Course slug" }, { key: "availability_status", label: "Availability status" }, { key: "source_url", label: "Source URL" }] },
@@ -42,8 +42,8 @@ const autoMap = (columns: string[], fields: { key: string; label: string }[]): C
   return [column, match?.key ?? ""];
 }));
 
-export function ImportWorkbench({ knownInstitutionCodes = [] }: { knownInstitutionCodes?: string[] }) {
-  const [datasetId, setDatasetId] = useState<Dataset>("institutions");
+export function ImportWorkbench({ knownInstitutionCodes = [], initialDatasetId = "institutions" }: { knownInstitutionCodes?: string[]; initialDatasetId?: ImportDataset }) {
+  const [datasetId, setDatasetId] = useState<ImportDataset>(initialDatasetId);
   const dataset = datasets.find((item) => item.id === datasetId)!;
   const [fileName, setFileName] = useState("");
   const [fileSize, setFileSize] = useState(0);
@@ -116,7 +116,7 @@ export function ImportWorkbench({ knownInstitutionCodes = [] }: { knownInstituti
 
     <div className="grid gap-4 xl:grid-cols-[minmax(360px,.78fr)_minmax(0,1fr)]">
       <section className="rounded-xl border border-[#d4dfda] bg-white p-5 shadow-sm sm:p-6"><h2 className="text-xl font-bold tracking-[-.02em] text-[#172b35]">Dataset and file</h2><p className="mt-1 text-sm text-[#596a63]">Choose the dataset you’re importing and upload your Excel file.</p>
-        <label className="mt-5 block text-sm font-semibold text-[#344e47]">Dataset<select value={datasetId} onChange={(event) => { const next = event.target.value as Dataset; setDatasetId(next); if (columns.length) setMapping(autoMap(columns, datasets.find((item) => item.id === next)!.fields)); }} className="mt-2 min-h-12 w-full rounded-lg border border-[#cbd8d2] bg-white px-3 text-sm font-medium text-[#172b35] outline-none focus:border-[#27735c] focus:ring-2 focus:ring-[#d4eee2]">{datasets.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+        <label className="mt-5 block text-sm font-semibold text-[#344e47]">Dataset<select value={datasetId} onChange={(event) => { const next = event.target.value as ImportDataset; setDatasetId(next); if (columns.length) setMapping(autoMap(columns, datasets.find((item) => item.id === next)!.fields)); }} className="mt-2 min-h-12 w-full rounded-lg border border-[#cbd8d2] bg-white px-3 text-sm font-medium text-[#172b35] outline-none focus:border-[#27735c] focus:ring-2 focus:ring-[#d4eee2]">{datasets.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
         <div className="mt-5 flex items-center justify-between"><span className="text-sm font-semibold text-[#344e47]">Excel file</span><span className="text-xs text-[#687970]">XLSX, CSV · 20 MB max</span></div>
         <input ref={inputRef} type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" className="sr-only" onChange={(event) => void loadFile(event.target.files?.[0])} />
         {fileName ? <div className="mt-2 flex items-center gap-3 rounded-lg border border-[#d8e1dd] p-4"><FileSpreadsheet className="h-9 w-9 shrink-0 text-[#16805e]" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-[#172b35]">{fileName}</p><p className="mt-1 text-xs text-[#687970]">{(fileSize / 1024).toFixed(0)} KB · {rows.length} rows · first worksheet</p></div><button onClick={() => inputRef.current?.click()} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#b7cec2] px-3 text-sm font-semibold text-[#17634b]"><Upload className="h-4 w-4" />Replace file</button></div> : <button onClick={() => inputRef.current?.click()} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); void loadFile(event.dataTransfer.files[0]); }} className="mt-2 flex min-h-36 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-[#cbd8d2] bg-[#fbfcfb] px-4 text-center hover:bg-[#f4f8f6]"><span className="grid h-10 w-10 place-items-center rounded-lg bg-[#e5f2eb] text-[#17634b]"><Upload className="h-5 w-5" /></span><span className="mt-2 text-sm font-bold text-[#344e47]">Choose a workbook or drop it here</span><span className="mt-1 text-xs text-[#687970]">The first worksheet is read locally in your browser.</span></button>}
