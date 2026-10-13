@@ -59,3 +59,11 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - Drafts are stored separately from approved admission records. Save draft never changes student-facing data; Mark verified requires all six reviewer checks, a source title/URL, a cycle, and a reviewer note, then updates the approved record and writes an audit event.
 - Student application pages only read verified admission records, show the cycle label and last verification date, and preserve `Not confirmed` separately from `Not required`. Draft changes remain hidden.
 - Apply `src/db/migrations/0005_admission_information_editor.sql` before saving drafts or publishing verified values in a database-backed environment. Source links are recorded but are not fetched automatically.
+
+## Entrance exam detail review (item 19)
+
+- `/admin/catalogue/exams/[slug]` provides an exam identity, one-cycle date editor, eligibility sections, document-status checklist, preparation notes, official source evidence, and verification checklist.
+- `Save draft` stores proposed values separately from the student-facing catalogue row. The currently published values and verification status remain unchanged until an administrator verifies the draft.
+- Verification requires a named cycle, application period, exam date, eligibility summary, conducting body, valid HTTP(S) official source, reviewer note, and explicit evidence confirmation. Unknown details can be recorded as “Not currently confirmed”; absence from the document list never implies “not required.”
+- Draft saves and verification decisions are added to audit history. Marking verified publishes only that cycle's reviewed values; dates from separate cycles are not combined.
+- Apply `src/db/migrations/0005_entrance_exam_review_details.sql` before using the cycle-specific fields or draft endpoint in a database-backed environment.
