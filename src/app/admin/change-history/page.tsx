@@ -1,10 +1,11 @@
-import { desc, inArray } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { ChangeHistoryWorkspace, type HistoryEntry } from "@/components/admin/change-history-workspace";
+import { PendingChangeProposals } from "@/components/admin/pending-change-proposals";
 import { db } from "@/db";
-import { auditEvents, users } from "@/db/schema";
+import { auditEvents, catalogueChangeProposals, users } from "@/db/schema";
 import { getCourses, getInstitutions, getScholarships } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +34,14 @@ export default async function AdminChangeHistoryPage() {
     records = await db.select().from(auditEvents).orderBy(desc(auditEvents.createdAt), desc(auditEvents.id)).limit(500);
   } catch (error) {
     console.warn("[careerbridge] change history unavailable", error);
+  }
+  let pendingProposals: (typeof catalogueChangeProposals.$inferSelect)[] = [];
+  let proposalStoreAvailable = true;
+  try {
+    pendingProposals = await db.select().from(catalogueChangeProposals).where(eq(catalogueChangeProposals.status, "needs_review")).orderBy(desc(catalogueChangeProposals.fetchedAt)).limit(20);
+  } catch (error) {
+    proposalStoreAvailable = false;
+    console.warn("[careerbridge] proposal review queue unavailable; apply migration 0002_catalogue_change_proposals.sql", error);
   }
   let namesByEmail = new Map<string, string>();
   try {
@@ -72,5 +81,5 @@ export default async function AdminChangeHistoryPage() {
   const now = new Date();
   const from = new Date(now.getFullYear(), now.getMonth(), 1);
   const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return <AdminPortalShell active="history" breadcrumb="Change history"><ChangeHistoryWorkspace entries={entries} initialFrom={dateOnly(from)} initialTo={dateOnly(to)} /></AdminPortalShell>;
+  return <AdminPortalShell active="history" breadcrumb="Change history"><div className="space-y-5"><PendingChangeProposals available={proposalStoreAvailable} proposals={pendingProposals.map((proposal) => ({ id: proposal.id, entityName: proposal.entityName, fieldName: proposal.fieldName, currentValue: proposal.currentValue, proposedValue: proposal.proposedValue, sourceUrl: proposal.sourceUrl, fetchedAt: proposal.fetchedAt.toISOString() }))} /><ChangeHistoryWorkspace entries={entries} initialFrom={dateOnly(from)} initialTo={dateOnly(to)} /></div></AdminPortalShell>;
 }

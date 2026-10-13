@@ -38,3 +38,10 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - `/admin/sources/settings` stores a source-specific refresh preference (daily, weekly, monthly, quarterly, or manual) and writes every change to the audit history.
 - Apply `src/db/migrations/0001_source_refresh_settings.sql` before using the save action in a database-backed environment.
 - The scheduled fetcher, parser, and refresh-run history are not implemented yet. The UI labels saved cadence as a preference only and does not claim that a check ran or is scheduled.
+
+## Proposed catalogue change review (item 14)
+
+- `/admin/change-history/proposed/[id]` compares the approved value with a proposed value, displays source evidence and prior decisions, and supports approve, edit-and-approve, keep-current, reject, or keep-pending.
+- Apply `src/db/migrations/0002_catalogue_change_proposals.sql` before using proposal storage or decisions in a database-backed environment. The change-history page distinguishes unavailable storage from an empty queue.
+- Approved values are applied only to allowlisted text fields after checking that the current catalogue value still matches the proposal's captured value. A concurrent edit leaves the proposal unchanged and returns a conflict message.
+- Proposals may be created through the admin-only `/api/admin/change-proposals` endpoint. The scheduled source fetcher/parser that would discover and submit proposals remains unimplemented; no proposal is fabricated from sample data.

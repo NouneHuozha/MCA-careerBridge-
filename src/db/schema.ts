@@ -726,6 +726,35 @@ export const auditEvents = pgTable("audit_events", {
   createdAt: createdAt(),
 });
 
+export type ChangeProposalDecision = {
+  action: "approved" | "edited_and_approved" | "kept_current" | "rejected" | "kept_pending";
+  actor: string;
+  note: string;
+  value: string | null;
+  createdAt: string;
+};
+
+export const catalogueChangeProposals = pgTable("catalogue_change_proposals", {
+  id: serial("id").primaryKey(),
+  entityType: varchar("entity_type", { length: 40 }).notNull(),
+  entityRef: varchar("entity_ref", { length: 120 }).notNull(),
+  entityName: varchar("entity_name", { length: 180 }).notNull(),
+  fieldName: varchar("field_name", { length: 100 }).notNull(),
+  currentValue: text("current_value"),
+  proposedValue: text("proposed_value").notNull(),
+  approvedValue: text("approved_value"),
+  sourceType: varchar("source_type", { length: 80 }),
+  sourceUrl: text("source_url"),
+  sourceSnapshotUrl: text("source_snapshot_url"),
+  evidenceExcerpt: text("evidence_excerpt"),
+  fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+  status: varchar("status", { length: 24 }).notNull().default("needs_review"),
+  reviewNote: text("review_note"),
+  decisionHistory: jsonb("decision_history").$type<ChangeProposalDecision[]>().notNull().default([]),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 export const flags = pgTable("feedback_flags", {
   id: serial("id").primaryKey(),
   userId: integer("user_id"),

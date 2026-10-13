@@ -202,6 +202,6 @@ export function ChangeHistoryWorkspace({ entries, initialFrom, initialTo }: Prop
       </> : <div className="px-5 py-8 text-center text-sm text-[#687970]">Choose a history row to inspect the recorded details.</div>}
     </section>
 
-    <aside className="flex items-start gap-2 rounded-lg border border-[#d8e2dd] bg-[#f5f8f6] px-4 py-3 text-xs leading-relaxed text-[#596a63]"><Info className="mt-0.5 h-4 w-4 shrink-0" />This history reflects actions currently written to the audit log. Pending source-change proposals and approve/reject decisions are not yet stored by the application; historical entries are read-only and are never edited here.</aside>
+    <aside className="flex items-start gap-2 rounded-lg border border-[#d8e2dd] bg-[#f5f8f6] px-4 py-3 text-xs leading-relaxed text-[#596a63]"><Info className="mt-0.5 h-4 w-4 shrink-0" />Proposal decisions are recorded with reviewer, evidence, and note. Historical audit entries remain read-only; use the proposal review panel above to approve or reject pending changes.</aside>
   </div>;
 }
