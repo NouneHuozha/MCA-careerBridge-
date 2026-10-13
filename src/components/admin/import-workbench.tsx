@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { AlertTriangle, ArrowRight, Check, CheckCircle2, ChevronDown, FileSpreadsheet, Info, Save, Upload, X } from "lucide-react";
 import * as ExcelJS from "exceljs";
@@ -104,10 +105,11 @@ export function ImportWorkbench({ knownInstitutionCodes = [], initialDatasetId =
   }
 
   return <div className="space-y-6">
-    <header>
-      <p className="text-xs font-bold uppercase tracking-[.12em] text-[#53665d]">Imports <span className="px-1 text-[#899790]">/</span> New import</p>
+    <header className="flex flex-wrap items-start justify-between gap-4">
+      <div><p className="text-xs font-bold uppercase tracking-[.12em] text-[#53665d]">Imports <span className="px-1 text-[#899790]">/</span> New import</p>
       <h1 className="mt-2 text-3xl font-bold tracking-[-.04em] text-[#142e27] sm:text-4xl">Upload catalogue data</h1>
-      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[#455b51]">Preview workbook data locally, map columns, and inspect issues. Catalogue imports are not connected yet.</p>
+      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[#455b51]">Preview workbook data locally, map columns, and inspect issues. Catalogue imports are not connected yet.</p></div>
+      <Link href="/admin/imports/history" className="inline-flex min-h-10 items-center rounded-lg border border-[#cbd8d2] bg-white px-4 text-sm font-semibold text-[#344e47] hover:bg-[#f3f7f5]">Import history</Link>
     </header>
     <ol className="mx-auto flex max-w-5xl items-center gap-3 px-2 py-1 text-sm" aria-label="Import progress">
       {["Upload", "Map columns", "Review and approve"].map((label, index) => { const n = index + 1; const complete = step > n; const current = step === n; return <li key={label} className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full font-bold ${complete ? "bg-[#d9efe5] text-[#17634b]" : current ? "bg-[#0e6a53] text-white" : "bg-[#e5e9e7] text-[#66746e]"}`}>{complete ? <Check className="h-4 w-4" /> : n}</span><span className={`${current ? "font-bold text-[#172b35]" : "text-[#596a63]"}`}>{label}</span>{index < 2 && <span className={`h-px min-w-5 flex-1 ${step > n ? "bg-[#75b297]" : "bg-[#d5ddda]"}`} />}</li>; })}
