@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 const navItems = [
   { label: "Review queue", href: "/admin", icon: ListChecks, key: "queue" },
-  { label: "Catalogue", href: "/admin/catalogue/institutions", icon: BookOpen, key: "catalogue" },
+  { label: "Catalogue", href: "/admin/catalogue", icon: BookOpen, key: "catalogue" },
   { label: "Sources", href: "/admin/sources", icon: Link2, key: "sources" },
   { label: "Imports", href: "/admin/imports", icon: FileUp, key: "imports" },
   { label: "Change history", href: "/admin/change-history", icon: Clock3, key: "history" },
