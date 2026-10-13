@@ -62,6 +62,7 @@ export default async function AdminEntranceExamsPage({ searchParams }: { searchP
       <Link href="/admin/catalogue/institutions" className="rounded-lg border border-[#d5dfda] bg-white px-3 py-2 text-sm font-semibold text-[#455b51] hover:bg-[#f0f5f2]">Institutions</Link>
       <Link href="/admin/catalogue/courses" className="rounded-lg border border-[#d5dfda] bg-white px-3 py-2 text-sm font-semibold text-[#455b51] hover:bg-[#f0f5f2]">Courses</Link>
       <Link href="/admin/catalogue/exams" aria-current="page" className="rounded-lg border border-[#b8d8c8] bg-[#e3f1e9] px-3 py-2 text-sm font-bold text-[#145c42]">Entrance exams</Link>
+      <Link href="/admin/catalogue/scholarships" className="rounded-lg border border-[#d5dfda] bg-white px-3 py-2 text-sm font-semibold text-[#455b51] hover:bg-[#f0f5f2]">Scholarships</Link>
     </div>
     <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-start">
       <div><p className="text-xs font-bold uppercase tracking-[.12em] text-[#65776e]">Catalogue / Entrance exams</p><h1 className="mt-1 font-serif text-3xl font-semibold tracking-tight text-[#17392f] sm:text-4xl">Entrance exams</h1><p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#53665e]">Maintain eligibility, application periods, dates, and official exam sources.</p></div>

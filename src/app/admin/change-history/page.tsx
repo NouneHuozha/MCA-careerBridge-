@@ -5,7 +5,7 @@ import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { ChangeHistoryWorkspace, type HistoryEntry } from "@/components/admin/change-history-workspace";
 import { db } from "@/db";
 import { auditEvents, users } from "@/db/schema";
-import { getCourses, getInstitutions } from "@/services/catalog";
+import { getCourses, getInstitutions, getScholarships } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Change history · Admin workspace" };
@@ -44,9 +44,10 @@ export default async function AdminChangeHistoryPage() {
   } catch (error) {
     console.warn("[careerbridge] actor names unavailable; using audit actor identifiers", error);
   }
-  const [institutions, courses] = await Promise.all([getInstitutions({}), getCourses()]);
+  const [institutions, courses, scholarships] = await Promise.all([getInstitutions({}), getCourses(), getScholarships()]);
   const namesByCode = new Map(institutions.map((institution) => [institution.code, institution.name]));
   const namesByCourse = new Map(courses.map((course) => [course.slug, course.name]));
+  const namesByScholarship = new Map(scholarships.map((scholarship) => [scholarship.slug, scholarship.name]));
   const entries: HistoryEntry[] = records.map((event) => ({
     id: event.id,
     actor: event.actor ? namesByEmail.get(event.actor.toLowerCase()) ?? actorFallback(event.actor) : "System",
@@ -62,6 +63,8 @@ export default async function AdminChangeHistoryPage() {
           ? namesByCourse.get(event.entityRef) ?? event.entityRef
         : event.entityType === "institution_course" && event.metadata && typeof event.metadata.institutionName === "string" && typeof event.metadata.courseName === "string"
           ? `${event.metadata.institutionName} — ${event.metadata.courseName}`
+        : event.entityType === "scholarship" && event.entityRef
+          ? namesByScholarship.get(event.entityRef) ?? event.entityRef
         : event.entityRef || "Unspecified record",
     metadata: event.metadata ?? {},
     createdAt: event.createdAt.toISOString(),

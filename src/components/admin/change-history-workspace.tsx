@@ -31,6 +31,9 @@ function actionLabel(action: string) {
     course_draft_saved: "Saved course draft",
     institution_course_link_created: "Added institution-course link",
     institution_course_availability_reviewed: "Reviewed course availability",
+    scholarship_created: "Added scholarship draft",
+    scholarship_draft_saved: "Saved scholarship draft",
+    scholarship_marked_verified: "Verified scholarship",
     source_refresh_settings_updated: "Updated source refresh settings",
     source_record_updated: "Updated source details",
   };
@@ -41,6 +44,7 @@ function eventStatus(entry: HistoryEntry): Status {
   const recordedStatus = String(entry.metadata.status ?? entry.metadata.verificationStatus ?? "").toLowerCase();
   const availability = String(entry.metadata.availability ?? "").toLowerCase();
   if (action === "institution_course_availability_reviewed") return ["offered", "not_offered", "historically_offered"].includes(availability) ? "Approved" : "Needs review";
+  if (action === "scholarship_draft_saved" && recordedStatus === "verified") return "Approved";
   if (action.includes("reject") || recordedStatus.includes("rejected")) return "Rejected";
   if (action.includes("detected") || action.includes("proposed") || action.includes("needs_review") || recordedStatus.includes("unverified") || recordedStatus.includes("needs_verification") || recordedStatus.includes("needs_review")) return "Needs review";
   if (action.includes("verified") || action.includes("approved") || recordedStatus === "verified") return "Approved";

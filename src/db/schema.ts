@@ -513,6 +513,7 @@ export const scholarships = pgTable(
     eligibility: text("eligibility"),
     amountNote: text("amount_note"),
     deadlineNote: varchar("deadline_note", { length: 160 }),
+    cycleLabel: varchar("cycle_label", { length: 80 }),
     documents: jsonb("documents").$type<string[]>().default([]),
     officialUrl: text("official_url"),
     appliesToStage: jsonb("applies_to_stage").$type<string[]>().default([]),
