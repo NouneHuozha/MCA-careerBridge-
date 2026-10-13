@@ -856,6 +856,44 @@ export const catalogueChangeProposals = pgTable("catalogue_change_proposals", {
   updatedAt: updatedAt(),
 });
 
+export type SourceConflictEvidence = {
+  sourceTitle: string;
+  sourceType: string;
+  checkedAt: string;
+  valueFound: string;
+  evidenceExcerpt: string;
+  authorityLevel: "primary" | "internal" | "secondary";
+  sourceUrl: string | null;
+  sourceReference: string | null;
+};
+export type SourceConflictDecision = {
+  action: "approve_selected" | "edit_value" | "keep_current" | "keep_pending" | "reject_detected";
+  actor: string;
+  note: string;
+  value: string | null;
+  createdAt: string;
+};
+export const catalogueSourceConflicts = pgTable("catalogue_source_conflicts", {
+  caseKey: varchar("case_key", { length: 120 }).primaryKey(),
+  entityType: varchar("entity_type", { length: 40 }).notNull(),
+  entityRef: varchar("entity_ref", { length: 120 }).notNull(),
+  entityName: varchar("entity_name", { length: 180 }).notNull(),
+  fieldName: varchar("field_name", { length: 100 }).notNull(),
+  currentApprovedValue: text("current_approved_value").notNull(),
+  resolvedValue: text("resolved_value"),
+  detectedAt: timestamp("detected_at", { withTimezone: true }).notNull().defaultNow(),
+  status: varchar("status", { length: 32 }).notNull().default("needs_decision"),
+  sources: jsonb("sources").$type<SourceConflictEvidence[]>().notNull().default([]),
+  isSample: boolean("is_sample").notNull().default(false),
+  reviewNote: text("review_note"),
+  reviewedBy: varchar("reviewed_by", { length: 191 }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  decisionHistory: jsonb("decision_history").$type<SourceConflictDecision[]>().notNull().default([]),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [index("catalogue_source_conflicts_status_idx").on(t.status), index("catalogue_source_conflicts_detected_idx").on(t.detectedAt)]);
+export type SourceConflictRecord = typeof catalogueSourceConflicts.$inferSelect;
+
 export const flags = pgTable("feedback_flags", {
   id: serial("id").primaryKey(),
   userId: integer("user_id"),

@@ -75,3 +75,11 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - `Save draft` upserts a private `scholarship_review_drafts` record and leaves published catalogue values unchanged. `Mark verified` requires cycle context, a provider, stage, deadline or honest confirmation state, eligibility summary, source evidence, reviewer note, and explicit confirmation before publishing the cycle and audit entry.
 - Missing dates, support details, eligibility sections, and documents remain visibly unconfirmed; unreviewed documents are not represented as required. Student-facing pages read the published fields and show source title/retrieval metadata.
 - Apply `src/db/migrations/0006_scholarship_detail_review.sql` before using draft storage or cycle-specific fields in a database-backed environment.
+
+
+## Source conflict resolution (item 21)
+
+- `/admin/change-history/conflicts` and `/admin/change-history/conflicts/[caseKey]` compare source title/type, checked date, value found, evidence excerpt, and an explicit primary/internal/secondary authority hierarchy.
+- No conflicting value is preselected. A reviewer must choose an availability value or edit it to a supported option, add a reason, and confirm evidence review. “Not listed” is not treated as “Not offered”; unresolved records remain unpublished.
+- The Screen 21 example for BCA at Modern College is labeled synthetic. It has no fabricated source links and can write only its sample decision and audit event, never a real catalogue row. Real availability publication is limited to guarded institution-course records and requires a current official-source URL plus a compare-and-set check.
+- Original source rows and the previous approved value remain in the conflict record and decision audit. Apply `src/db/migrations/0007_source_conflict_resolution.sql` to enable the queue and decision actions. The source fetcher/import conflict detector is not implemented and this screen does not invent live conflicts.

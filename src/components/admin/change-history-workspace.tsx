@@ -36,6 +36,7 @@ function actionLabel(action: string) {
     scholarship_marked_verified: "Verified scholarship",
     scholarship_detail_draft_saved: "Saved scholarship detail draft",
     scholarship_detail_marked_verified: "Verified scholarship detail",
+    source_conflict_decision: "Reviewed source conflict",
     source_refresh_settings_updated: "Updated source refresh settings",
     source_record_updated: "Updated source details",
   };
@@ -46,6 +47,8 @@ function eventStatus(entry: HistoryEntry): Status {
   const recordedStatus = String(entry.metadata.status ?? entry.metadata.verificationStatus ?? "").toLowerCase();
   const availability = String(entry.metadata.availability ?? "").toLowerCase();
   if (action === "institution_course_availability_reviewed") return ["offered", "not_offered", "historically_offered"].includes(availability) ? "Approved" : "Needs review";
+  if (action === "source_conflict_decision" && recordedStatus === "needs_decision") return "Needs review";
+  if (action === "source_conflict_decision" && ["resolved", "kept_current"].includes(recordedStatus)) return "Approved";
   if (action === "scholarship_draft_saved" && recordedStatus === "verified") return "Approved";
   if (action.includes("reject") || recordedStatus.includes("rejected")) return "Rejected";
   if (action.includes("detected") || action.includes("proposed") || action.includes("needs_review") || recordedStatus.includes("unverified") || recordedStatus.includes("needs_verification") || recordedStatus.includes("needs_review")) return "Needs review";

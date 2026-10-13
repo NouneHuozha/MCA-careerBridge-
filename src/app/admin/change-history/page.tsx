@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { desc, eq, inArray } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/auth";
@@ -68,6 +69,8 @@ export default async function AdminChangeHistoryPage() {
       ? event.metadata.sourceTitle
       : event.entityType === "institution" && event.entityRef
         ? namesByCode.get(event.entityRef) ?? event.entityRef
+      : event.entityType === "source_conflict" && typeof event.metadata?.entityName === "string"
+        ? event.metadata.entityName
       : event.entityType === "course" && event.entityRef
           ? namesByCourse.get(event.entityRef) ?? event.entityRef
         : event.entityType === "institution_course" && event.metadata && typeof event.metadata.institutionName === "string" && typeof event.metadata.courseName === "string"
@@ -81,5 +84,5 @@ export default async function AdminChangeHistoryPage() {
   const now = new Date();
   const from = new Date(now.getFullYear(), now.getMonth(), 1);
   const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return <AdminPortalShell active="history" breadcrumb="Change history"><div className="space-y-5"><PendingChangeProposals available={proposalStoreAvailable} proposals={pendingProposals.map((proposal) => ({ id: proposal.id, entityName: proposal.entityName, fieldName: proposal.fieldName, currentValue: proposal.currentValue, proposedValue: proposal.proposedValue, sourceUrl: proposal.sourceUrl, fetchedAt: proposal.fetchedAt.toISOString() }))} /><ChangeHistoryWorkspace entries={entries} initialFrom={dateOnly(from)} initialTo={dateOnly(to)} /></div></AdminPortalShell>;
+  return <AdminPortalShell active="history" breadcrumb="Change history"><div className="space-y-5"><PendingChangeProposals available={proposalStoreAvailable} proposals={pendingProposals.map((proposal) => ({ id: proposal.id, entityName: proposal.entityName, fieldName: proposal.fieldName, currentValue: proposal.currentValue, proposedValue: proposal.proposedValue, sourceUrl: proposal.sourceUrl, fetchedAt: proposal.fetchedAt.toISOString() }))} /><Link href="/admin/change-history/conflicts" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#d7e1dc] bg-white p-4 shadow-sm transition hover:border-[#a9c8b9] hover:bg-[#f8fbf9] sm:px-5"><div><p className="text-xs font-bold uppercase tracking-wide text-[#65776e]">Screen 21 · Conflict review</p><h2 className="mt-1 font-bold text-[#172b35]">Conflicting source values</h2><p className="mt-1 text-sm text-[#596a63]">Compare source authority, dates and evidence before recording an explicit decision.</p></div><span className="inline-flex min-h-10 items-center rounded-lg bg-[#145c42] px-4 text-sm font-bold text-white">Open conflict queue</span></Link><ChangeHistoryWorkspace entries={entries} initialFrom={dateOnly(from)} initialTo={dateOnly(to)} /></div></AdminPortalShell>;
 }
