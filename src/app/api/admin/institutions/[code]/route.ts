@@ -26,6 +26,21 @@ export async function PATCH(request: Request, context: { params: Promise<{ code:
     const institution = existing[0];
     if (!institution) return NextResponse.json({ error: "Institution not found." }, { status: 404 });
 
+    if (input.action === "save_draft") {
+      const reviewNote = typeof input.reviewNote === "string" ? input.reviewNote.trim() : "";
+      const sourceUrl = typeof input.sourceUrl === "string" ? input.sourceUrl.trim() : "";
+      if (reviewNote.length < 8 || reviewNote.length > 500) return NextResponse.json({ error: "Add a reviewer note between 8 and 500 characters." }, { status: 400 });
+      if (sourceUrl && !isHttpUrl(sourceUrl)) return NextResponse.json({ error: "Evidence URL must be valid HTTP or HTTPS." }, { status: 400 });
+      await db.insert(auditEvents).values({
+        actor: user.email,
+        action: "institution_review_draft_saved",
+        entityType: "institution",
+        entityRef: code,
+        metadata: { reviewNote, sourceUrl: sourceUrl || null, verificationStatusUnchanged: institution.verificationStatus },
+      });
+      return NextResponse.json({ ok: true, saved: "review_note", verificationStatus: institution.verificationStatus });
+    }
+
     if (input.action === "add_source") {
       const title = typeof input.title === "string" ? input.title.trim() : "";
       const sourceType = typeof input.sourceType === "string" ? input.sourceType : "";

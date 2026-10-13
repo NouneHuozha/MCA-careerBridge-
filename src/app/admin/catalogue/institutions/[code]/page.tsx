@@ -42,7 +42,10 @@ export default async function AdminInstitutionPage({ params }: { params: Promise
       institution={{
         code: institution.code, name: institution.name, type: institution.type, ownership: institution.ownership,
         state: institution.state, country: institution.country, district: institution.district, city: institution.city,
+        latitude: institution.latitude, longitude: institution.longitude,
         officialWebsite: institution.officialWebsite, admissionPortal: institution.admissionPortal,
+        contactEmail: institution.contactEmail, contactPhone: institution.contactPhone,
+        studyLevels: institution.studyLevels ?? [], fieldSlugs: institution.fieldSlugs ?? [], feeRangeNote: institution.feeRangeNote,
         hostelAvailable: institution.hostelAvailable, admissionStatus: institution.admissionStatus,
         about: institution.about, datasetLabel: institution.datasetLabel, verificationStatus: institution.verificationStatus,
         sourceUrl: institution.sourceUrl, lastVerifiedAt: institution.lastVerifiedAt?.toISOString() ?? null,

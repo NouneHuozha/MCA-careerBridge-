@@ -19,7 +19,7 @@ export async function GET() {
     return NextResponse.json({ preferences: record?.settingValue ?? defaults, updatedAt: record?.updatedAt.toISOString() ?? null });
   } catch (error) {
     console.error("[careerbridge] admin settings read failed", error);
-    return NextResponse.json({ error: "Settings storage is unavailable. Apply migration 0003_admin_workspace_settings.sql." }, { status: 503 });
+    return NextResponse.json({ error: "Settings storage is unavailable. Apply migration 0004_admin_workspace_settings.sql." }, { status: 503 });
   }
 }
 
@@ -47,6 +47,6 @@ export async function PUT(request: Request) {
     return NextResponse.json({ ok: true, preferences, updatedAt: updatedAt.toISOString(), schedulerConnected: false });
   } catch (error) {
     console.error("[careerbridge] admin settings update failed", error);
-    return NextResponse.json({ error: "Could not save settings. Confirm migration 0003_admin_workspace_settings.sql has been applied." }, { status: 503 });
+    return NextResponse.json({ error: "Could not save settings. Confirm migration 0004_admin_workspace_settings.sql has been applied." }, { status: 503 });
   }
 }

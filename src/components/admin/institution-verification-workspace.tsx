@@ -7,7 +7,9 @@ import { AlertTriangle, ArrowUpRight, Check, CheckCircle2, Clock3, ExternalLink,
 
 type Institution = {
   code: string; name: string; type: string; ownership: string; state: string; country: string;
-  district: string; city: string | null; officialWebsite: string | null; admissionPortal: string | null;
+  district: string; city: string | null; latitude: number | null; longitude: number | null;
+  officialWebsite: string | null; admissionPortal: string | null; contactEmail: string | null; contactPhone: string | null;
+  studyLevels: string[]; fieldSlugs: string[]; feeRangeNote: string | null;
   hostelAvailable: string; admissionStatus: string; about: string | null; datasetLabel: string;
   verificationStatus: string; sourceUrl: string | null; lastVerifiedAt: string | null;
   isFresh: boolean;
@@ -35,7 +37,7 @@ function RecordStatus({ status }: { status: string }) {
   return <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${good ? "bg-[#e8f5ef] text-[#1b7254]" : bad ? "bg-[#fff0ef] text-[#a44a42]" : "bg-[#fff5df] text-[#8a641a]"}`}><span className="h-1.5 w-1.5 rounded-full bg-current" />{statusLabel(status)}</span>;
 }
 function FieldRow({ label, value, href }: { label: string; value: string | null; href?: string | null }) {
-  const safeHref = safeExternalUrl(href);
+  const safeHref = href && /^(mailto:|tel:)/i.test(href) ? href : safeExternalUrl(href);
   return <div className="grid gap-1.5 border-b border-[#e2e9e5] py-3.5 sm:grid-cols-[minmax(140px,.7fr)_minmax(0,1.5fr)] sm:items-start sm:gap-5">
     <span className="text-sm font-semibold text-[#53665d]">{label}</span>
     <span className="min-w-0 break-words text-[15px] font-semibold leading-relaxed text-[#263d32]">{safeHref && value ? <a href={safeHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[#145c42] underline decoration-[#92b8a4] underline-offset-2">{value}<ExternalLink aria-hidden className="h-4 w-4 shrink-0" /><span className="sr-only">(opens in a new tab)</span></a> : value || <span className="font-medium text-[#53665d]">Not currently available</span>}</span>
@@ -63,13 +65,15 @@ export function InstitutionVerificationWorkspace({ institution, courses, admissi
   const isVerified = verified.has(institution.verificationStatus);
   const checked = institution.isFresh;
   const checklist = useMemo(() => [
-    { label: "Identity and location", complete: Boolean(institution.name && institution.district && institution.state) },
-    { label: "Official website", complete: Boolean(institution.officialWebsite) },
-    { label: "Current course offerings", complete: courses.length > 0 && courses.every((course) => verified.has(course.verificationStatus)) },
-    { label: "Admission process", complete: admissions.some((entry) => verified.has(entry.verificationStatus) && Boolean(entry.process?.length)) },
-    { label: "Fees and dates", complete: admissions.some((entry) => verified.has(entry.verificationStatus) && Boolean(entry.feesNote || entry.importantDates?.length)) },
-    { label: "Hostel information", complete: institution.hostelAvailable !== "unknown" && checked },
-  ], [institution, courses, admissions, checked]);
+    { label: "Identity and name", complete: false },
+    { label: "Location and district", complete: false },
+    { label: "Official website", complete: Boolean(institution.officialWebsite && sources.some((source) => source.url === institution.officialWebsite && verified.has(source.status ?? ""))) },
+    { label: "Admission portal", complete: Boolean(institution.admissionPortal && sources.some((source) => source.url === institution.admissionPortal && verified.has(source.status ?? ""))) },
+    { label: "Contact details", complete: false },
+    { label: "Hostel information", complete: false },
+    { label: "Course links", complete: courses.length > 0 && courses.every((course) => verified.has(course.verificationStatus)) },
+    { label: "Sources and evidence", complete: sources.some((source) => verified.has(source.status ?? "")) },
+  ], [institution, courses, sources]);
   const completeCount = checklist.filter((item) => item.complete).length;
 
   async function markVerified(event: React.FormEvent<HTMLFormElement>) {
@@ -87,6 +91,27 @@ export function InstitutionVerificationWorkspace({ institution, courses, admissi
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to save verification."); setMessageError(true);
+    } finally { setBusy(false); }
+  }
+
+  async function saveDraft() {
+    if (reviewNote.trim().length < 8) {
+      setMessage("Add a reviewer note of at least 8 characters before saving a draft.");
+      setMessageError(true);
+      return;
+    }
+    setBusy(true); setMessage(""); setMessageError(false);
+    try {
+      const response = await fetch(`/api/admin/institutions/${encodeURIComponent(institution.code)}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save_draft", sourceUrl, reviewNote }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "Unable to save review draft.");
+      setMessage("Review note saved as a draft. Institution data and student-facing status are unchanged.");
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to save review draft."); setMessageError(true);
     } finally { setBusy(false); }
   }
 
@@ -112,6 +137,13 @@ export function InstitutionVerificationWorkspace({ institution, courses, admissi
     <div className="mb-4 flex flex-wrap items-center gap-2 text-sm font-medium text-[#53665e]"><Link href="/admin" className="hover:text-[#145c42]">Admin</Link><span aria-hidden className="text-[#89978f]">/</span><Link href="/admin/catalogue/institutions" className="hover:text-[#145c42]">Institutions</Link><span aria-hidden className="text-[#89978f]">/</span><span className="font-semibold text-[#263d32]">{institution.name}</span></div>
     <header className="flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0"><div className="flex flex-wrap items-center gap-3"><h1 className="text-3xl font-bold tracking-[-.04em] text-[#142e27] sm:text-4xl">{institution.name}</h1><RecordStatus status={checked ? institution.verificationStatus : isVerified ? "needs_verification" : institution.verificationStatus} /></div><p className="mt-2 text-base font-medium text-[#42584e]">{institution.city ? `${institution.city}, ` : ""}{institution.district}, {institution.state}</p><p className="mt-1 text-sm text-[#53665e]">Institution record · Last checked {institution.lastVerifiedAt ? dateLabel(institution.lastVerifiedAt) : "Never"}</p><p className="mt-2 inline-flex rounded-md bg-[#e9efec] px-2.5 py-1 text-xs font-semibold text-[#42584e]">{institution.code} <span className="mx-1.5 text-[#718078]">·</span> {institution.datasetLabel}</p></div>
+      <p className="w-full text-sm text-[#53665e]">Review identity, location, admission details, and evidence before publishing.</p>
+      <div className="ml-auto flex flex-wrap items-center gap-2">
+        <Link href="/admin/catalogue/institutions" className="inline-flex min-h-10 items-center rounded-lg border border-[#cbd8d2] bg-white px-4 text-sm font-semibold text-[#344e47]">Back</Link>
+        <button type="button" onClick={saveDraft} disabled={busy || reviewNote.trim().length < 8} className="inline-flex min-h-10 items-center rounded-lg border border-[#cbd8d2] bg-white px-4 text-sm font-semibold text-[#344e47] disabled:opacity-50">Save draft</button>
+        <button type="submit" form="verification-form" disabled={busy || !confirmEvidence || !reviewNote.trim() || !sourceUrl.trim()} className="inline-flex min-h-10 items-center rounded-lg bg-[#12664f] px-4 text-sm font-bold text-white disabled:opacity-50">Mark verified</button>
+        <details className="relative"><summary className="flex min-h-10 cursor-pointer list-none items-center rounded-lg border border-[#cbd8d2] bg-white px-4 text-sm font-semibold text-[#344e47]">More</summary><div className="absolute right-0 z-10 mt-1 min-w-44 rounded-lg border border-[#d7e1dc] bg-white p-2 shadow-lg"><button type="button" onClick={() => setTab("history")} className="w-full rounded-md px-3 py-2 text-left text-sm text-[#344e47] hover:bg-[#f3f6f4]">View change history</button></div></details>
+      </div>
     </header>
 
     <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(350px,.8fr)]">
@@ -123,9 +155,28 @@ export function InstitutionVerificationWorkspace({ institution, courses, admissi
           <FieldRow label="District / city" value={`${institution.district}${institution.city ? ` · ${institution.city}` : ""}, ${institution.state}`} />
           <FieldRow label="Official website" value={institution.officialWebsite} href={institution.officialWebsite} />
           <FieldRow label="Application link" value={institution.admissionPortal} href={institution.admissionPortal} />
+          <FieldRow label="Contact email" value={institution.contactEmail} href={institution.contactEmail ? `mailto:${institution.contactEmail}` : null} />
+          <FieldRow label="Contact phone" value={institution.contactPhone} href={institution.contactPhone ? `tel:${institution.contactPhone}` : null} />
           <FieldRow label="Hostel information" value={institution.hostelAvailable === "unknown" ? null : statusLabel(institution.hostelAvailable)} />
           <div className="mt-4 flex gap-3 rounded-xl border border-[#cbd8d2] bg-[#f1f5f3] p-4 text-sm leading-relaxed text-[#42584e]"><Info aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-[#52665d]" /><p><strong>Read-only:</strong> descriptive fields cannot be edited here yet. Verification changes status only; it does not silently modify catalogue content.</p></div>
         </section>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          <section className="rounded-xl border border-[#d4dfda] bg-white p-5 shadow-sm" aria-labelledby="location-heading">
+            <h2 id="location-heading" className="text-base font-bold text-[#213c32]">Location</h2>
+            <p className="mt-3 text-sm font-semibold text-[#344b41]">{institution.city ? `${institution.city}, ` : ""}{institution.district}, {institution.state}</p>
+            <p className="mt-2 text-sm text-[#53665e]">Coordinates: {institution.latitude !== null && institution.longitude !== null ? `${institution.latitude}, ${institution.longitude} · Needs verification` : "Needs verification"}</p>
+            <div className="mt-4 rounded-lg border border-dashed border-[#cbd9d2] bg-[#f5f8f6] p-4 text-sm text-[#53665e]">Location preview unavailable until coordinates are verified.</div>
+            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${institution.city ? `${institution.city}, ` : ""}${institution.district}, ${institution.state}`)}`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-9 items-center text-sm font-semibold text-[#145c42] underline">Open map <span className="sr-only">(opens in a new tab)</span></a>
+          </section>
+          <section className="rounded-xl border border-[#d4dfda] bg-white p-5 shadow-sm" aria-labelledby="facts-heading">
+            <h2 id="facts-heading" className="text-base font-bold text-[#213c32]">Institution facts</h2>
+            <FieldRow label="Study levels" value={institution.studyLevels.length ? institution.studyLevels.map(statusLabel).join(", ") : "Not currently verified"} />
+            <FieldRow label="Fields offered" value={institution.fieldSlugs.length ? institution.fieldSlugs.map((field) => statusLabel(field.replaceAll("-", " "))).join(", ") : "Not currently verified"} />
+            <FieldRow label="Admission status" value={institution.admissionStatus === "unknown" ? "Not currently verified" : statusLabel(institution.admissionStatus)} />
+            <FieldRow label="Fee note" value={institution.feeRangeNote || "Not currently verified"} />
+          </section>
+        </div>
 
         <section className="overflow-hidden rounded-xl border border-[#dfe7e4] bg-white">
           <div role="tablist" aria-label="Institution review sections" className="flex gap-1 overflow-x-auto border-b border-[#dce5e0] bg-[#f3f6f4] px-3 pt-2">
