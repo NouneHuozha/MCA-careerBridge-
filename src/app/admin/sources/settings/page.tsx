@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { SourceRefreshSettings } from "@/components/admin/source-refresh-settings";
 import { db } from "@/db";
@@ -14,7 +14,7 @@ type Props = { searchParams: Promise<{ sourceKey?: string }> };
 
 export default async function AdminSourceRefreshSettingsPage({ searchParams }: Props) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/sources")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/sources"));
   if (user.role !== "admin") redirect("/");
 
   const query = await searchParams;

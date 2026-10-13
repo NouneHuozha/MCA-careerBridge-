@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { ImportWorkbench, type ImportDataset } from "@/components/admin/import-workbench";
 import { getInstitutions } from "@/services/catalog";
@@ -9,7 +9,7 @@ export const metadata = { title: "Imports · Admin workspace" };
 
 export default async function AdminImportsPage({ searchParams }: { searchParams: Promise<{ dataset?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/imports")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/imports"));
   if (user.role !== "admin") redirect("/");
   const params = await searchParams;
   const datasets: ImportDataset[] = ["institutions", "courses", "institution_courses", "pathways", "entrance_exams", "scholarships", "opportunities"];

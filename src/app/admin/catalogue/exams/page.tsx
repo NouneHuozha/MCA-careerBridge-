@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertTriangle, ArrowDownUp, BookOpen, CheckCircle2, ChevronLeft, ChevronRight, ExternalLink, FileUp, Search, XCircle } from "lucide-react";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { AddExamDialog } from "@/components/admin/add-exam-dialog";
 import { getExams } from "@/services/catalog";
@@ -28,7 +28,7 @@ function hrefFor(params: Record<string, string | undefined>) {
 
 export default async function AdminEntranceExamsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/exams")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/catalogue/exams"));
   if (user.role !== "admin") redirect("/");
   const params = await searchParams;
   const get = (key: string) => typeof params[key] === "string" ? params[key] as string : "";

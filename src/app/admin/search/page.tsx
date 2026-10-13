@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowUpRight, Search } from "lucide-react";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { getAdminSourceRegistry } from "@/services/admin-sources";
 import { searchEverything } from "@/services/catalog";
@@ -13,7 +13,7 @@ type Props = { searchParams: Promise<{ q?: string }> };
 
 export default async function AdminSearchPage({ searchParams }: Props) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/search")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/search"));
   if (user.role !== "admin") redirect("/");
 
   const params = await searchParams;

@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { ScholarshipReviewWorkspace } from "@/components/admin/scholarship-review-workspace";
 import { db } from "@/db";
@@ -24,7 +24,7 @@ function dateInput(value: Date | string | null | undefined) {
 export default async function AdminScholarshipDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent(`/admin/catalogue/scholarships/${slug}`)}`);
+  if (!user) redirect(await getAdminAuthRedirect(`/admin/catalogue/scholarships/${slug}`));
   if (user.role !== "admin") notFound();
   const scholarship = (await getScholarships()).find((item) => item.slug === slug);
   if (!scholarship) notFound();

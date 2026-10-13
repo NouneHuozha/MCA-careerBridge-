@@ -2,7 +2,7 @@ import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { AlertTriangle, ArrowLeft, ArrowRight, ExternalLink, Search } from "lucide-react";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { db } from "@/db";
 import { catalogueChangeProposals } from "@/db/schema";
@@ -14,7 +14,7 @@ const statusNames: Record<string, string> = { needs_review: "Needs review", appr
 
 export default async function ProposedChangesQueuePage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/change-history/proposed")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/change-history/proposed"));
   if (user.role !== "admin") redirect("/");
   const params = await searchParams;
   const selectedStatus = ["needs_review", "approved", "kept_current", "rejected", "all"].includes(params.status ?? "") ? params.status ?? "needs_review" : "needs_review";

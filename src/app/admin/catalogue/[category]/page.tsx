@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, ExternalLink, FileText, Search } from "lucide-react";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { db } from "@/db";
 import { admissionInformation } from "@/db/schema";
@@ -15,7 +15,7 @@ const pretty = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, (l
 
 export default async function AdminCatalogCategoryPage({ params, searchParams }: { params: Promise<{ category: string }>; searchParams: Promise<{ q?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/catalogue"));
   if (user.role !== "admin") redirect("/");
   const [{ category }, query] = await Promise.all([params, searchParams]);
   if (category === "opportunities") redirect("/admin/catalogue/pathways?tab=opportunities");

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { desc, eq, inArray } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { ChangeHistoryWorkspace, type HistoryEntry } from "@/components/admin/change-history-workspace";
 import { PendingChangeProposals } from "@/components/admin/pending-change-proposals";
@@ -27,7 +27,7 @@ function dateOnly(date: Date) {
 
 export default async function AdminChangeHistoryPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/change-history")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/change-history"));
   if (user.role !== "admin") redirect("/");
 
   let records: (typeof auditEvents.$inferSelect)[] = [];

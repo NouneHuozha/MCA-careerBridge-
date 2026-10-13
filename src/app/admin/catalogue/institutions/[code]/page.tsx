@@ -2,7 +2,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { InstitutionVerificationWorkspace } from "@/components/admin/institution-verification-workspace";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { db } from "@/db";
 import { auditEvents } from "@/db/schema";
 import { getAdmissionInfo, getCourses, getInstitution, getInstitutionLinks, getInstitutionSources } from "@/services/catalog";
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
 export default async function AdminInstitutionPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent(`/admin/catalogue/institutions/${code}`)}`);
+  if (!user) redirect(await getAdminAuthRedirect(`/admin/catalogue/institutions/${code}`));
   if (user.role !== "admin") notFound();
 
   const institution = await getInstitution(code);

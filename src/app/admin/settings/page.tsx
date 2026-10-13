@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { inArray } from "drizzle-orm";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { AdminSettingsWorkspace } from "@/components/admin/admin-settings-workspace";
 import { db } from "@/db";
@@ -14,7 +14,7 @@ const defaults = { refreshFrequency: "weekly", automaticRefresh: false, reviewFi
 
 export default async function AdminSettingsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/settings")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/settings"));
   if (user.role !== "admin") redirect("/");
   let initialPreferences = defaults;
   let team: { id: number; name: string | null; email: string; role: string; createdAt: string }[] = [];

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { AlertTriangle, ArrowLeft, Clock3, ExternalLink, FileText } from "lucide-react";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { ChangeProposalDecisionForm } from "@/components/admin/change-proposal-decision-form";
 import { db } from "@/db";
@@ -18,7 +18,7 @@ const statusLabel = (status: string) => status === "needs_review" ? "Needs revie
 
 export default async function ProposedChangeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/change-history")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/change-history"));
   if (user.role !== "admin") redirect("/");
   const id = Number((await params).id);
   if (!Number.isSafeInteger(id) || id < 1) notFound();

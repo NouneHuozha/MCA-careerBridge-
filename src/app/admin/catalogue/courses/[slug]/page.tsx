@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { CourseReviewWorkspace } from "@/components/admin/course-review-workspace";
 import { getCourse, getFields, getInstitutionLinksForCourse, getInstitutions } from "@/services/catalog";
@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function AdminCoursePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent(`/admin/catalogue/courses/${slug}`)}`);
+  if (!user) redirect(await getAdminAuthRedirect(`/admin/catalogue/courses/${slug}`));
   if (user.role !== "admin") notFound();
   const course = await getCourse(slug);
   if (!course) notFound();

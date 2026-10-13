@@ -1,7 +1,7 @@
 import { desc, inArray } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { FeedbackFlagsWorkspace, type FeedbackFlagRow } from "@/components/admin/feedback-flags-workspace";
 import { db } from "@/db";
@@ -13,7 +13,7 @@ export const metadata = { title: "Feedback flags · Admin workspace" };
 
 export default async function AdminFeedbackFlagsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/feedback-flags")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/feedback-flags"));
   if (user.role !== "admin") redirect("/");
   let records: (typeof flags.$inferSelect)[] = [];
   let storageAvailable = true;

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { InstitutionCourseLinksWorkspace } from "@/components/admin/institution-course-links-workspace";
 import { getAllInstitutionCourseLinks, getCourses, getInstitutions } from "@/services/catalog";
@@ -9,7 +9,7 @@ export const metadata = { title: "Course availability by institution · Admin ca
 
 export default async function InstitutionCourseLinksPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/institution-courses")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/catalogue/institution-courses"));
   if (user.role !== "admin") redirect("/");
   const [links, institutions, courses] = await Promise.all([getAllInstitutionCourseLinks(), getInstitutions({}), getCourses({})]);
   const institutionByCode = new Map(institutions.map((item) => [item.code, item]));

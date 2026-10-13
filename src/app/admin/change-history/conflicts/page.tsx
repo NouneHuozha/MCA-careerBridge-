@@ -2,7 +2,7 @@ import Link from "next/link";
 import { desc } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { AlertTriangle, ArrowLeft, ArrowRight, GitCompareArrows } from "lucide-react";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { db } from "@/db";
 import { catalogueSourceConflicts } from "@/db/schema";
@@ -15,7 +15,7 @@ const statusLabel = (value: string) => value === "needs_decision" ? "Needs decis
 
 export default async function SourceConflictsQueuePage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/change-history/conflicts")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/change-history/conflicts"));
   if (user.role !== "admin") redirect("/");
   let conflicts: (typeof catalogueSourceConflicts.$inferSelect)[] = [];
   let storeAvailable = true;

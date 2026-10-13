@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { ExamReviewWorkspace } from "@/components/admin/exam-review-workspace";
 import { getExam } from "@/services/catalog";
@@ -23,7 +23,7 @@ function stringArray(value: unknown, fallback: string[] = []) { return Array.isA
 export default async function AdminEntranceExamDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent(`/admin/catalogue/exams/${slug}`)}`);
+  if (!user) redirect(await getAdminAuthRedirect(`/admin/catalogue/exams/${slug}`));
   if (user.role !== "admin") notFound();
   const exam = await getExam(slug);
   if (!exam) notFound();

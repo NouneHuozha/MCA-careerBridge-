@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { AdmissionInformationEditor } from "@/components/admin/admission-information-editor";
 import { db } from "@/db";
@@ -14,7 +14,7 @@ type SearchParams = Promise<{ recordId?: string; draftId?: string }>;
 
 export default async function AdminAdmissionInformationPage({ params, searchParams }: { params: Promise<{ code: string }>; searchParams: SearchParams }) {
   const [{ code }, query, user] = await Promise.all([params, searchParams, getCurrentUser()]);
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent(`/admin/catalogue/institutions/${code}/admission`)}`);
+  if (!user) redirect(await getAdminAuthRedirect(`/admin/catalogue/institutions/${code}/admission`));
   if (user.role !== "admin") notFound();
   const institution = await getInstitution(code);
   if (!institution) notFound();

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertCircle, ArrowRight, Award, Building2, ChevronRight, FileText, FileUp, GitBranch, GraduationCap, Info, Link2, Plus, Search } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { db } from "@/db";
 import { admissionInformation } from "@/db/schema";
@@ -33,7 +33,7 @@ function AddRecordMenu() {
 
 export default async function AdminCatalogueOverview({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/catalogue"));
   if (user.role !== "admin") redirect("/");
   const { q: rawQuery } = await searchParams;
   const q = rawQuery?.trim().slice(0, 120) ?? "";

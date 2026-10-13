@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowDownUp, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Ellipsis, FileUp, GraduationCap, Info, Search, Upload } from "lucide-react";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AddCourseDialog } from "@/components/admin/add-course-dialog";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { getAllInstitutionCourseLinks, getCourses, getFields } from "@/services/catalog";
@@ -67,7 +67,7 @@ function titleCase(value: string) { return value.replaceAll("_", " ").replace(/\
 
 export default async function AdminCoursesPage({ searchParams }: { searchParams: Params }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/courses")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/catalogue/courses"));
   if (user.role !== "admin") redirect("/");
   const params = await searchParams;
   const [allCourses, fields, institutionCourseLinks] = await Promise.all([getCourses(), getFields(), getAllInstitutionCourseLinks()]);

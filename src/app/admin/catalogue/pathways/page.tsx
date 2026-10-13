@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { PathwaysOpportunitiesWorkspace } from "@/components/admin/pathways-opportunities-workspace";
 import { getAllInstitutionCourseLinks, getCourses, getExams, getFields, getOpportunities, getPathways } from "@/services/catalog";
@@ -9,7 +9,7 @@ export const metadata = { title: "Pathways and opportunities · Admin workspace"
 
 export default async function AdminPathwaysPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/pathways")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/catalogue/pathways"));
   if (user.role !== "admin") redirect("/");
   const [{ tab }, pathways, opportunities, courses, institutionLinks, fields, exams] = await Promise.all([
     searchParams,

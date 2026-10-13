@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { AlertTriangle, ArrowLeft, ExternalLink, FileText, ShieldCheck } from "lucide-react";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { SourceConflictReviewPanel } from "@/components/admin/source-conflict-review-panel";
 import { db } from "@/db";
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ caseKey: 
 }
 export default async function SourceConflictDetailPage({ params }: { params: Promise<{ caseKey: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/change-history/conflicts")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/change-history/conflicts"));
   if (user.role !== "admin") redirect("/");
   const { caseKey } = await params;
   let conflict: typeof catalogueSourceConflicts.$inferSelect | null = null;

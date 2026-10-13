@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { AddScholarshipDialog } from "@/components/admin/add-scholarship-dialog";
 import { ScholarshipsCatalogueWorkspace } from "@/components/admin/scholarships-catalogue-workspace";
@@ -11,7 +11,7 @@ export const metadata = { title: "Scholarships · Admin catalogue" };
 
 export default async function AdminScholarshipsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/scholarships")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/catalogue/scholarships"));
   if (user.role !== "admin") redirect("/");
   const scholarships = await getScholarships();
   return <AdminPortalShell active="catalogue" breadcrumb="Catalogue / Scholarships">

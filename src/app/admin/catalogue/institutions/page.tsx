@@ -8,7 +8,7 @@ import {
   Upload,
 } from "lucide-react";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AddInstitutionDialog } from "@/components/admin/add-institution-dialog";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { db } from "@/db";
@@ -98,7 +98,7 @@ function matchesLastChecked(date: Date | null, filter: string) {
 
 export default async function AdminInstitutionsPage({ searchParams }: { searchParams: SearchParams }) {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin/catalogue/institutions")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin/catalogue/institutions"));
   if (user.role !== "admin") redirect("/");
 
   const params = await searchParams;

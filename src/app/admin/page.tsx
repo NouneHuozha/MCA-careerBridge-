@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { desc, inArray } from "drizzle-orm";
-import { getCurrentUser } from "@/auth";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
 import { db } from "@/db";
 import {
@@ -131,7 +131,7 @@ function issuePill(tone: QueueItem["tone"], issue: string) {
 
 export default async function AdminPage() {
   const user = await getCurrentUser();
-  if (!user) redirect(`/admin/login?next=${encodeURIComponent("/admin")}`);
+  if (!user) redirect(await getAdminAuthRedirect("/admin"));
   if (user.role !== "admin") redirect("/");
 
   const [institutions, courses, exams, scholarships, opportunities] = await Promise.all([
