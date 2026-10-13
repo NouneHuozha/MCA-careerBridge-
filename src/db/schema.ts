@@ -557,6 +557,29 @@ export const entranceExams = pgTable(
   (t) => [uniqueIndex("entrance_exams_slug_idx").on(t.slug)],
 );
 
+export type ScholarshipEditorPayload = {
+  name: string;
+  provider: string;
+  category: string;
+  eligibility: string;
+  academicConditions: string;
+  incomeCategoryConditions: string;
+  residencyConditions: string;
+  otherConditions: string;
+  amountNote: string;
+  tuitionSupport: string;
+  maintenanceSupport: string;
+  renewalNote: string;
+  deadlineNote: string;
+  cycleLabel: string;
+  documents: { label: string; status: "required" | "not_confirmed" | "not_required" }[];
+  officialUrl: string;
+  sourceUrl: string;
+  sourceTitle: string;
+  sourceRetrievedAt: string;
+  appliesToStage: string[];
+};
+
 export const scholarships = pgTable(
   "scholarships",
   {
@@ -566,17 +589,40 @@ export const scholarships = pgTable(
     provider: varchar("provider", { length: 160 }),
     category: varchar("category", { length: 80 }),
     eligibility: text("eligibility"),
+    academicConditions: text("academic_conditions"),
+    incomeCategoryConditions: text("income_category_conditions"),
+    residencyConditions: text("residency_conditions"),
+    otherConditions: text("other_conditions"),
     amountNote: text("amount_note"),
+    tuitionSupport: text("tuition_support"),
+    maintenanceSupport: text("maintenance_support"),
+    renewalNote: text("renewal_note"),
     deadlineNote: varchar("deadline_note", { length: 160 }),
     cycleLabel: varchar("cycle_label", { length: 80 }),
     documents: jsonb("documents").$type<string[]>().default([]),
+    documentStatus: jsonb("document_status").$type<Record<string, "required" | "not_confirmed" | "not_required">>().notNull().default({}),
     officialUrl: text("official_url"),
+    sourceTitle: varchar("source_title", { length: 180 }),
+    sourceRetrievedAt: timestamp("source_retrieved_at", { withTimezone: true }),
     appliesToStage: jsonb("applies_to_stage").$type<string[]>().default([]),
     sourceUrl: text("source_url"),
     verificationStatus: varchar("verification_status", { length: 32 }).notNull().default("needs_verification"),
     lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),
   },
   (t) => [uniqueIndex("scholarships_slug_idx").on(t.slug)],
+);
+
+export const scholarshipReviewDrafts = pgTable(
+  "scholarship_review_drafts",
+  {
+    id: serial("id").primaryKey(),
+    scholarshipSlug: varchar("scholarship_slug", { length: 64 }).notNull(),
+    payload: jsonb("payload").$type<ScholarshipEditorPayload>().notNull(),
+    savedBy: varchar("saved_by", { length: 191 }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("scholarship_review_drafts_slug_idx").on(t.scholarshipSlug)],
 );
 
 export const opportunities = pgTable(

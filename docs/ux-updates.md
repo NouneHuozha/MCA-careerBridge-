@@ -67,3 +67,11 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - Verification requires a named cycle, application period, exam date, eligibility summary, conducting body, valid HTTP(S) official source, reviewer note, and explicit evidence confirmation. Unknown details can be recorded as “Not currently confirmed”; absence from the document list never implies “not required.”
 - Draft saves and verification decisions are added to audit history. Marking verified publishes only that cycle's reviewed values; dates from separate cycles are not combined.
 - Apply `src/db/migrations/0005_entrance_exam_review_details.sql` before using the cycle-specific fields or draft endpoint in a database-backed environment.
+
+
+## Scholarship detail review (item 20)
+
+- `/admin/catalogue/scholarships/[slug]` reviews provider, category, education stages, cycle, deadline, eligibility sections, support, document statuses, source metadata, and the reviewer checklist.
+- `Save draft` upserts a private `scholarship_review_drafts` record and leaves published catalogue values unchanged. `Mark verified` requires cycle context, a provider, stage, deadline or honest confirmation state, eligibility summary, source evidence, reviewer note, and explicit confirmation before publishing the cycle and audit entry.
+- Missing dates, support details, eligibility sections, and documents remain visibly unconfirmed; unreviewed documents are not represented as required. Student-facing pages read the published fields and show source title/retrieval metadata.
+- Apply `src/db/migrations/0006_scholarship_detail_review.sql` before using draft storage or cycle-specific fields in a database-backed environment.

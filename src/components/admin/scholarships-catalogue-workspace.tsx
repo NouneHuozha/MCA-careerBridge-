@@ -43,7 +43,7 @@ export function ScholarshipsCatalogueWorkspace({ records }: { records: Scholarsh
   const start = filtered.length ? (safePage - 1) * PAGE_SIZE + 1 : 0;
   const end = Math.min(safePage * PAGE_SIZE, filtered.length);
   function setFilter(setter: (value: string) => void, value: string) { setter(value); setPage(1); }
-  function openReview(row: ScholarshipRow) { setSelected(row); setDraft({ ...row, documents: [...row.documents], appliesToStage: [...row.appliesToStage] }); setReviewNote(""); setConfirmEvidence(false); setError(""); setNotice(""); }
+  function openReview(row: ScholarshipRow) { router.push(`/admin/catalogue/scholarships/${encodeURIComponent(row.slug)}`); }
   function updateDraft(key: "deadlineNote" | "cycleLabel" | "amountNote" | "sourceUrl" | "officialUrl", value: string) { setDraft((current) => current ? { ...current, [key]: value } : current); }
   async function save(action: "save_draft" | "mark_verified", event: Pick<FormEvent<HTMLFormElement>, "preventDefault">) {
     event.preventDefault(); if (!draft) return; setBusy(true); setError(""); setNotice("");

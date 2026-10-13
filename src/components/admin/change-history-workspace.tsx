@@ -34,6 +34,8 @@ function actionLabel(action: string) {
     scholarship_created: "Added scholarship draft",
     scholarship_draft_saved: "Saved scholarship draft",
     scholarship_marked_verified: "Verified scholarship",
+    scholarship_detail_draft_saved: "Saved scholarship detail draft",
+    scholarship_detail_marked_verified: "Verified scholarship detail",
     source_refresh_settings_updated: "Updated source refresh settings",
     source_record_updated: "Updated source details",
   };
