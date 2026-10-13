@@ -9,7 +9,7 @@ const navItems = [
   { label: "Imports", href: "/admin/imports", icon: FileUp, key: "imports" },
   { label: "Change history", href: "/admin/change-history", icon: Clock3, key: "history" },
   { label: "Proposed changes", href: "/admin/change-history/proposed", icon: ClipboardCheck, key: "proposals" },
-  { label: "Settings", href: "/admin/sources/settings", icon: Settings, key: "settings" },
+  { label: "Settings", href: "/admin/settings", icon: Settings, key: "settings" },
 ] as const;
 
 export function AdminPortalShell({

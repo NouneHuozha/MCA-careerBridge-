@@ -78,6 +78,13 @@ export const users = pgTable(
   ],
 );
 
+export const adminWorkspaceSettings = pgTable("admin_workspace_settings", {
+  settingKey: varchar("setting_key", { length: 80 }).primaryKey(),
+  settingValue: jsonb("setting_value").$type<Record<string, unknown>>().notNull(),
+  updatedBy: integer("updated_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const authSessions = pgTable(
   "auth_sessions",
   {
