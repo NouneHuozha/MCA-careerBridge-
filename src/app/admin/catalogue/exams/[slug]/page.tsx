@@ -55,7 +55,7 @@ export default async function AdminEntranceExamDetailPage({ params }: { params: 
     sourceUrl: stringValue(saved?.sourceUrl, exam.sourceUrl ?? exam.officialWebsite ?? ""),
   };
 
-  return <AdminPortalShell active="catalogue" breadcrumb={`Catalogue / Entrance exams / ${exam.shortName || exam.name}`}>
+  return <AdminPortalShell active="catalogue" referenceNav breadcrumb={`Catalogue / Entrance exams / ${exam.shortName || exam.name}`}>
     <ExamReviewWorkspace
       slug={exam.slug}
       exam={draft}

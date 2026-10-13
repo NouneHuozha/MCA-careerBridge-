@@ -37,7 +37,7 @@ export default async function AdminInstitutionPage({ params }: { params: Promise
   const sources: { id: number | string; title: string; sourceType: string; url: string; status: string | null; retrievedAt: string | null; lastVerifiedAt?: string | null }[] = sourceRows.flatMap((source) => source.url ? [{ id: source.id, title: source.title ?? "Institution source", sourceType: source.sourceType, url: source.url, status: source.status, retrievedAt: source.retrievedAt?.toISOString() ?? null }] : []);
   if (institution.sourceUrl && !sources.some((source) => source.url === institution.sourceUrl)) sources.push({ id: "institution-record", title: "Source URL on institution record", sourceType: "record source", url: institution.sourceUrl, status: null, retrievedAt: null, lastVerifiedAt: institution.lastVerifiedAt?.toISOString() ?? null });
 
-  return <AdminPortalShell active="catalogue" breadcrumb={`Institutions / ${institution.name}`}>
+  return <AdminPortalShell active="catalogue" referenceNav breadcrumb={`Institutions / ${institution.name}`}>
     <InstitutionVerificationWorkspace
       institution={{
         code: institution.code, name: institution.name, type: institution.type, ownership: institution.ownership,

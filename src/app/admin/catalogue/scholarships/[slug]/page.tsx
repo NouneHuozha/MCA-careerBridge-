@@ -61,7 +61,7 @@ export default async function AdminScholarshipDetailPage({ params }: { params: P
     appliesToStage: scholarship.appliesToStage ?? [],
   };
 
-  return <AdminPortalShell active="catalogue" breadcrumb={`Catalogue / Scholarships / ${scholarship.name}`}>
+  return <AdminPortalShell active="catalogue" referenceNav breadcrumb={`Catalogue / Scholarships / ${scholarship.name}`}>
     <ScholarshipReviewWorkspace
       slug={scholarship.slug}
       initialPayload={initialPayload}

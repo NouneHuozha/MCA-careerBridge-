@@ -36,7 +36,7 @@ export default async function AdminAdmissionInformationPage({ params, searchPara
     ? String(requestedRecordId)
     : query.draftId && !query.recordId ? "new" : String(records[0]?.id ?? "new");
 
-  return <AdminPortalShell active="catalogue" breadcrumb={`Institutions / ${institution.name} / Admission information`}>
+  return <AdminPortalShell active="catalogue" referenceNav breadcrumb={`Institutions / ${institution.name} / Admission information`}>
     <AdmissionInformationEditor
       institution={{ code: institution.code, name: institution.name, admissionPortal: institution.admissionPortal }}
       institutions={allInstitutions.map((item) => ({ code: item.code, name: item.name }))}
