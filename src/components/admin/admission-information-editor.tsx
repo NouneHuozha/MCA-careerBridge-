@@ -142,7 +142,7 @@ export function AdmissionInformationEditor({ institution, institutions, courses,
   function switchInstitution(nextCode: string) {
     if (nextCode === institution.code) return;
     if (dirty && !window.confirm("Discard unsaved changes and open another institution?")) return;
-    window.location.assign(`/admin/catalogue/institutions/${encodeURIComponent(nextCode)}/admission`);
+    router.push(`/admin/catalogue/institutions/${encodeURIComponent(nextCode)}/admission`);
   }
   async function saveDraft() {
     setBusy(true); setMessage(""); setMessageError(false);

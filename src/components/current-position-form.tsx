@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Sprout } from "lucide-react";
 import type { Stage, StageDetail } from "@/data/counselling";
 
@@ -28,26 +27,8 @@ export function CurrentPositionForm({
   initialStageDetail: string | null;
   submitAction: SubmitAction;
 }) {
-  const [stage, setStage] = useState<Stage | "">(initialStage ?? "");
-  const [stageDetail, setStageDetail] = useState<StageDetail | "">(
-    statusOptions.some((option) => option.value === initialStageDetail)
-      ? (initialStageDetail as StageDetail)
-      : "",
-  );
-
-  function updateStage(value: Stage) {
-    setStage(value);
-  }
-
-  function updateStatus(value: StageDetail) {
-    setStageDetail(value);
-  }
-
   return (
     <form id="current-position-form" action={submitAction} className="min-w-0" aria-label="Your current position">
-      <input type="hidden" name="stage" value={stage} />
-      <input type="hidden" name="stageDetail" value={stageDetail} />
-
       <fieldset>
         <legend className="text-lg font-semibold tracking-[-0.02em] text-[#124339] sm:text-xl">Which stage sounds like you?</legend>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -58,16 +39,15 @@ export function CurrentPositionForm({
             >
               <input
                 type="radio"
-                name="stageChoice"
+                name="stage"
                 value={option.value}
-                checked={stage === option.value}
-                onChange={() => updateStage(option.value)}
+                defaultChecked={initialStage === option.value}
                 required
                 className="peer sr-only"
                 aria-label={option.label}
               />
               <span aria-hidden="true" className="pointer-events-none grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-[#a5aaa7] bg-white text-transparent transition peer-checked:border-[#397e70] peer-checked:bg-[#397e70] peer-checked:text-white">
-                {stage === option.value ? <Check className="h-4 w-4" strokeWidth={3} /> : null}
+                <Check className="h-4 w-4" strokeWidth={3} />
               </span>
               <span>{option.label}</span>
             </label>
@@ -85,16 +65,15 @@ export function CurrentPositionForm({
             >
               <input
                 type="radio"
-                name="statusChoice"
+                name="stageDetail"
                 value={option.value}
-                checked={stageDetail === option.value}
-                onChange={() => updateStatus(option.value)}
+                defaultChecked={initialStageDetail === option.value}
                 required
                 className="peer sr-only"
                 aria-label={option.label}
               />
               <span aria-hidden="true" className="pointer-events-none grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-[#a5aaa7] bg-white text-transparent transition peer-checked:border-[#397e70] peer-checked:bg-[#397e70] peer-checked:text-white">
-                {stageDetail === option.value ? <Check className="h-4 w-4" strokeWidth={3} /> : null}
+                <Check className="h-4 w-4" strokeWidth={3} />
               </span>
               <span>{option.label}</span>
             </label>
