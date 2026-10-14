@@ -100,3 +100,8 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 
 - `/admin/catalogue/save-status-preview` presents distinct failure and success outcomes for one illustrative editor context; it states that these are alternatives, not simultaneous notifications.
 - Failure copy keeps edits on the page and lets admins continue to a real catalogue editor. Retry and View draft explain that the preview sends no request and stores no draft. The success state clearly separates saving from verification and publication.
+
+## Partial-data institution preview (task 42)
+
+- `/admin/catalogue/partial-data-preview` distinguishes verified sample values, unverified fields, unavailable fields, and an unavailable source at the field level.
+- The preview preserves the last-approved contact value and explicitly says missing information is not a negative claim. Sample-only actions are disabled; “Not currently available” is distinct from “Not offered” and “Not required.”
