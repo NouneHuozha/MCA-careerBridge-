@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Search } from "lucide-react";
 import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
+import { MobileCatalogueFilters } from "@/components/admin/mobile-catalogue-filters";
 import { getAdminSourceRegistry } from "@/services/admin-sources";
 import { getInstitutions, searchEverything } from "@/services/catalog";
 
@@ -67,7 +68,8 @@ export default async function AdminSearchPage({ searchParams }: Props) {
   return <AdminPortalShell active="catalogue" breadcrumb="Catalogue / Search results">
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[#dce5e0] pb-4"><div><p className="text-xs text-[#687970]">Catalogue <span aria-hidden="true">/</span> Search results</p><h1 className="mt-2 text-3xl font-bold tracking-[-.04em] text-[#142e27] sm:text-4xl">Catalogue</h1><p className="mt-1.5 text-sm text-[#53665e]">Search context is kept visible so filters can be adjusted.</p></div></header>
-      <form action="/admin/search" className="rounded-xl border border-[#dce5e0] bg-white p-3 shadow-sm sm:p-4">
+      <MobileCatalogueFilters query={query} recordType={recordType} district={district} status={status} recordTypes={recordTypes.map(([value, label]) => ({ value, label }))} districts={districts.map((value) => ({ value, label: value === "all" ? "All districts" : value }))} statuses={statuses.map(([value, label]) => ({ value, label: value === "any" ? "Any status" : label }))}/>
+      <form action="/admin/search" className="hidden rounded-xl border border-[#dce5e0] bg-white p-3 shadow-sm sm:p-4 lg:block">
         <div className="grid gap-2 lg:grid-cols-[minmax(240px,1.4fr)_minmax(150px,.6fr)_minmax(140px,.5fr)_minmax(140px,.5fr)_auto]">
           <label className="relative"><span className="sr-only">Search catalogue</span><Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#718078]" /><input type="search" name="q" defaultValue={query} placeholder="Search institutions, courses or sources…" className="h-11 w-full rounded-lg border border-[#d2dcd7] pl-9 pr-3 text-sm text-[#263b33] outline-none focus:border-[#27735c] focus:ring-2 focus:ring-[#d4eee2]" /></label>
           <label className="sr-only" htmlFor="search-record-type">Record type</label><select id="search-record-type" name="type" defaultValue={recordType} aria-label="Record type" className="h-11 rounded-lg border border-[#d2dcd7] bg-white px-3 text-sm text-[#344b41] outline-none focus:border-[#27735c]"><option value="all">All record types</option>{recordTypes.filter(([key]) => key !== "all").map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>

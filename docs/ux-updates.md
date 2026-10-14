@@ -116,6 +116,11 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - Updated the shared `/admin` shell with a compact CareerBridge header, accessible expandable navigation menu, admin avatar, and fixed four-destination bottom navigation for Review, Catalogue, Sources, and Settings.
 - The full sidebar remains for desktop, while the mobile content reserves space above the bottom bar and menu links close the drawer after navigation.
 
+## Mobile catalogue filters (task 47)
+
+- `/admin/search` now keeps its full filter form at desktop widths and provides a compact mobile search field plus right-side drawer for record type, status, district, and search query.
+- Apply submits the same existing query parameters; Clear preserves the search term while resetting filters. The results remain the existing responsive result list; no filter semantics or catalogue data are changed.
+
 ## Draft-save status preview (task 41)
 
 - `/admin/catalogue/save-status-preview` presents distinct failure and success outcomes for one illustrative editor context; it states that these are alternatives, not simultaneous notifications.
