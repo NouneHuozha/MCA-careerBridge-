@@ -95,3 +95,8 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 
 - `/admin/catalogue/offline-preview` shows the institution-detail offline layout with sample-only values, a stale-data caution, disabled save/publish actions, and a route back to the review queue.
 - The retry control checks only `navigator.onLine` and explains that no service sync was attempted. It does not claim a device cache, offline persistence, or server retry exists.
+
+## Draft-save status preview (task 41)
+
+- `/admin/catalogue/save-status-preview` presents distinct failure and success outcomes for one illustrative editor context; it states that these are alternatives, not simultaneous notifications.
+- Failure copy keeps edits on the page and lets admins continue to a real catalogue editor. Retry and View draft explain that the preview sends no request and stores no draft. The success state clearly separates saving from verification and publication.
