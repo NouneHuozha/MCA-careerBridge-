@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Clock3, ExternalLink, FileClock, Filter, Info, Search, X } from "lucide-react";
 
@@ -183,7 +184,7 @@ export function ChangeHistoryWorkspace({ entries, initialFrom, initialTo }: Prop
               <td className="max-w-36 truncate px-3 py-3 text-[#43574f]" title={values.next}>{values.next}</td>
               <td className="max-w-40 px-3 py-3 text-[#43574f]">{values.sourceHref ? <a href={values.sourceHref} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} className="inline-flex items-center gap-1 text-[#286d54] underline">{values.sourceType ?? new URL(values.sourceHref).hostname}<ExternalLink className="h-3 w-3" /></a> : values.source}</td>
               <td className="px-3 py-3"><span className={`inline-flex whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${statusStyle(currentStatus)}`}>{currentStatus === "Approved" ? <CheckCircle2 className="h-3.5 w-3.5" /> : currentStatus === "Needs review" ? <Clock3 className="h-3.5 w-3.5" /> : currentStatus === "Rejected" ? <X className="h-3.5 w-3.5" /> : <FileClock className="h-3.5 w-3.5" />}{currentStatus}</span></td>
-              <td className="px-3 py-3"><button onClick={(event) => { event.stopPropagation(); setSelectedId(entry.id); }} className="min-h-9 whitespace-nowrap rounded-lg border border-[#cbd8d2] px-3 text-xs font-semibold text-[#344e47] hover:bg-white">View details</button></td>
+              <td className="px-3 py-3"><Link href={`/admin/change-history/${entry.id}`} onClick={(event) => event.stopPropagation()} className="inline-flex min-h-9 whitespace-nowrap items-center rounded-lg border border-[#cbd8d2] px-3 text-xs font-semibold text-[#344e47] hover:bg-white">View details</Link></td>
             </tr>;
           })}
           {filtered.length === 0 && <tr><td colSpan={9} className="px-4 py-14 text-center"><FileClock className="mx-auto h-8 w-8 text-[#9aa8a1]" /><p className="mt-3 font-semibold text-[#344e47]">No history in this date range</p><p className="mt-1 text-sm text-[#718078]">Try a wider date range or clear the filters.</p></td></tr>}
