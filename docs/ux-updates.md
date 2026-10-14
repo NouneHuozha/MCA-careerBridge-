@@ -106,6 +106,11 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - `/admin/imports/validation-error-preview` shows required-column, duplicate-record, and invalid-URL blockers; import review/approval remains unavailable until correction.
 - The synthetic sample keeps the catalogue unchanged and offers a locally generated sample error report and navigation back to the browser-based import flow. It clearly states that files are not uploaded or imported server-side.
 
+## Permission-limited proposed-change preview (task 45)
+
+- `/admin/change-history/permission-error-preview` presents a read-only proposed-change example, its current/proposed values, and the missing approval permission. Edit/publish actions are not shown.
+- The sample Request access control only explains that no request or permission change was sent. The preview route itself remains protected by the actual admin access guard.
+
 ## Draft-save status preview (task 41)
 
 - `/admin/catalogue/save-status-preview` presents distinct failure and success outcomes for one illustrative editor context; it states that these are alternatives, not simultaneous notifications.
