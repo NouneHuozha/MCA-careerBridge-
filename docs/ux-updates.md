@@ -96,6 +96,11 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - `/admin/catalogue/offline-preview` shows the institution-detail offline layout with sample-only values, a stale-data caution, disabled save/publish actions, and a route back to the review queue.
 - The retry control checks only `navigator.onLine` and explains that no service sync was attempted. It does not claim a device cache, offline persistence, or server retry exists.
 
+## Source failure preview (task 43)
+
+- `/admin/sources/source-failure-preview` shows a sample failed-check record, its failure reason, prior approved deadline, and retained student-facing value. No new value is proposed from an incomplete extraction.
+- Run-check and open-source controls are disabled in the sample. The refresh panel states that saved cadence is a preference and no fetcher or retry scheduler is connected; the review can retain the prior value without a database write.
+
 ## Draft-save status preview (task 41)
 
 - `/admin/catalogue/save-status-preview` presents distinct failure and success outcomes for one illustrative editor context; it states that these are alternatives, not simultaneous notifications.
