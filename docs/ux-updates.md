@@ -90,3 +90,8 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - `/admin/catalogue/network-error-preview` is a protected, explicitly labeled visual preview of the catalogue load-error state. It does not fake a live request or change catalogue data.
 - The preview offers a retry link to the live catalogue page and a direct route back to the admin review queue. Failure copy makes clear that no catalogue data was changed.
 - The catalogue overview links to the preview so admins can inspect the resilience state without disconnecting a service or inducing a real failure.
+
+## Admin offline-state preview (task 40)
+
+- `/admin/catalogue/offline-preview` shows the institution-detail offline layout with sample-only values, a stale-data caution, disabled save/publish actions, and a route back to the review queue.
+- The retry control checks only `navigator.onLine` and explains that no service sync was attempted. It does not claim a device cache, offline persistence, or server retry exists.
