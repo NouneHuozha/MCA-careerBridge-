@@ -22,11 +22,13 @@ export function AdminPortalShell({
   active = "catalogue",
   breadcrumb,
   referenceNav = false,
+  profilePreview = false,
 }: {
   children: ReactNode;
   active?: "queue" | "flags" | "catalogue" | "sources" | "imports" | "history" | "proposals" | "settings";
   breadcrumb: string;
   referenceNav?: boolean;
+  profilePreview?: boolean;
 }) {
   const visibleNavItems = referenceNav ? navItems.filter(({ key }) => key !== "flags" && key !== "proposals") : navItems;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -60,7 +62,7 @@ export function AdminPortalShell({
             <input type="search" name="q" aria-label="Search institutions, courses, or sources" placeholder="Search institutions, courses or sources…" className="h-10 w-full rounded-lg border border-[#cbd8d2] bg-white pl-9 pr-3 text-sm text-[#263b33] outline-none placeholder:text-[#687970] focus:border-[#27735c] focus:ring-2 focus:ring-[#d4eee2]" />
           </form>
           <Link href="/admin/search" aria-label="Search admin catalogue" className="ml-auto hidden h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#cbd8d2] text-[#344e47] hover:bg-[#f5f8f6] md:grid lg:ml-0"><Search aria-hidden className="h-4 w-4" /></Link>
-          <AdminProfileMenu />
+          <AdminProfileMenu preview={profilePreview} />
           <button type="button" aria-label={mobileMenuOpen ? "Close admin navigation" : "Open admin navigation"} aria-expanded={mobileMenuOpen} aria-controls="mobile-admin-navigation" onClick={() => setMobileMenuOpen((open) => !open)} className="ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#d7e1dc] text-[#344d43] hover:bg-[#f4f7f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f] focus-visible:ring-offset-2 lg:hidden">{mobileMenuOpen ? <X aria-hidden className="h-5 w-5"/> : <Menu aria-hidden className="h-5 w-5"/>}</button>
         </header>
         {mobileMenuOpen && <><button type="button" aria-label="Close navigation menu" onClick={() => setMobileMenuOpen(false)} className="fixed inset-16 bottom-16 z-30 bg-[#10251d]/25 lg:hidden"/><nav id="mobile-admin-navigation" className="fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-8rem)] overflow-y-auto border-b border-[#d7e1dc] bg-[#f8faf9] p-3 shadow-lg lg:hidden" aria-label="Admin navigation">{visibleNavItems.map(({ label, href, icon: Icon, key }) => <Link key={key} href={href} aria-current={active === key ? "page" : undefined} onClick={() => setMobileMenuOpen(false)} className={`mb-1 flex min-h-12 items-center gap-3 rounded-lg px-3 text-sm font-semibold ${active === key ? "bg-[#dff0e8] text-[#10573f]" : "text-[#344d43] hover:bg-white"}`}><Icon aria-hidden className="h-5 w-5"/>{label}</Link>)}</nav></>}

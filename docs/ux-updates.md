@@ -131,6 +131,7 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - The shared admin header now uses the authenticated administrator's account identity and opens a profile popover with My account, Role and permissions, Review center, Settings, and the existing sign-out endpoint.
 - The review badge is calculated from pending institution reviews and open/in-review reports; routine source checks are excluded. If the count cannot be loaded, no invented badge value is shown.
 - `/admin/profile` is a read-only authenticated account page; Role and permissions opens the existing Settings team-access tab. No separate notification delivery service or account-edit flow is claimed.
+- `/admin/profile-menu-preview` is a public design-only route using a synthetic `example.invalid` account and a fixed sample count, with sign-out disabled. The real `/admin/profile` and profile API remain protected.
 
 ## Draft-save status preview (task 41)
 

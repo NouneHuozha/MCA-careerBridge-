@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, CircleUserRound, ClipboardCheck, Settings, ShieldCheck } from "lucide-react";
 
 type Profile = { name: string | null; email: string; role: string; roleLabel: string; actionableCount: number | null };
+const sampleProfile: Profile = { name: "Admin", email: "admin@example.invalid", role: "admin", roleLabel: "Administrator · sample", actionableCount: 2 };
 
 function initials(profile: Profile | null) {
   const value = profile?.name?.trim() || profile?.email?.split("@")[0] || "AD";
@@ -12,13 +13,14 @@ function initials(profile: Profile | null) {
   return (parts.length > 1 ? `${parts[0][0]}${parts.at(-1)?.[0]}` : value.slice(0, 2)).toUpperCase();
 }
 
-export function AdminProfileMenu() {
-  const [open, setOpen] = useState(false);
-  const [profile, setProfile] = useState<Profile | null>(null);
+export function AdminProfileMenu({ preview = false }: { preview?: boolean }) {
+  const [open, setOpen] = useState(preview);
+  const [profile, setProfile] = useState<Profile | null>(preview ? sampleProfile : null);
   const [loadFailed, setLoadFailed] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (preview) return;
     const controller = new AbortController();
     fetch("/api/admin/profile", { signal: controller.signal, cache: "no-store" })
       .then(async (response) => {
@@ -28,7 +30,7 @@ export function AdminProfileMenu() {
       .then(setProfile)
       .catch((error: unknown) => { if (!(error instanceof DOMException && error.name === "AbortError")) setLoadFailed(true); });
     return () => controller.abort();
-  }, []);
+  }, [preview]);
 
   useEffect(() => {
     if (!open) return;
@@ -45,9 +47,9 @@ export function AdminProfileMenu() {
       <span className="grid h-8 w-8 place-items-center rounded-full bg-[#e0efe8] text-xs font-bold text-[#245844]">{initials(profile)}</span><span className="hidden max-w-28 truncate lg:inline">{displayName}</span><ChevronDown aria-hidden className={`hidden h-3.5 w-3.5 transition-transform lg:block ${open ? "rotate-180" : ""}`}/>
     </button>
     {open && <section className="absolute right-0 top-[calc(100%+8px)] z-[70] w-[min(88vw,300px)] overflow-hidden rounded-xl border border-[#d7e1dc] bg-white shadow-xl" aria-label="Administrator profile menu">
-      <div className="flex items-center gap-3 border-b border-[#e5ebe8] px-4 py-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#e0efe8] text-xs font-bold text-[#245844]">{initials(profile)}</span><span className="min-w-0"><strong className="block truncate text-sm text-[#263d32]">{displayName}</strong><span className="block truncate text-xs text-[#687970]">{profile?.email ?? (loadFailed ? "Account details unavailable" : "Loading account…")}</span>{profile && <span className="mt-0.5 block text-[11px] text-[#687970]">{profile.roleLabel}</span>}</span></div>
+      <div className="flex items-center gap-3 border-b border-[#e5ebe8] px-4 py-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#e0efe8] text-xs font-bold text-[#245844]">{initials(profile)}</span><span className="min-w-0"><strong className="block truncate text-sm text-[#263d32]">{displayName}</strong><span className="block truncate text-xs text-[#687970]">{profile?.email ?? (loadFailed ? "Account details unavailable" : "Loading account…")}</span>{profile && <span className="mt-0.5 block text-[11px] text-[#687970]">{profile.roleLabel}</span>}</span>{preview && <span className="ml-auto rounded-full bg-[#eef3f0] px-2 py-1 text-[9px] font-bold uppercase text-[#53665e]">Sample</span>}</div>
       <div className="p-2"><Link href="/admin/profile" onClick={() => setOpen(false)} className="flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm text-[#344b41] hover:bg-[#f3f7f5]"><CircleUserRound aria-hidden className="h-4 w-4 text-[#65776e]"/>My account</Link><Link href="/admin/settings?tab=team" onClick={() => setOpen(false)} className="flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm text-[#344b41] hover:bg-[#f3f7f5]"><ShieldCheck aria-hidden className="h-4 w-4 text-[#65776e]"/>Role and permissions</Link><Link href="/admin" onClick={() => setOpen(false)} className="flex min-h-10 items-center justify-between gap-3 rounded-lg px-3 text-sm text-[#344b41] hover:bg-[#f3f7f5]"><span className="flex items-center gap-3"><ClipboardCheck aria-hidden className="h-4 w-4 text-[#65776e]"/>Review center</span>{profile?.actionableCount !== null && profile?.actionableCount !== undefined && profile.actionableCount > 0 && <span className="rounded-full bg-[#fff2d8] px-2 py-0.5 text-[10px] font-bold text-[#875c12]">{profile.actionableCount} actionable</span>}</Link><p className="px-3 pb-1 text-[10px] leading-relaxed text-[#7b8982]">The count reflects pending institution reviews and reports; routine source checks are excluded.</p><Link href="/admin/settings" onClick={() => setOpen(false)} className="flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm text-[#344b41] hover:bg-[#f3f7f5]"><Settings aria-hidden className="h-4 w-4 text-[#65776e]"/>Settings</Link></div>
-      <div className="border-t border-[#e5ebe8] p-2"><form action="/api/auth/sign-out" method="post"><button type="submit" className="flex min-h-10 w-full items-center rounded-lg px-3 text-left text-sm font-semibold text-[#a13e3e] hover:bg-[#fff3f1]">Sign out</button></form></div>
+      <div className="border-t border-[#e5ebe8] p-2">{preview ? <button type="button" disabled className="flex min-h-10 w-full items-center rounded-lg px-3 text-left text-sm font-semibold text-[#a13e3e] opacity-60">Sign out · preview only</button> : <form action="/api/auth/sign-out" method="post"><button type="submit" className="flex min-h-10 w-full items-center rounded-lg px-3 text-left text-sm font-semibold text-[#a13e3e] hover:bg-[#fff3f1]">Sign out</button></form>}</div>
     </section>}
   </div>;
 }
