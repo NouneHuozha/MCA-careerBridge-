@@ -121,6 +121,11 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - `/admin/search` now keeps its full filter form at desktop widths and provides a compact mobile search field plus right-side drawer for record type, status, district, and search query.
 - Apply submits the same existing query parameters; Clear preserves the search term while resetting filters. The results remain the existing responsive result list; no filter semantics or catalogue data are changed.
 
+## Confirmation dialog patterns (task 48)
+
+- `/admin/confirmation-dialogs-preview` demonstrates consequence-first approve/reject, rollback, refresh-pause, and archive confirmations with a cancel path, required notes where appropriate, and destructive action styling.
+- It is linked from the Review queue. All records are examples and final clicks only report that no operation ran; no live catalogue, import, or scheduler action is connected to this showcase.
+
 ## Draft-save status preview (task 41)
 
 - `/admin/catalogue/save-status-preview` presents distinct failure and success outcomes for one illustrative editor context; it states that these are alternatives, not simultaneous notifications.
