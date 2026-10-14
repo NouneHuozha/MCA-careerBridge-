@@ -101,6 +101,11 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - `/admin/sources/source-failure-preview` shows a sample failed-check record, its failure reason, prior approved deadline, and retained student-facing value. No new value is proposed from an incomplete extraction.
 - Run-check and open-source controls are disabled in the sample. The refresh panel states that saved cadence is a preference and no fetcher or retry scheduler is connected; the review can retain the prior value without a database write.
 
+## Import validation error preview (task 44)
+
+- `/admin/imports/validation-error-preview` shows required-column, duplicate-record, and invalid-URL blockers; import review/approval remains unavailable until correction.
+- The synthetic sample keeps the catalogue unchanged and offers a locally generated sample error report and navigation back to the browser-based import flow. It clearly states that files are not uploaded or imported server-side.
+
 ## Draft-save status preview (task 41)
 
 - `/admin/catalogue/save-status-preview` presents distinct failure and success outcomes for one illustrative editor context; it states that these are alternatives, not simultaneous notifications.
