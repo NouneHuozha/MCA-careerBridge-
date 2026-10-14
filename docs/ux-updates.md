@@ -111,6 +111,11 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - `/admin/change-history/permission-error-preview` presents a read-only proposed-change example, its current/proposed values, and the missing approval permission. Edit/publish actions are not shown.
 - The sample Request access control only explains that no request or permission change was sent. The preview route itself remains protected by the actual admin access guard.
 
+## Mobile admin shell (task 46)
+
+- Updated the shared `/admin` shell with a compact CareerBridge header, accessible expandable navigation menu, admin avatar, and fixed four-destination bottom navigation for Review, Catalogue, Sources, and Settings.
+- The full sidebar remains for desktop, while the mobile content reserves space above the bottom bar and menu links close the drawer after navigation.
+
 ## Draft-save status preview (task 41)
 
 - `/admin/catalogue/save-status-preview` presents distinct failure and success outcomes for one illustrative editor context; it states that these are alternatives, not simultaneous notifications.
