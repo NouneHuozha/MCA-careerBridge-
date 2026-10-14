@@ -1,0 +1,49 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { AlertTriangle, CheckCircle2, Clock3, Info, Pause, Play, RotateCw } from "lucide-react";
+
+type Job = { id: string; name: string; schedule: string; lastRun: string; result: "Successful" | "Unavailable"; changes: string; nextRun: string };
+const jobs: Job[] = [
+  { id: "scholarship", name: "National Scholarship Portal · sample", schedule: "Daily", lastRun: "Today, 04:10", result: "Successful", changes: "1 needs review", nextRun: "Not scheduled" },
+  { id: "exam", name: "NTA examination notices · sample", schedule: "Daily", lastRun: "Today, 04:05", result: "Successful", changes: "No changes", nextRun: "Not scheduled" },
+  { id: "college", name: "Modern College admissions page · sample", schedule: "Weekly", lastRun: "Yesterday", result: "Unavailable", changes: "Previous value retained", nextRun: "Not scheduled" },
+];
+type PendingAction = { action: "retry" | "pause"; job: Job };
+
+export function ScheduledJobsWorkspace() {
+  const [pending, setPending] = useState<PendingAction | null>(null);
+  const [notice, setNotice] = useState("");
+
+  function confirmPreview() {
+    if (!pending) return;
+    const message = pending.action === "retry"
+      ? `Preview only: a retry for “${pending.job.name.replace(" · sample", "")}” was not sent because no scheduler or worker is connected.`
+      : `Preview only: automatic refresh for “${pending.job.name.replace(" · sample", "")}” was not paused because scheduler controls are not connected.`;
+    setNotice(message);
+    setPending(null);
+  }
+
+  return <div className="space-y-5">
+    <header className="border-b border-[#dce5e0] pb-4"><p className="flex items-center gap-2 text-xs font-medium text-[#687970]"><Link href="/admin/sources" className="hover:text-[#145c42]">Sources</Link><span aria-hidden>/</span><span>Automatic refresh activity</span></p><h1 className="mt-2 text-3xl font-bold tracking-[-.04em] text-[#142e27] sm:text-4xl">Automatic refresh activity</h1><p className="mt-1.5 text-sm text-[#53665e]">See whether scheduled source checks are running normally.</p></header>
+
+    <div role="note" className="flex items-start gap-2 rounded-lg border border-[#d2e2ec] bg-[#f0f6fa] px-4 py-3 text-xs leading-relaxed text-[#42637b]"><Info aria-hidden className="mt-0.5 h-4 w-4 shrink-0" /><p><strong>Preview only.</strong> The scheduler and fetcher are not connected. The rows below are synthetic examples; no automated source checks, retry jobs, or pause actions are running.</p></div>
+    {notice && <p role="status" className="rounded-lg border border-[#d2e2ec] bg-[#f0f6fa] px-4 py-3 text-xs leading-relaxed text-[#42637b]">{notice}</p>}
+
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Refresh activity summary">
+      <article className="flex min-h-[76px] items-center gap-3 rounded-xl border border-[#d7e1dc] bg-white p-4 shadow-sm"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#fff6df] text-[#94610c]"><Pause aria-hidden className="h-4 w-4" /></span><div><strong className="block text-sm font-bold text-[#263d32]">Scheduler not connected</strong><span className="mt-0.5 block text-[11px] text-[#687970]">No live job status</span></div></article>
+      <article className="flex min-h-[76px] items-center gap-3 rounded-xl border border-[#d7e1dc] bg-white p-4 shadow-sm"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#edf4fb] text-[#526a7b]"><Clock3 aria-hidden className="h-4 w-4" /></span><div><strong className="block text-sm font-bold text-[#263d32]">—</strong><span className="mt-0.5 block text-[11px] text-[#687970]">Next scheduled run (not available)</span></div></article>
+      <article className="flex min-h-[76px] items-center gap-3 rounded-xl border border-[#d7e1dc] bg-white p-4 shadow-sm"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#e8f5ee] text-[#17634b]"><CheckCircle2 aria-hidden className="h-4 w-4" /></span><div><strong className="block text-sm font-bold text-[#263d32]">—</strong><span className="mt-0.5 block text-[11px] text-[#687970]">Sources checked today</span></div></article>
+      <article className="flex min-h-[76px] items-center gap-3 rounded-xl border border-[#d7e1dc] bg-white p-4 shadow-sm"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#fff0ee] text-[#a23e38]"><AlertTriangle aria-hidden className="h-4 w-4" /></span><div><strong className="block text-sm font-bold text-[#263d32]">2 · sample</strong><span className="mt-0.5 block text-[11px] text-[#687970]">Sources needing attention</span></div></article>
+    </section>
+
+    <section className="overflow-hidden rounded-xl border border-[#d7e1dc] bg-white shadow-sm" aria-labelledby="activity-heading"><div className="border-b border-[#e2e9e5] px-4 py-3 sm:px-5"><h2 id="activity-heading" className="text-base font-bold text-[#263d32]">Automatic refresh activity</h2><p className="mt-0.5 text-xs text-[#687970]">Scheduled source checks and their last known outcomes.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[1030px] text-left text-xs"><thead className="bg-[#f4f7f5] text-[10px] font-bold uppercase tracking-wide text-[#53665e]"><tr><th className="px-4 py-3">Job / source</th><th className="px-3 py-3">Schedule</th><th className="px-3 py-3">Last run</th><th className="px-3 py-3">Result</th><th className="px-3 py-3">Changes detected</th><th className="px-3 py-3">Next run</th><th className="px-4 py-3">Action</th></tr></thead><tbody className="divide-y divide-[#e7ece9]">{jobs.map((job) => <tr key={job.id} className="hover:bg-[#fbfcfb]"><td className="px-4 py-3 font-semibold text-[#344b41]">{job.name}</td><td className="px-3 py-3 text-[#53665e]">{job.schedule}</td><td className="px-3 py-3 text-[#53665e]">{job.lastRun} · sample</td><td className="px-3 py-3"><span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold ${job.result === "Successful" ? "bg-[#e8f5ee] text-[#17634b]" : "bg-[#fff0ee] text-[#a23e38]"}`}>{job.result === "Successful" ? <CheckCircle2 aria-hidden className="h-3 w-3" /> : <AlertTriangle aria-hidden className="h-3 w-3" />}{job.result}</span></td><td className="px-3 py-3 text-[#53665e]">{job.changes}</td><td className="px-3 py-3 text-[#53665e]">{job.nextRun}</td><td className="px-4 py-3">{job.result === "Unavailable" ? <button type="button" onClick={() => { setNotice(""); setPending({ action: "retry", job }); }} className="inline-flex min-h-8 items-center gap-1 rounded-md border border-[#cbd8d2] px-2.5 text-[11px] font-semibold text-[#344e47] hover:bg-[#f5f8f6]"><RotateCw aria-hidden className="h-3 w-3" />Retry failed job</button> : <Link href="/admin/sources/history" className="inline-flex min-h-8 items-center gap-1 rounded-md border border-[#cbd8d2] px-2.5 text-[11px] font-semibold text-[#344e47] hover:bg-[#f5f8f6]">View fetch history</Link>}</td></tr>)}</tbody></table></div></section>
+
+    <div className="flex flex-wrap gap-2"><Link href="/admin/sources/history" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#cbd8d2] bg-white px-3 text-xs font-semibold text-[#344e47] hover:bg-[#f5f8f6]">View fetch history<Clock3 aria-hidden className="h-3.5 w-3.5" /></Link><button type="button" onClick={() => { setNotice(""); setPending({ action: "retry", job: jobs[2] }); }} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#cbd8d2] bg-white px-3 text-xs font-semibold text-[#344e47] hover:bg-[#f5f8f6]">Retry failed job<RotateCw aria-hidden className="h-3.5 w-3.5" /></button><button type="button" onClick={() => { setNotice(""); setPending({ action: "pause", job: jobs[0] }); }} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#edc9c4] bg-white px-3 text-xs font-semibold text-[#a23e38] hover:bg-[#fff5f3]">Pause source<Pause aria-hidden className="h-3.5 w-3.5" /></button></div>
+
+    <p className="flex items-start gap-2 rounded-lg border border-[#dce8e1] bg-[#f7faf8] px-4 py-3 text-xs leading-relaxed text-[#53665e]"><Info aria-hidden className="mt-0.5 h-4 w-4 shrink-0" /><span>No infrastructure metrics are shown. A failed source check must not erase or overwrite an approved catalogue value; proposed content changes require human review.</span></p>
+
+    {pending && <div role="presentation" className="fixed inset-0 z-50 grid place-items-center bg-[#10251d]/45 p-4" onClick={() => setPending(null)}><section role="dialog" aria-modal="true" aria-labelledby="job-action-title" className="w-full max-w-md rounded-xl border border-[#d7e1dc] bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}><h2 id="job-action-title" className="text-lg font-bold text-[#263d32]">{pending.action === "retry" ? "Retry failed job?" : "Pause automatic refresh?"}</h2><p className="mt-2 text-sm leading-relaxed text-[#53665e]">{pending.action === "retry" ? `A retry would request a new check for “${pending.job.name.replace(" · sample", "")}”.` : `Pausing would stop scheduled checks for “${pending.job.name.replace(" · sample", "")}”.`}</p><p className="mt-3 rounded-lg border border-[#d2e2ec] bg-[#f0f6fa] px-3 py-2.5 text-xs leading-relaxed text-[#42637b]">Preview only: no worker is connected, so confirming will not start or pause a job.</p><div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setPending(null)} className="min-h-9 rounded-lg border border-[#cbd8d2] px-3 text-sm font-semibold text-[#344e47]">Cancel</button><button type="button" onClick={confirmPreview} className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-[#12664f] px-3 text-sm font-bold text-white">{pending.action === "retry" ? <RotateCw aria-hidden className="h-4 w-4" /> : <Play aria-hidden className="h-4 w-4" />}Confirm preview</button></div></section></div>}
+  </div>;
+}
