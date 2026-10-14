@@ -16,6 +16,7 @@ import { redirect } from "next/navigation";
 import { desc, inArray } from "drizzle-orm";
 import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
 import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
+import { ReviewQueueEmptyState } from "@/components/admin/review-queue-empty-state";
 import { db } from "@/db";
 import {
   auditEvents,
@@ -220,6 +221,7 @@ export default async function AdminPage() {
 
   return (
     <AdminPortalShell active="queue" breadcrumb="Review queue">
+      {queue.length === 0 ? <ReviewQueueEmptyState /> : <>
             <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#103e33] via-[#145b47] to-[#1c7254] px-6 py-7 text-white shadow-lg sm:px-8 sm:py-9" aria-labelledby="page-title">
               <div className="absolute -right-12 -top-20 h-64 w-64 rounded-full border-[28px] border-white/5" aria-hidden />
               <div className="relative flex flex-wrap items-end justify-between gap-6">
@@ -293,6 +295,7 @@ export default async function AdminPage() {
             </div>
 
             <p className="mt-5 rounded-xl border border-[#d8e1dc] bg-[#edf2ef] p-4 text-sm leading-relaxed text-[#455b51]">Workflow scope: the queue changes verification status for institutions only. Course and admission details remain read-only. Source refresh preferences can be recorded, but automated fetching and refresh-run monitoring are not connected yet.</p>
+      </>}
     </AdminPortalShell>
   );
 }
