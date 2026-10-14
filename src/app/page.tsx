@@ -42,7 +42,7 @@ export default function HomePage() {
       <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(8,52,43,.97)_0%,rgba(8,52,43,.91)_30%,rgba(8,52,43,.62)_49%,rgba(8,52,43,.05)_77%),linear-gradient(0deg,rgba(8,52,43,.20),transparent_42%)]" />
       <div className="cb-container relative flex min-h-[710px] flex-col justify-center pb-36 pt-32 lg:min-h-[760px] lg:pb-40">
         <div className="max-w-[620px]">
-          <h1 className="max-w-[10ch] font-serif text-[clamp(3.4rem,7vw,6.2rem)] font-semibold leading-[.94] tracking-[-.055em] text-white">Your next step starts with you.</h1>
+          <h1 className="max-w-[15ch] font-serif text-[clamp(3.4rem,7vw,6.2rem)] font-semibold leading-[.94] tracking-[-.055em] text-white">Your next step starts with you.</h1>
           <p className="mt-6 max-w-[47ch] text-base leading-relaxed text-white/90 sm:text-lg">CareerBridge helps you understand what interests you, explore real possibilities, and find a next step that feels right to you.</p>
         </div>
       </div>
