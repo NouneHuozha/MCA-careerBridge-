@@ -84,3 +84,9 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - No conflicting value is preselected. A reviewer must choose an availability value or edit it to a supported option, add a reason, and confirm evidence review. “Not listed” is not treated as “Not offered”; unresolved records remain unpublished.
 - The Screen 21 example for BCA at Modern College is labeled synthetic. It has no fabricated source links and can write only its sample decision and audit event, never a real catalogue row. Real availability publication is limited to guarded institution-course records and requires a current official-source URL plus a compare-and-set check.
 - Original source rows and the previous approved value remain in the conflict record and decision audit. Apply `src/db/migrations/0007_source_conflict_resolution.sql` to enable the queue and decision actions. The source fetcher/import conflict detector is not implemented and this screen does not invent live conflicts.
+
+## Catalogue network-error preview (task 39)
+
+- `/admin/catalogue/network-error-preview` is a protected, explicitly labeled visual preview of the catalogue load-error state. It does not fake a live request or change catalogue data.
+- The preview offers a retry link to the live catalogue page and a direct route back to the admin review queue. Failure copy makes clear that no catalogue data was changed.
+- The catalogue overview links to the preview so admins can inspect the resilience state without disconnecting a service or inducing a real failure.
