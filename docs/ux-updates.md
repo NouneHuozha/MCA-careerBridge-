@@ -126,6 +126,12 @@ Tests create isolated student accounts under `example.test`; they do not modify 
 - `/admin/confirmation-dialogs-preview` demonstrates consequence-first approve/reject, rollback, refresh-pause, and archive confirmations with a cancel path, required notes where appropriate, and destructive action styling.
 - It is linked from the Review queue. All records are examples and final clicks only report that no operation ran; no live catalogue, import, or scheduler action is connected to this showcase.
 
+## Admin profile and actionable review menu (task 49)
+
+- The shared admin header now uses the authenticated administrator's account identity and opens a profile popover with My account, Role and permissions, Review center, Settings, and the existing sign-out endpoint.
+- The review badge is calculated from pending institution reviews and open/in-review reports; routine source checks are excluded. If the count cannot be loaded, no invented badge value is shown.
+- `/admin/profile` is a read-only authenticated account page; Role and permissions opens the existing Settings team-access tab. No separate notification delivery service or account-edit flow is claimed.
+
 ## Draft-save status preview (task 41)
 
 - `/admin/catalogue/save-status-preview` presents distinct failure and success outcomes for one illustrative editor context; it states that these are alternatives, not simultaneous notifications.

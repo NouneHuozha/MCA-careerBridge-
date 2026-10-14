@@ -20,8 +20,8 @@ const reviewOptions = ["eligibility", "fees", "deadlines", "course availability"
 const labelClass = "block text-sm font-semibold text-[#263b33]";
 const fieldClass = "mt-2 min-h-11 w-full rounded-lg border border-[#cbd8d2] bg-white px-3 text-sm text-[#263b33] outline-none focus:border-[#27735c] focus:ring-2 focus:ring-[#d4eee2]";
 
-export function AdminSettingsWorkspace({ initialPreferences, team }: { initialPreferences: Preferences; team: TeamMember[] }) {
-  const [tab, setTab] = useState<Tab>("Refresh defaults");
+export function AdminSettingsWorkspace({ initialPreferences, team, initialTab = "Refresh defaults" }: { initialPreferences: Preferences; team: TeamMember[]; initialTab?: Tab }) {
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [preferences, setPreferences] = useState<Preferences>({ ...defaults, ...initialPreferences });
   const [members, setMembers] = useState(team);
   const [saving, setSaving] = useState(false);

@@ -12,10 +12,12 @@ const settingKey = "workspace_preferences";
 const roles = ["admin", "content_editor", "verifier", "viewer"];
 const defaults = { refreshFrequency: "weekly", automaticRefresh: false, reviewFields: ["eligibility", "fees", "deadlines", "course availability"], retainPreviousValues: true };
 
-export default async function AdminSettingsPage() {
+export default async function AdminSettingsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect(await getAdminAuthRedirect("/admin/settings"));
   if (user.role !== "admin") redirect("/");
+  const params = await searchParams;
+  const initialTab = params.tab === "team" ? "Team access" : "Refresh defaults";
   let initialPreferences = defaults;
   let team: { id: number; name: string | null; email: string; role: string; createdAt: string }[] = [];
   try {
@@ -26,5 +28,5 @@ export default async function AdminSettingsPage() {
     const records = await db.select({ id: users.id, name: users.fullName, email: users.email, role: users.role, createdAt: users.createdAt }).from(users).where(inArray(users.role, roles)).orderBy(users.createdAt);
     team = records.map((member) => ({ ...member, createdAt: member.createdAt.toISOString() }));
   } catch (error) { console.warn("[careerbridge] admin team access could not be loaded", error); }
-  return <AdminPortalShell active="settings" breadcrumb="Settings"><AdminSettingsWorkspace initialPreferences={initialPreferences} team={team} /></AdminPortalShell>;
+  return <AdminPortalShell active="settings" breadcrumb="Settings"><AdminSettingsWorkspace initialPreferences={initialPreferences} team={team} initialTab={initialTab} /></AdminPortalShell>;
 }

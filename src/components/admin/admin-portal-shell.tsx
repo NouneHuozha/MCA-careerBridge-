@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { BookOpen, ClipboardCheck, Clock3, FileUp, Flag, Link2, ListChecks, Menu, Search, Settings, X } from "lucide-react";
 import type { ReactNode } from "react";
+import { AdminProfileMenu } from "@/components/admin/admin-profile-menu";
 
 const navItems = [
   { label: "Review queue", href: "/admin", icon: ListChecks, key: "queue" },
@@ -59,9 +60,8 @@ export function AdminPortalShell({
             <input type="search" name="q" aria-label="Search institutions, courses, or sources" placeholder="Search institutions, courses or sources…" className="h-10 w-full rounded-lg border border-[#cbd8d2] bg-white pl-9 pr-3 text-sm text-[#263b33] outline-none placeholder:text-[#687970] focus:border-[#27735c] focus:ring-2 focus:ring-[#d4eee2]" />
           </form>
           <Link href="/admin/search" aria-label="Search admin catalogue" className="ml-auto hidden h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#cbd8d2] text-[#344e47] hover:bg-[#f5f8f6] md:grid lg:ml-0"><Search aria-hidden className="h-4 w-4" /></Link>
-          <div className="hidden items-center gap-2 rounded-full border border-[#d7e1dc] bg-white px-2 py-1.5 text-sm font-semibold text-[#344e47] lg:flex"><span className="grid h-7 w-7 place-items-center rounded-full bg-[#e0efe8] text-xs font-bold text-[#245844]">AD</span><span className="pr-1">Admin</span></div>
+          <AdminProfileMenu />
           <button type="button" aria-label={mobileMenuOpen ? "Close admin navigation" : "Open admin navigation"} aria-expanded={mobileMenuOpen} aria-controls="mobile-admin-navigation" onClick={() => setMobileMenuOpen((open) => !open)} className="ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#d7e1dc] text-[#344d43] hover:bg-[#f4f7f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f] focus-visible:ring-offset-2 lg:hidden">{mobileMenuOpen ? <X aria-hidden className="h-5 w-5"/> : <Menu aria-hidden className="h-5 w-5"/>}</button>
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#d7e1dc] bg-white text-sm font-bold text-[#344e47] lg:hidden" aria-label="Admin">AD</span>
         </header>
         {mobileMenuOpen && <><button type="button" aria-label="Close navigation menu" onClick={() => setMobileMenuOpen(false)} className="fixed inset-16 bottom-16 z-30 bg-[#10251d]/25 lg:hidden"/><nav id="mobile-admin-navigation" className="fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-8rem)] overflow-y-auto border-b border-[#d7e1dc] bg-[#f8faf9] p-3 shadow-lg lg:hidden" aria-label="Admin navigation">{visibleNavItems.map(({ label, href, icon: Icon, key }) => <Link key={key} href={href} aria-current={active === key ? "page" : undefined} onClick={() => setMobileMenuOpen(false)} className={`mb-1 flex min-h-12 items-center gap-3 rounded-lg px-3 text-sm font-semibold ${active === key ? "bg-[#dff0e8] text-[#10573f]" : "text-[#344d43] hover:bg-white"}`}><Icon aria-hidden className="h-5 w-5"/>{label}</Link>)}</nav></>}
         <div className="px-4 py-5 sm:px-7 sm:py-7 lg:px-10 lg:py-9"><div className="mx-auto max-w-[1500px]">{children}</div></div>
