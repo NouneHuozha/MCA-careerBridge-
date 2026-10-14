@@ -7,9 +7,9 @@ const steps: JourneyStep[] = [
   { label: "About you", detail: "Start here", href: "/start" },
   { label: "Your interests", detail: "Notice what pulls you", href: "/counselling?edit=interests" },
   { label: "Your strengths", detail: "See what you bring", href: "/counselling?edit=strengths" },
-  { label: "Summary", detail: "Review your answers", href: "/profile" },
+  { label: "Summary", detail: "Review your answers", href: "/guidance/review" },
   { label: "Your possibilities", detail: "Next", href: "/explore" },
-  { label: "Next steps", detail: "Coming soon", href: "/action-plan" },
+  { label: "Next steps", detail: "Coming soon", href: "/guidance/action-plan" },
 ];
 
 export function JourneySidebar({ current = 0 }: { current?: number }) {
@@ -55,10 +55,10 @@ export const journeySteps = steps;
 
 const detailSteps: JourneyStep[] = [
   { label: "Student stage", detail: "Class 10 · Nagaland", href: "/start" },
-  { label: "Personal profile", detail: "Who you are", href: "/profile" },
+  { label: "Personal profile", detail: "Who you are", href: "/guidance/review" },
   { label: "Interests & strengths", detail: "What drives you", href: "/counselling?edit=interests" },
   { label: "Goals & constraints", detail: "What matters to you", href: "/counselling?edit=goals" },
-  { label: "Summary", detail: "Your personalised report", href: "/profile" },
+  { label: "Summary", detail: "Your personalised report", href: "/guidance/review" },
 ];
 
 export function DetailJourneySidebar({ current = 4, artwork }: { current?: number; artwork?: string }) {
@@ -70,10 +70,10 @@ export function DetailJourneyShell({ children, current = 4, artwork }: { childre
 }
 
 const courseSteps: JourneyStep[] = [
-  { label: "Understand yourself", detail: "Who you are", href: "/profile" },
+  { label: "Understand yourself", detail: "Who you are", href: "/guidance/review" },
   { label: "Explore possibilities", detail: "Options that fit you", href: "/explore" },
   { label: "Find a route", detail: "Courses and pathways", href: "/courses" },
-  { label: "Make a plan", detail: "Plan your next steps", href: "/action-plan" },
+  { label: "Make a plan", detail: "Plan your next steps", href: "/guidance/action-plan" },
 ];
 
 export function CourseJourneyShell({ children, current = 2 }: { children: ReactNode; current?: number }) {
@@ -81,11 +81,11 @@ export function CourseJourneyShell({ children, current = 2 }: { children: ReactN
 }
 
 const institutionSteps: JourneyStep[] = [
-  { label: "Understand yourself", detail: "Discover your interests and strengths", href: "/profile" },
+  { label: "Understand yourself", detail: "Discover your interests and strengths", href: "/guidance/review" },
   { label: "Explore possibilities", detail: "Explore career fields and pathways", href: "/explore" },
   { label: "Find a route", detail: "Explore how to get there", href: "/pathways" },
   { label: "Find a place to study", detail: "Colleges, ITIs and more", href: "/institutions" },
-  { label: "Make a plan", detail: "Plan your next steps", href: "/action-plan" },
+  { label: "Make a plan", detail: "Plan your next steps", href: "/guidance/action-plan" },
 ];
 
 export function InstitutionJourneyShell({ children, current = 3 }: { children: ReactNode; current?: number }) {

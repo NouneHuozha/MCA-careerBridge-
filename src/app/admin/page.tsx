@@ -1,68 +1,302 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, BookOpenCheck, Building2, CheckCircle2, ClipboardList, CloudUpload, Eye, FileCheck2, Gift, HelpCircle, Home, Landmark, MoreVertical, Settings, ShieldCheck, UploadCloud } from "lucide-react";
-import { Badge, Callout, Card, VerificationBadge, formatDate } from "@/components/ui";
-import { getCourses, getExams, getInstitutions, getOpportunities, getScholarships } from "@/services/catalog";
-import { aiStatus } from "@/ai";
-import { authProviderName } from "@/auth";
-import { mapsConfigured } from "@/maps";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BookOpen,
+  Building2,
+  CheckCircle2,
+  Clock3,
+  FileClock,
+  Flag,
+  Link2Off,
+  ListChecks,
+  Upload,
+} from "lucide-react";
+import { redirect } from "next/navigation";
+import { desc, inArray } from "drizzle-orm";
+import { getAdminAuthRedirect, getCurrentUser } from "@/auth";
+import { AdminPortalShell } from "@/components/admin/admin-portal-shell";
+import { ReviewQueueEmptyState } from "@/components/admin/review-queue-empty-state";
 import { db } from "@/db";
-import { dataImports, knowledgeChunks, knowledgeDocuments } from "@/db/schema";
-import { sql } from "drizzle-orm";
+import {
+  auditEvents,
+  dataImports,
+  institutionSources,
+  flags,
+} from "@/db/schema";
+import {
+  getCourses,
+  getExams,
+  getInstitutions,
+  getOpportunities,
+  getScholarships,
+} from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Admin dashboard" };
+export const metadata = { title: "Admin review queue" };
 
-async function safeCount(table: "knowledge_documents" | "knowledge_chunks") {
+type QueueItem = {
+  id: string;
+  item: string;
+  type: string;
+  issue: string;
+  source: string;
+  checkedAt: Date | null;
+  href: string;
+  tone: "amber" | "red" | "blue";
+};
+
+const verifiedStatuses = new Set(["verified", "current", "recently_verified", "published_verified"]);
+const unavailableStatuses = new Set(["unavailable", "blocked", "source_unavailable"]);
+const needsCorrectionStatuses = new Set(["needs_correction", "correction_required"]);
+const daysAgo = (date: Date, days: number) => date.getTime() < Date.now() - days * 24 * 60 * 60 * 1000;
+
+function checkedLabel(date: Date | null) {
+  if (!date) return "Not checked";
+  const days = Math.max(0, Math.floor((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000)));
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days} days ago`;
+  if (days < 60) return "1 month ago";
+  if (days < 365) return `${Math.floor(days / 30)} months ago`;
+  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function statusIssue(status: string, checkedAt: Date | null) {
+  if (unavailableStatuses.has(status)) return { issue: "Source unavailable", tone: "red" as const };
+  if (needsCorrectionStatuses.has(status)) return { issue: "Needs correction", tone: "red" as const };
+  if (verifiedStatuses.has(status)) {
+    return !checkedAt || daysAgo(checkedAt, 90)
+      ? { issue: "Review overdue", tone: "amber" as const }
+      : null;
+  }
+  return { issue: "Needs verification", tone: "amber" as const };
+}
+
+function safeSource(value?: string | null) {
+  if (!value) return "No source recorded";
   try {
-    const rows = table === "knowledge_documents" ? await db.select({ n: sql<number>`count(*)::int` }).from(knowledgeDocuments) : await db.select({ n: sql<number>`count(*)::int` }).from(knowledgeChunks);
-    return rows[0]?.n ?? 0;
+    return new URL(value).hostname.replace(/^www\./, "");
   } catch {
-    return 0;
+    return "Source recorded";
   }
 }
 
-const navItems = [
-  { label: "Dashboard", href: "/admin", icon: Home },
-  { label: "Imports", href: "/admin/imports", icon: CloudUpload },
-  { label: "Institutions", href: "/institutions", icon: Landmark },
-  { label: "Entrance tests", href: "/exams", icon: ClipboardList },
-  { label: "Scholarships", href: "/scholarships", icon: Gift },
-  { label: "Audit log", href: "/admin?view=audit", icon: FileCheck2 },
-  { label: "Settings", href: "/admin?view=settings", icon: Settings },
-];
+function AttentionCard({
+  value,
+  label,
+  detail,
+  href,
+  tone,
+  icon: Icon,
+}: {
+  value: number | string;
+  label: string;
+  detail: string;
+  href?: string;
+  tone: "amber" | "red" | "blue";
+  icon: typeof AlertTriangle;
+}) {
+  const tones = {
+    amber: "border-[#e7d19b] bg-[#fff8e7] text-[#62430b]",
+    red: "border-[#eac8c3] bg-[#fff3f1] text-[#87382e]",
+    blue: "border-[#d2ded9] bg-[#f0f5f2] text-[#384e46]",
+  };
+  const className = `group flex min-h-[126px] items-center justify-between gap-3 rounded-xl border-l-4 p-4 shadow-sm ${tones[tone]} ${href ? "transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f]" : ""}`;
+  const content = <>
+      <span className="flex min-w-0 items-center gap-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-current/10 bg-white">
+          <Icon aria-hidden className="h-5 w-5" />
+        </span>
+        <span>
+          <span className="block text-[26px] font-bold leading-none tracking-tight">{value}</span>
+          <span className="mt-2 block text-sm font-bold leading-snug">{label}</span>
+          <span className="mt-1 block text-sm font-medium leading-relaxed opacity-90">{detail}</span>
+        </span>
+      </span>
+      {href && <ArrowRight aria-hidden className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />}
+    </>;
+  return href
+    ? <Link href={href} className={className}>{content}</Link>
+    : <div className={className} aria-disabled="true" title="Import validation results are not stored yet">{content}</div>;
+}
+
+function issuePill(tone: QueueItem["tone"], issue: string) {
+  const tones = {
+    amber: "bg-[#fff2d8] text-[#875c12]",
+    red: "bg-[#fde8e8] text-[#a13e3e]",
+    blue: "bg-[#e8f1ff] text-[#3569a5]",
+  };
+  return <span className={`inline-flex whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium ${tones[tone]}`}>{issue}</span>;
+}
 
 export default async function AdminPage() {
-  const [institutions, courses, exams, scholarships, opportunities, docs, chunks] = await Promise.all([getInstitutions({}), getCourses({}), getExams(), getScholarships({}), getOpportunities({}), safeCount("knowledge_documents"), safeCount("knowledge_chunks")]);
-  let imports: (typeof dataImports.$inferSelect)[] = [];
-  try {
-    imports = await db.select().from(dataImports).orderBy(sql`created_at desc`).limit(5);
-  } catch {
-    imports = [];
-  }
-  const statusCounts = institutions.reduce<Record<string, number>>((acc, institution) => { acc[institution.verificationStatus] = (acc[institution.verificationStatus] ?? 0) + 1; return acc; }, {});
-  const verified = Object.entries(statusCounts).filter(([status]) => ["verified", "current", "recently_verified"].includes(status)).reduce((sum, [, count]) => sum + count, 0);
-  const needsReview = Object.entries(statusCounts).filter(([status]) => status.includes("verification") || status.includes("review")).reduce((sum, [, count]) => sum + count, 0);
-  const imported = Math.max(institutions.length - verified - needsReview, 0);
-  const total = Math.max(institutions.length, 1);
-  const verifiedPct = Math.round((verified / total) * 1000) / 10;
-  const ai = aiStatus();
-  const stats = [
-    { label: "Institutions", value: institutions.length, note: "Active in catalogue", icon: Building2, tone: "bg-[#e8f6f0] text-[#287f68]" },
-    { label: "Entrance tests", value: exams.length, note: "Active in catalogue", icon: ClipboardList, tone: "bg-[#f0eaff] text-[#7054b2]" },
-    { label: "Scholarships", value: scholarships.length, note: "Active in catalogue", icon: Gift, tone: "bg-[#e8f6f0] text-[#287f68]" },
-    { label: "Imports awaiting review", value: imports.length, note: "Requires your attention", icon: UploadCloud, tone: "bg-[#eaf3ff] text-[#3f70b1]" },
-  ];
+  const user = await getCurrentUser();
+  if (!user) redirect(await getAdminAuthRedirect("/admin"));
+  if (user.role !== "admin") redirect("/");
 
-  return <div className="min-h-screen bg-[#fbfcfe] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
-    <aside className="hidden border-r border-[#e1e8f0] bg-[#f7f9fc] lg:flex lg:min-h-screen lg:flex-col lg:justify-between"><div><div className="flex h-20 items-center gap-2 border-b border-[#e1e8f0] px-6"><span className="grid h-9 w-9 place-items-center rounded-lg bg-[#4e9ee9] text-xl font-black italic text-white">A</span><span className="text-xl font-semibold tracking-[-0.04em] text-[#182f56]">CareerBridge <em className="font-medium not-italic text-[#4b9d7f]">Admin</em></span></div><nav className="space-y-1 px-4 py-6" aria-label="Admin navigation">{navItems.map(({ label, href, icon: Icon }, index) => <Link key={label} href={href} className={`flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-medium transition ${index === 0 ? "bg-[#e8f6f0] text-[#287f68]" : "text-[#284263] hover:bg-white hover:text-[#287f68]"}`}><Icon className="h-5 w-5" />{label}</Link>)}</nav></div><div className="m-5 rounded-2xl border border-[#d3eee4] bg-[#eaf8f3] p-5"><div className="flex items-center gap-3"><HelpCircle className="h-6 w-6 text-[#3c9678]" /><p className="font-semibold text-[#234f46]">Need help?</p></div><Link href="/about" className="mt-3 block text-sm font-medium text-[#2870aa] underline underline-offset-2">Talk to support <ArrowRight className="ml-1 inline h-3.5 w-3.5" /></Link></div></aside>
-    <main className="min-w-0 overflow-hidden"><header className="flex h-20 items-center justify-between border-b border-[#e1e8f0] bg-white px-5 sm:px-8 lg:px-10"><div className="flex items-center gap-3 text-sm font-semibold text-[#243b5b]"><span className="lg:hidden grid h-8 w-8 place-items-center rounded-md bg-[#4e9ee9] text-sm font-black italic text-white">A</span>Nagaland catalogue<span className="text-ink-400">⌄</span></div><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-[#f0eaff] text-sm font-semibold text-[#7054b2]">AR</span><div className="hidden text-right sm:block"><p className="text-sm font-semibold text-[#243b5b]">Aarav Rao</p><p className="text-xs text-ink-500">Admin</p></div><span className="text-ink-400">⌄</span></div></header>
-      <div className="px-5 py-8 sm:px-8 lg:px-10 lg:py-12"><div className="mx-auto max-w-[1500px]"><div className="flex flex-wrap items-end justify-between gap-5"><div><h1 className="text-4xl font-semibold tracking-[-0.04em] text-[#071533] sm:text-5xl">Keep the catalogue trustworthy.</h1><p className="mt-3 text-lg text-ink-500">Review, approve and maintain the information students use.</p></div><div className="hidden items-center gap-2 rounded-full bg-[#edf5ff] px-4 py-2 text-sm font-medium text-[#3f70b1] lg:flex"><BarChart3 className="h-4 w-4" />{courses.length + opportunities.length} learning records</div></div>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, note, icon: Icon, tone }) => <Card key={label} className="p-5"><div className="flex items-start gap-4"><span className={`grid h-14 w-14 shrink-0 place-items-center rounded-full ${tone}`}><Icon className="h-6 w-6" /></span><div><p className="text-3xl font-semibold text-[#1d765f]">{value}</p><p className="mt-1 font-semibold text-[#172b49]">{label}</p><p className="mt-2 text-sm text-ink-500">{note}</p></div></div></Card>)}</div>
-        <div className="mt-7 flex flex-wrap gap-3"><Link href="/admin/imports" className="inline-flex items-center gap-2 rounded-lg bg-[#2f9b76] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#287f68]"><UploadCloud className="h-4 w-4" />Upload workbook</Link><Link href="/institutions" className="inline-flex items-center gap-2 rounded-lg border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-[#243b5b] transition hover:border-[#8fb8d8]"><Eye className="h-4 w-4" />View catalogue</Link></div>
-        <div className="mt-7 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.7fr)]"><Card className="overflow-hidden p-0"><div className="flex items-center justify-between border-b border-ink-100 px-5 py-4"><div><h2 className="font-semibold text-[#172b49]">Recent imports</h2><p className="mt-1 text-xs text-ink-500">Review the latest catalogue workbooks.</p></div><Link href="/admin/imports" className="text-sm font-medium text-[#2870aa] hover:underline">View all imports <ArrowRight className="ml-1 inline h-4 w-4" /></Link></div><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-[#f8fafc] text-xs text-ink-500"><tr><th className="px-5 py-3 font-medium">Dataset</th><th className="px-5 py-3 font-medium">File</th><th className="px-5 py-3 font-medium">Rows</th><th className="px-5 py-3 font-medium">Status</th><th className="px-5 py-3 font-medium">Last reviewed</th><th className="px-5 py-3 font-medium">Actions</th></tr></thead><tbody>{imports.length ? imports.map((entry) => <tr key={entry.id} className="border-t border-ink-100"><td className="px-5 py-4 font-medium text-[#243b5b]">{entry.datasetLabel}</td><td className="px-5 py-4 text-ink-600">{entry.fileName ?? "Workbook"}</td><td className="px-5 py-4 text-ink-600">{entry.recordCount}</td><td className="px-5 py-4"><Badge tone="neutral">Imported</Badge></td><td className="px-5 py-4 text-ink-500">—</td><td className="px-5 py-4"><Link href={`/admin?review=${entry.id}`} className="rounded-md border border-ink-200 px-3 py-1.5 text-xs font-medium text-[#243b5b] hover:border-[#7ca8d0]">Review</Link><MoreVertical className="ml-2 inline h-4 w-4 text-ink-400" /></td></tr>) : <tr><td colSpan={6} className="px-5 py-10 text-center text-sm text-ink-500">No imports have been recorded yet. Upload a workbook to start a review queue.</td></tr>}</tbody></table></div></Card><Card className="p-6"><h2 className="font-semibold text-[#172b49]">Catalogue trust</h2><p className="mt-2 text-sm leading-relaxed text-ink-500">Overview of the verification status across the Nagaland catalogue.</p><div className="mt-6 flex items-center gap-5"><div className="grid h-36 w-36 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#2f9b76 0 ${verifiedPct}%, #f1bf4a ${verifiedPct}% ${Math.min(verifiedPct + (needsReview / total) * 100, 100)}%, #4f9adb ${Math.min(verifiedPct + (needsReview / total) * 100, 100)}% 100%)` }}><div className="grid h-20 w-20 place-items-center rounded-full bg-white text-center"><span className="text-xl font-semibold text-[#172b49]">{verifiedPct}%</span><span className="text-[10px] text-ink-500">verified</span></div></div><ul className="space-y-3 text-sm">{Object.entries(statusCounts).slice(0, 4).map(([status, count]) => <li key={status} className="flex items-center justify-between gap-4"><span className="flex items-center gap-2 text-ink-600"><span className="h-2.5 w-2.5 rounded-full bg-[#2f9b76]" />{status.replaceAll("_", " ")}</span><span className="font-semibold text-[#172b49]">{count}</span></li>)}{!Object.keys(statusCounts).length ? <li className="text-ink-500">No verification data yet.</li> : null}</ul></div><div className="mt-6 flex gap-3 rounded-xl bg-[#eef8f5] p-4"><ShieldCheck className="h-6 w-6 shrink-0 text-[#2f9b76]" /><div><p className="font-semibold text-[#234f46]">Trust drives impact</p><p className="mt-1 text-sm leading-relaxed text-ink-600">Keeping data accurate ensures students can make confident decisions.</p></div></div></Card></div>
-        <div className="mt-6 grid gap-6 lg:grid-cols-2"><Card className="p-6"><div className="flex items-center justify-between"><h2 className="font-semibold text-[#172b49]">Platform configuration</h2><Settings className="h-5 w-5 text-ink-400" /></div><ul className="mt-4 space-y-3 text-sm"><li className="flex justify-between gap-3"><span className="text-ink-600">Authentication provider</span><Badge tone={authProviderName() === "clerk" ? "forest" : "neutral"}>{authProviderName()}</Badge></li><li className="flex justify-between gap-3"><span className="text-ink-600">AI provider</span><Badge tone={ai.configured ? "forest" : "neutral"}>{ai.provider}</Badge></li><li className="flex justify-between gap-3"><span className="text-ink-600">Google Maps Platform</span><Badge tone={mapsConfigured() ? "forest" : "neutral"}>{mapsConfigured() ? "configured" : "not configured"}</Badge></li><li className="flex justify-between gap-3"><span className="text-ink-600">Retrieval store</span><Badge tone="forest">postgres + hashed embeddings</Badge></li></ul></Card><Card className="p-6"><div className="flex items-center gap-3"><BookOpenCheck className="h-5 w-5 text-[#3f70b1]" /><h2 className="font-semibold text-[#172b49]">Data coverage</h2></div><div className="mt-4 grid grid-cols-2 gap-4 text-sm"><div><p className="text-2xl font-semibold text-[#172b49]">{docs}</p><p className="text-ink-500">Knowledge documents</p></div><div><p className="text-2xl font-semibold text-[#172b49]">{chunks}</p><p className="text-ink-500">Retrieval chunks</p></div><div><p className="text-2xl font-semibold text-[#172b49]">{opportunities.length}</p><p className="text-ink-500">Opportunities</p></div><div><p className="text-2xl font-semibold text-[#172b49]">{new Set(institutions.map((institution) => institution.district)).size}</p><p className="text-ink-500">Districts covered</p></div></div></Card></div>
-        <div className="mt-6"><Callout tone="amber" title="V1 dataset honesty"><p>The institution catalogue is a clearly labelled sample dataset used to demonstrate the import pipeline. Fees, seat counts, deadlines and admission dates are populated only from official sources with a source URL and retrieval timestamp.</p></Callout></div>
-      </div></div>
-    </main>
-  </div>;
+  const [institutions, courses, exams, scholarships, opportunities] = await Promise.all([
+    getInstitutions({}),
+    getCourses({}),
+    getExams(),
+    getScholarships({}),
+    getOpportunities({}),
+  ]);
+
+  let sourceRows: (typeof institutionSources.$inferSelect)[] = [];
+  let imports: (typeof dataImports.$inferSelect)[] = [];
+  let activity: (typeof auditEvents.$inferSelect)[] = [];
+  try {
+    [sourceRows, imports, activity] = await Promise.all([
+      db.select().from(institutionSources),
+      db.select().from(dataImports).orderBy(desc(dataImports.createdAt)).limit(8),
+      db.select().from(auditEvents).orderBy(desc(auditEvents.createdAt)).limit(5),
+    ]);
+  } catch (error) {
+    console.error("[careerbridge] admin review queue query failed", error);
+  }
+
+  const queue: QueueItem[] = [];
+  for (const record of institutions) {
+    const issue = statusIssue(record.verificationStatus, record.lastVerifiedAt);
+    if (!issue) continue;
+    queue.push({
+      id: `institution-${record.code}`,
+      item: record.name,
+      type: "Institution",
+      ...issue,
+      source: safeSource(record.sourceUrl ?? record.officialWebsite),
+      checkedAt: record.lastVerifiedAt,
+      href: `/admin/catalogue/institutions/${encodeURIComponent(record.code)}`,
+    });
+  }
+  let pendingFlags: (typeof flags.$inferSelect)[] = [];
+  let feedbackFlagStoreAvailable = true;
+  try {
+    pendingFlags = await db.select().from(flags).where(inArray(flags.status, ["open", "in_review"])).orderBy(desc(flags.createdAt)).limit(500);
+  } catch (error) {
+    feedbackFlagStoreAvailable = false;
+    console.warn("[careerbridge] feedback flags are unavailable; apply migration 0003_feedback_flag_review.sql", error);
+  }
+  const courseNames = new Map(courses.map((record) => [record.slug, record.name]));
+  const examNames = new Map(exams.map((record) => [record.slug, record.shortName ?? record.name]));
+  const scholarshipNames = new Map(scholarships.map((record) => [record.slug, record.name]));
+  const opportunityNames = new Map(opportunities.map((record) => [record.slug, record.title]));
+  const reportNames: Record<string, Record<string, string>> = {
+    institution: Object.fromEntries(institutions.map((record) => [record.code, record.name])),
+    course: Object.fromEntries(courseNames),
+    entrance_exam: Object.fromEntries(examNames),
+    scholarship: Object.fromEntries(scholarshipNames),
+    opportunity: Object.fromEntries(opportunityNames),
+  };
+  const reportIssues: Record<string, string> = {
+    incorrect_detail: "Incorrect detail",
+    broken_application_link: "Broken application link",
+    outdated_deadline: "Deadline may be outdated",
+    wrong_course_availability: "Course availability",
+    missing_source: "Missing source",
+    other: "Other issue",
+  };
+  for (const report of pendingFlags) {
+    const entityName = reportNames[report.entityType]?.[report.entityRef] ?? report.entityRef;
+    queue.push({
+      id: `flag-${report.id}`,
+      item: entityName,
+      type: "Student report",
+      issue: reportIssues[report.issueType] ?? "Student report",
+      source: safeSource(report.sourceUrl),
+      checkedAt: report.createdAt,
+      href: "/admin/feedback-flags",
+      tone: report.status === "in_review" ? "blue" : "amber",
+    });
+  }
+  const unavailableSources = sourceRows.filter((source) => unavailableStatuses.has(source.status)).length;
+  const catalogueQueue = queue.filter((item) => item.type !== "Student report");
+  const verificationCount = catalogueQueue.filter((item) => item.issue === "Needs verification" || item.issue === "Needs correction").length;
+  const staleCount = catalogueQueue.filter((item) => !item.checkedAt || daysAgo(item.checkedAt, 90)).length;
+  const sortPriority: Record<QueueItem["tone"], number> = { red: 0, amber: 1, blue: 2 };
+  queue.sort((a, b) => sortPriority[a.tone] - sortPriority[b.tone] || (a.checkedAt?.getTime() ?? 0) - (b.checkedAt?.getTime() ?? 0));
+  const visibleQueue = queue.slice(0, 8);
+  const recentImports = imports.slice(0, 3);
+
+  return (
+    <AdminPortalShell active="queue" breadcrumb="Review queue">
+      {queue.length === 0 ? <ReviewQueueEmptyState /> : <>
+            <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#103e33] via-[#145b47] to-[#1c7254] px-6 py-7 text-white shadow-lg sm:px-8 sm:py-9" aria-labelledby="page-title">
+              <div className="absolute -right-12 -top-20 h-64 w-64 rounded-full border-[28px] border-white/5" aria-hidden />
+              <div className="relative flex flex-wrap items-end justify-between gap-6">
+                <div className="max-w-3xl"><span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[.12em] text-[#e0f2e8]"><ListChecks aria-hidden className="h-4 w-4" />Admin review workspace</span><h1 id="page-title" className="mt-4 text-3xl font-bold leading-tight tracking-[-.04em] sm:text-4xl">Keep the catalogue trustworthy.</h1><p className="mt-3 max-w-2xl text-base leading-relaxed text-[#e2eee9]">Start with overdue and blocked records. Confirm facts against evidence before changing their status.</p></div>
+                <div className="flex flex-wrap gap-3">
+                  <Link href="/admin/review-center" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/40 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Review center</Link>
+                  <Link href="/admin/confirmation-dialogs-preview" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/40 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Confirmation patterns</Link>
+                  <Link href="/admin/safe-changes" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/40 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Safe changes</Link>
+                  <Link href={visibleQueue[0]?.href ?? "/admin/catalogue/institutions"} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-bold text-[#104d3a] shadow-sm transition hover:bg-[#eaf5ef] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#145b47]">Review next item<ArrowRight aria-hidden className="h-4 w-4" /></Link>
+                  <Link href="/admin/catalogue/institutions" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/40 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"><Building2 aria-hidden className="h-4 w-4" />Browse catalogue</Link>
+                </div>
+              </div>
+            </section>
+
+            <section className="mt-8" aria-labelledby="attention-title">
+              <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.12em] text-[#53685e]">Priority overview</p><h2 id="attention-title" className="mt-1 text-xl font-bold tracking-[-.02em] text-[#142e27]">What needs attention</h2></div><p className="text-sm font-medium text-[#52665d]">Red = blocked · Amber = review due · Grey = not tracked</p></div>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                <AttentionCard value={unavailableSources} label="Sources unavailable" detail="Blocked evidence sources" href="/admin/catalogue/institutions?filter=source_unavailable" tone="red" icon={Link2Off} />
+                <AttentionCard value={verificationCount} label="Need verification" detail="Unverified institution records" href="/admin/catalogue/institutions?filter=needs_verification" tone="amber" icon={AlertTriangle} />
+                <AttentionCard value={staleCount} label="Overdue for review" detail="Never checked or older than 90 days" href="/admin/catalogue/institutions?filter=stale" tone="amber" icon={Clock3} />
+                <AttentionCard value="—" label="Import validation" detail="Error tracking is not available yet" tone="blue" icon={Upload} />
+                <AttentionCard value={feedbackFlagStoreAvailable ? pendingFlags.length : "—"} label="Student reports" detail={feedbackFlagStoreAvailable ? "Issues waiting for review" : "Apply migration to enable reports"} href="/admin/feedback-flags" tone="amber" icon={Flag} />
+              </div>
+            </section>
+
+            <section className="mt-7 overflow-hidden rounded-2xl border border-[#d4dfda] bg-white shadow-sm" aria-labelledby="queue-title">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#dce5e0] px-5 py-5 sm:px-6">
+                <div><p className="text-xs font-bold uppercase tracking-[.11em] text-[#53685e]">Action list</p><h2 id="queue-title" className="mt-1 text-xl font-bold text-[#17362e]">Review queue</h2><p className="mt-1 text-sm text-[#53665e]">Highest-priority records appear first.</p></div>
+                <span className="inline-flex items-center rounded-full border border-[#bfd8cb] bg-[#eaf5ef] px-3 py-1.5 text-sm font-bold text-[#145c42]">{queue.length} {queue.length === 1 ? "item" : "items"}</span>
+              </div>
+              <div className="hidden overflow-x-auto md:block">
+                <table className="w-full min-w-[820px] text-left text-sm">
+                  <thead className="bg-[#f0f4f2] text-xs font-bold uppercase tracking-wide text-[#344b41]"><tr><th scope="col" className="px-5 py-3.5">Item</th><th scope="col" className="px-4 py-3.5">Type</th><th scope="col" className="px-4 py-3.5">Issue</th><th scope="col" className="px-4 py-3.5">Source</th><th scope="col" className="px-4 py-3.5">Last checked</th><th scope="col" className="px-5 py-3.5 text-right">Action</th></tr></thead>
+                  <tbody>
+                    {visibleQueue.map((item) => (
+                      <tr key={item.id} className="border-t border-[#e2e9e5] transition hover:bg-[#f7faf8]">
+                        <td className="max-w-[300px] px-5 py-4 font-semibold text-[#20392f]"><span className="block truncate" title={item.item}>{item.item}</span></td>
+                        <td className="whitespace-nowrap px-4 py-4 font-medium text-[#455b51]">{item.type}</td>
+                        <td className="px-4 py-4">{issuePill(item.tone, item.issue)}</td>
+                        <td className="max-w-[190px] px-4 py-4 text-[#455b51]"><span className="block truncate" title={item.source}>{item.source}</span></td>
+                        <td className="whitespace-nowrap px-4 py-4 font-medium text-[#455b51]">{checkedLabel(item.checkedAt)}</td>
+                        <td className="px-5 py-4 text-right"><Link href={item.href} className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[#12664f] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0d5742] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f]">Review</Link></td>
+                      </tr>
+                    ))}
+                    {!visibleQueue.length && <tr><td colSpan={6} className="px-5 py-14 text-center"><CheckCircle2 aria-hidden className="mx-auto h-9 w-9 text-[#287b60]" /><p className="mt-3 font-bold text-[#24483b]">Nothing in the review queue</p><p className="mt-1 text-sm text-[#53665e]">Records needing verification and student reports will appear here.</p></td></tr>}
+                  </tbody>
+                </table>
+              </div>
+              <div className="space-y-3 p-3 md:hidden">
+                {visibleQueue.map((item) => <article key={`mobile-${item.id}`} className="rounded-xl border border-[#dce5e0] bg-white p-4 shadow-sm"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="break-words text-base font-bold leading-snug text-[#20392f]">{item.item}</h3><p className="mt-1 text-sm font-medium text-[#52665d]">{item.type}</p></div>{issuePill(item.tone, item.issue)}</div><dl className="mt-4 grid grid-cols-2 gap-3 border-t border-[#e2e9e5] pt-3 text-sm"><div><dt className="text-xs font-semibold uppercase tracking-wide text-[#53665e]">Source</dt><dd className="mt-1 break-words font-medium text-[#344b41]">{item.source}</dd></div><div><dt className="text-xs font-semibold uppercase tracking-wide text-[#53665e]">Last checked</dt><dd className="mt-1 font-medium text-[#344b41]">{checkedLabel(item.checkedAt)}</dd></div></dl><Link href={item.href} className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#12664f] px-4 py-2.5 text-sm font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12664f] focus-visible:ring-offset-2">Review record<ArrowRight aria-hidden className="h-4 w-4" /></Link></article>)}
+                {!visibleQueue.length && <div className="rounded-xl border border-[#dce5e0] bg-[#f7faf8] px-5 py-10 text-center"><CheckCircle2 aria-hidden className="mx-auto h-9 w-9 text-[#287b60]" /><p className="mt-3 font-bold text-[#24483b]">Queue clear</p><p className="mt-1 text-sm text-[#53665e]">Nothing needs review right now.</p></div>}
+              </div>
+              {queue.length > visibleQueue.length && <div className="flex justify-end border-t border-[#e2e9e5] px-5 py-3"><Link href="/admin/catalogue/institutions" className="inline-flex min-h-10 items-center gap-1 text-sm font-bold text-[#145c42] hover:underline">View all institutions<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>}
+            </section>
+
+            <div className="mt-5 grid gap-5 xl:grid-cols-2">
+              <section className="rounded-2xl border border-[#d4dfda] bg-white p-5 shadow-sm sm:p-6" aria-labelledby="catalogue-title">
+                <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.1em] text-[#53665d]">Reference data</p><h2 id="catalogue-title" className="mt-1 text-xl font-bold text-[#17362e]">Catalogue at a glance</h2><p className="mt-1 text-sm text-[#53665e]">Current catalogue coverage</p></div><Link href="/admin/catalogue/institutions" className="inline-flex min-h-10 items-center gap-1 rounded-lg px-3 text-sm font-bold text-[#145c42] hover:bg-[#eef5f1] hover:underline">View catalogue<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  {[{ label: "Institutions", value: institutions.length, icon: Building2 }, { label: "Courses", value: courses.length, icon: BookOpen }, { label: "Entrance exams", value: exams.length, icon: ListChecks }, { label: "Scholarships", value: scholarships.length, icon: FileClock }].map(({ label, value, icon: Icon }, index) => <div key={label} className={`flex items-center gap-3 rounded-xl border border-[#dce5e0] p-4 ${index % 2 ? "bg-[#f0f4f2]" : "bg-[#eef6f1]"}`}><Icon aria-hidden className="h-5 w-5 shrink-0 text-[#245b49]" /><div><p className="text-sm font-semibold text-[#455b51]">{label}</p><p className="mt-0.5 text-2xl font-bold leading-tight text-[#193c31]">{value}</p></div></div>)}
+                </div>
+              </section>
+
+              <section className="rounded-2xl border border-[#d4dfda] bg-white p-5 shadow-sm sm:p-6" aria-labelledby="activity-title">
+                <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.1em] text-[#53665d]">Audit trail</p><h2 id="activity-title" className="mt-1 text-xl font-bold text-[#17362e]">Recent activity</h2><p className="mt-1 text-sm text-[#53665e]">Recorded admin events and imports</p></div><Link href="/admin/change-history" className="inline-flex min-h-10 items-center gap-1 rounded-lg px-3 text-sm font-bold text-[#145c42] hover:bg-[#eef5f1] hover:underline">View activity<ArrowRight aria-hidden className="h-4 w-4" /></Link></div>
+                <ul className="mt-3 divide-y divide-[#edf1ef]">
+                  {activity.map((event) => <li key={`event-${event.id}`} className="flex items-start justify-between gap-3 py-3"><span className="flex min-w-0 items-start gap-3"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e8f5ef] text-[#247456]"><CheckCircle2 aria-hidden className="h-4 w-4" /></span><span className="min-w-0"><span className="block truncate text-sm font-medium text-[#29483d]">{event.action.replaceAll("_", " ")}</span><span className="block truncate text-xs text-[#53665e]">{[event.entityType, event.entityRef, event.actor].filter(Boolean).join(" · ") || "Administrative event"}</span></span></span><time className="shrink-0 text-xs text-[#53665e]">{checkedLabel(event.createdAt)}</time></li>)}
+                  {!activity.length && recentImports.map((entry) => <li key={`import-activity-${entry.id}`} className="flex items-start justify-between gap-3 py-3"><span className="flex min-w-0 items-start gap-3"><span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e8f5ef] text-[#247456]"><Upload aria-hidden className="h-4 w-4" /></span><span className="min-w-0"><span className="block truncate text-sm font-medium text-[#29483d]">Catalogue import recorded</span><span className="block truncate text-xs text-[#53665e]">{entry.fileName ?? entry.datasetLabel} · {entry.recordCount} records</span></span></span><time className="shrink-0 text-xs text-[#53665e]">{checkedLabel(entry.createdAt)}</time></li>)}
+                  {!activity.length && !recentImports.length && <li className="py-8 text-center text-sm text-[#53665e]">No administrative activity has been recorded yet.</li>}
+                </ul>
+              </section>
+            </div>
+
+            <p className="mt-5 rounded-xl border border-[#d8e1dc] bg-[#edf2ef] p-4 text-sm leading-relaxed text-[#455b51]">Workflow scope: the queue changes verification status for institutions only. Course and admission details remain read-only. Source refresh preferences can be recorded, but automated fetching and refresh-run monitoring are not connected yet.</p>
+      </>}
+    </AdminPortalShell>
+  );
 }

@@ -78,6 +78,13 @@ export const users = pgTable(
   ],
 );
 
+export const adminWorkspaceSettings = pgTable("admin_workspace_settings", {
+  settingKey: varchar("setting_key", { length: 80 }).primaryKey(),
+  settingValue: jsonb("setting_value").$type<Record<string, unknown>>().notNull(),
+  updatedBy: integer("updated_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const authSessions = pgTable(
   "auth_sessions",
   {
@@ -97,7 +104,7 @@ export const studentProfiles = pgTable(
     userId: integer("user_id").notNull(),
     displayName: varchar("display_name", { length: 120 }),
     stage: varchar("stage", { length: 32 }), // class10 | class12
-    stageDetail: varchar("stage_detail", { length: 32 }), // studying | completed | awaiting_results
+    stageDetail: varchar("stage_detail", { length: 32 }), // studying | completed | awaiting_results | deciding
     districtCode: varchar("district_code", { length: 40 }),
     townName: varchar("town_name", { length: 120 }),
     completion: integer("completion").notNull().default(0),
@@ -232,7 +239,7 @@ export const counsellingSessions = pgTable(
     profileId: integer("profile_id"),
     anonymousKey: varchar("anonymous_key", { length: 64 }),
     stage: varchar("stage", { length: 32 }).notNull().default("class10"),
-    stageDetail: varchar("stage_detail", { length: 32 }),
+    stageDetail: varchar("stage_detail", { length: 32 }), // studying | completed | awaiting_results | deciding
     status: varchar("status", { length: 24 }).notNull().default("in_progress"),
     stepIndex: integer("step_index").notNull().default(0),
     totalSteps: integer("total_steps").notNull().default(10),
@@ -451,6 +458,15 @@ export const institutionSources = pgTable(
   (t) => [index("institution_sources_inst_idx").on(t.institutionCode)],
 );
 
+export const sourceRefreshSettings = pgTable("source_refresh_settings", {
+  sourceKey: text("source_key").primaryKey(),
+  refreshEnabled: boolean("refresh_enabled").notNull().default(false),
+  refreshFrequency: varchar("refresh_frequency", { length: 20 }).notNull().default("manual"),
+  fetchMethod: varchar("fetch_method", { length: 20 }).notNull().default("manual"),
+  updatedBy: varchar("updated_by", { length: 191 }),
+  updatedAt: updatedAt(),
+});
+
 export const admissionInformation = pgTable(
   "admission_information",
   {
@@ -459,15 +475,55 @@ export const admissionInformation = pgTable(
     courseSlug: varchar("course_slug", { length: 80 }),
     cycleLabel: varchar("cycle_label", { length: 80 }),
     applicationWindow: varchar("application_window", { length: 160 }),
-    importantDates: jsonb("important_dates").$type<{ label: string; value: string }[]>().default([]),
+    importantDates: jsonb("important_dates").$type<{ label: string; value: string; sourceTitle?: string | null; sourceUrl?: string | null; verificationStatus?: string }[]>().default([]),
     process: jsonb("process").$type<string[]>().default([]),
     documents: jsonb("documents").$type<string[]>().default([]),
+    documentRequirements: jsonb("document_requirements").$type<{ label: string; status: "required" | "not_confirmed" | "not_required"; sourceUrl?: string | null }[]>().notNull().default([]),
+    applicationStartDate: varchar("application_start_date", { length: 10 }),
+    applicationEndDate: varchar("application_end_date", { length: 10 }),
+    applicationWindowStatus: varchar("application_window_status", { length: 24 }).notNull().default("not_confirmed"),
+    applicationFeeNote: text("application_fee_note"),
+    courseFeeNote: text("course_fee_note"),
     feesNote: text("fees_note"),
+    sourceTitle: varchar("source_title", { length: 200 }),
     sourceUrl: text("source_url"),
     retrievedAt: timestamp("retrieved_at", { withTimezone: true }),
+    lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),
     verificationStatus: varchar("verification_status", { length: 32 }).notNull().default("unavailable"),
   },
   (t) => [index("admission_information_inst_idx").on(t.institutionCode)],
+);
+
+export type AdmissionEditorPayload = {
+  courseSlug: string | null;
+  cycleLabel: string;
+  applicationStartDate: string;
+  applicationEndDate: string;
+  applicationWindowStatus: "confirmed" | "not_confirmed";
+  importantDates: { label: string; value: string; sourceTitle: string; sourceUrl: string; verificationStatus: "verified" | "needs_verification" | "not_available" }[];
+  process: string[];
+  documentRequirements: { label: string; status: "required" | "not_confirmed" | "not_required"; sourceUrl: string }[];
+  applicationFeeNote: string;
+  courseFeeNote: string;
+  sourceTitle: string;
+  sourceUrl: string;
+  sourceRetrievedAt: string;
+  confirmations: { cycle: boolean; applicationWindow: boolean; process: boolean; documents: boolean; feeNote: boolean; applicationLink: boolean };
+};
+
+export const admissionInformationDrafts = pgTable(
+  "admission_information_drafts",
+  {
+    id: serial("id").primaryKey(),
+    admissionId: integer("admission_id"),
+    institutionCode: varchar("institution_code", { length: 64 }).notNull(),
+    payload: jsonb("payload").$type<AdmissionEditorPayload>().notNull(),
+    reviewNote: text("review_note"),
+    savedBy: varchar("saved_by", { length: 191 }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("admission_drafts_record_idx").on(t.admissionId), index("admission_drafts_institution_idx").on(t.institutionCode)],
 );
 
 export const entranceExams = pgTable(
@@ -480,18 +536,49 @@ export const entranceExams = pgTable(
     conductingBody: varchar("conducting_body", { length: 160 }),
     appliesTo: jsonb("applies_to").$type<string[]>().default([]),
     eligibility: text("eligibility"),
+    requiredSubjects: jsonb("required_subjects").$type<string[]>().default([]),
+    minimumAcademicCondition: text("minimum_academic_condition"),
+    ageAttemptNotes: text("age_attempt_notes"),
+    cycleLabel: varchar("cycle_label", { length: 80 }),
     applicationPeriod: varchar("application_period", { length: 160 }),
     examDate: varchar("exam_date", { length: 160 }),
+    correctionWindow: varchar("correction_window", { length: 160 }),
+    resultDate: varchar("result_date", { length: 160 }),
     officialWebsite: text("official_website"),
     documents: jsonb("documents").$type<string[]>().default([]),
+    documentStatus: jsonb("document_status").$type<Record<string, "required" | "not_confirmed">>().notNull().default({}),
     preparation: jsonb("preparation").$type<string[]>().default([]),
     levelStage: varchar("level_stage", { length: 24 }), // after_class10 | after_class12
     sourceUrl: text("source_url"),
     verificationStatus: varchar("verification_status", { length: 32 }).notNull().default("needs_verification"),
     lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),
+    reviewDraft: jsonb("review_draft").$type<Record<string, unknown> | null>(),
   },
   (t) => [uniqueIndex("entrance_exams_slug_idx").on(t.slug)],
 );
+
+export type ScholarshipEditorPayload = {
+  name: string;
+  provider: string;
+  category: string;
+  eligibility: string;
+  academicConditions: string;
+  incomeCategoryConditions: string;
+  residencyConditions: string;
+  otherConditions: string;
+  amountNote: string;
+  tuitionSupport: string;
+  maintenanceSupport: string;
+  renewalNote: string;
+  deadlineNote: string;
+  cycleLabel: string;
+  documents: { label: string; status: "required" | "not_confirmed" | "not_required" }[];
+  officialUrl: string;
+  sourceUrl: string;
+  sourceTitle: string;
+  sourceRetrievedAt: string;
+  appliesToStage: string[];
+};
 
 export const scholarships = pgTable(
   "scholarships",
@@ -502,16 +589,40 @@ export const scholarships = pgTable(
     provider: varchar("provider", { length: 160 }),
     category: varchar("category", { length: 80 }),
     eligibility: text("eligibility"),
+    academicConditions: text("academic_conditions"),
+    incomeCategoryConditions: text("income_category_conditions"),
+    residencyConditions: text("residency_conditions"),
+    otherConditions: text("other_conditions"),
     amountNote: text("amount_note"),
+    tuitionSupport: text("tuition_support"),
+    maintenanceSupport: text("maintenance_support"),
+    renewalNote: text("renewal_note"),
     deadlineNote: varchar("deadline_note", { length: 160 }),
+    cycleLabel: varchar("cycle_label", { length: 80 }),
     documents: jsonb("documents").$type<string[]>().default([]),
+    documentStatus: jsonb("document_status").$type<Record<string, "required" | "not_confirmed" | "not_required">>().notNull().default({}),
     officialUrl: text("official_url"),
+    sourceTitle: varchar("source_title", { length: 180 }),
+    sourceRetrievedAt: timestamp("source_retrieved_at", { withTimezone: true }),
     appliesToStage: jsonb("applies_to_stage").$type<string[]>().default([]),
     sourceUrl: text("source_url"),
     verificationStatus: varchar("verification_status", { length: 32 }).notNull().default("needs_verification"),
     lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),
   },
   (t) => [uniqueIndex("scholarships_slug_idx").on(t.slug)],
+);
+
+export const scholarshipReviewDrafts = pgTable(
+  "scholarship_review_drafts",
+  {
+    id: serial("id").primaryKey(),
+    scholarshipSlug: varchar("scholarship_slug", { length: 64 }).notNull(),
+    payload: jsonb("payload").$type<ScholarshipEditorPayload>().notNull(),
+    savedBy: varchar("saved_by", { length: 191 }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("scholarship_review_drafts_slug_idx").on(t.scholarshipSlug)],
 );
 
 export const opportunities = pgTable(
@@ -716,12 +827,84 @@ export const auditEvents = pgTable("audit_events", {
   createdAt: createdAt(),
 });
 
+export type ChangeProposalDecision = {
+  action: "approved" | "edited_and_approved" | "kept_current" | "rejected" | "kept_pending";
+  actor: string;
+  note: string;
+  value: string | null;
+  createdAt: string;
+};
+
+export const catalogueChangeProposals = pgTable("catalogue_change_proposals", {
+  id: serial("id").primaryKey(),
+  entityType: varchar("entity_type", { length: 40 }).notNull(),
+  entityRef: varchar("entity_ref", { length: 120 }).notNull(),
+  entityName: varchar("entity_name", { length: 180 }).notNull(),
+  fieldName: varchar("field_name", { length: 100 }).notNull(),
+  currentValue: text("current_value"),
+  proposedValue: text("proposed_value").notNull(),
+  approvedValue: text("approved_value"),
+  sourceType: varchar("source_type", { length: 80 }),
+  sourceUrl: text("source_url"),
+  sourceSnapshotUrl: text("source_snapshot_url"),
+  evidenceExcerpt: text("evidence_excerpt"),
+  fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+  status: varchar("status", { length: 24 }).notNull().default("needs_review"),
+  reviewNote: text("review_note"),
+  decisionHistory: jsonb("decision_history").$type<ChangeProposalDecision[]>().notNull().default([]),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export type SourceConflictEvidence = {
+  sourceTitle: string;
+  sourceType: string;
+  checkedAt: string;
+  valueFound: string;
+  evidenceExcerpt: string;
+  authorityLevel: "primary" | "internal" | "secondary";
+  sourceUrl: string | null;
+  sourceReference: string | null;
+};
+export type SourceConflictDecision = {
+  action: "approve_selected" | "edit_value" | "keep_current" | "keep_pending" | "reject_detected";
+  actor: string;
+  note: string;
+  value: string | null;
+  createdAt: string;
+};
+export const catalogueSourceConflicts = pgTable("catalogue_source_conflicts", {
+  caseKey: varchar("case_key", { length: 120 }).primaryKey(),
+  entityType: varchar("entity_type", { length: 40 }).notNull(),
+  entityRef: varchar("entity_ref", { length: 120 }).notNull(),
+  entityName: varchar("entity_name", { length: 180 }).notNull(),
+  fieldName: varchar("field_name", { length: 100 }).notNull(),
+  currentApprovedValue: text("current_approved_value").notNull(),
+  resolvedValue: text("resolved_value"),
+  detectedAt: timestamp("detected_at", { withTimezone: true }).notNull().defaultNow(),
+  status: varchar("status", { length: 32 }).notNull().default("needs_decision"),
+  sources: jsonb("sources").$type<SourceConflictEvidence[]>().notNull().default([]),
+  isSample: boolean("is_sample").notNull().default(false),
+  reviewNote: text("review_note"),
+  reviewedBy: varchar("reviewed_by", { length: 191 }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  decisionHistory: jsonb("decision_history").$type<SourceConflictDecision[]>().notNull().default([]),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [index("catalogue_source_conflicts_status_idx").on(t.status), index("catalogue_source_conflicts_detected_idx").on(t.detectedAt)]);
+export type SourceConflictRecord = typeof catalogueSourceConflicts.$inferSelect;
+
 export const flags = pgTable("feedback_flags", {
   id: serial("id").primaryKey(),
   userId: integer("user_id"),
   entityType: varchar("entity_type", { length: 60 }).notNull(),
   entityRef: varchar("entity_ref", { length: 120 }).notNull(),
+  issueType: varchar("issue_type", { length: 48 }).notNull().default("other"),
   reason: text("reason").notNull(),
+  sourceUrl: text("source_url"),
   status: varchar("status", { length: 24 }).notNull().default("open"),
+  assignedTo: varchar("assigned_to", { length: 191 }),
+  resolutionReason: text("resolution_reason"),
   createdAt: createdAt(),
+  updatedAt: updatedAt(),
 });

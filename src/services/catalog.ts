@@ -44,11 +44,12 @@ function asRows<T>(seeds: unknown[]): T[] {
 
 async function query<T>(run: () => Promise<T[]>, fallback: () => T[]): Promise<T[]> {
   try {
-    await ensureSeeded();
+    const seeded = await ensureSeeded();
+    if (!seeded) return fallback();
     const rows = await run();
     return rows.length ? rows : fallback();
   } catch (error) {
-    console.error("[careerbridge] catalog query failed, using bundled content", error);
+    console.warn("[careerbridge] catalog query unavailable, using bundled content", error);
     return fallback();
   }
 }
@@ -200,6 +201,13 @@ export async function getInstitutionLinksForCourse(courseSlug: string): Promise<
   return query<InstitutionCourse>(
     () => db.select().from(institutionCourses).where(eq(institutionCourses.courseSlug, courseSlug)),
     () => asRows<InstitutionCourse>(INSTITUTION_COURSE_SEEDS.filter((l) => l.courseSlug === courseSlug)),
+  );
+}
+
+export async function getAllInstitutionCourseLinks(): Promise<InstitutionCourse[]> {
+  return query<InstitutionCourse>(
+    () => db.select().from(institutionCourses),
+    () => asRows<InstitutionCourse>(INSTITUTION_COURSE_SEEDS),
   );
 }
 

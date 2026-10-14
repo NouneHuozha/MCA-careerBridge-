@@ -14,7 +14,6 @@ import {
 } from "@/db/schema";
 import { getCurrentUser, getOrCreateProfileId } from "@/auth";
 import {
-  ACKNOWLEDGEMENTS,
   GOAL_OPTIONS,
   INTEREST_OPTIONS,
   STRENGTH_OPTIONS,
@@ -25,9 +24,19 @@ import {
   type CounsellingQuestion,
   type Stage,
 } from "@/data/counselling";
+import { NAGALAND_DISTRICTS } from "@/data/institutions";
 
 const ANON_COOKIE = "cb_journey";
 export const EXPLORATION_COOKIE = "cb_exploration";
+export const EXPLORATION_HISTORY_COOKIE = "cb_exploration_history";
+
+export type ExplorationHistoryRecord = {
+  directionSlug: string;
+  selectedAt: string;
+  lastLocation: string | null;
+  lastMeaningfulAt: string | null;
+  completedSteps: string[];
+};
 
 export type ExplorationState = {
   directionSlug: string;
@@ -49,6 +58,41 @@ export async function getExplorationState(): Promise<ExplorationState | null> {
   } catch {
     return null;
   }
+}
+
+export async function getExplorationHistory(): Promise<ExplorationHistoryRecord[]> {
+  try {
+    const value = (await cookies()).get(EXPLORATION_HISTORY_COOKIE)?.value;
+    if (!value) return [];
+    const parsed = JSON.parse(value) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((record): record is Record<string, unknown> => Boolean(record && typeof record === "object"))
+      .filter((record) => typeof record.directionSlug === "string" && typeof record.selectedAt === "string")
+      .slice(0, 10)
+      .map((record) => ({
+        directionSlug: (record.directionSlug as string).slice(0, 80),
+        selectedAt: record.selectedAt as string,
+        lastLocation: typeof record.lastLocation === "string" ? record.lastLocation.slice(0, 280) : null,
+        lastMeaningfulAt: typeof record.lastMeaningfulAt === "string" ? record.lastMeaningfulAt : null,
+        completedSteps: Array.isArray(record.completedSteps)
+          ? record.completedSteps.filter((step): step is string => typeof step === "string").slice(0, 10)
+          : ["reflection", "direction"],
+      }));
+  } catch {
+    return [];
+  }
+}
+
+export async function saveExplorationHistory(records: ExplorationHistoryRecord[]) {
+  const jar = await cookies();
+  jar.set(EXPLORATION_HISTORY_COOKIE, JSON.stringify(records.slice(0, 10)), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
 }
 
 export type StudentSnapshot = {
@@ -144,11 +188,15 @@ export function buildSnapshot(stage: Stage, stageDetail: string | null, rows: Re
   snap.values = values("values");
   snap.workStyle = single("work_style");
   snap.locationPref = single("location_pref");
-  snap.district = single("home_district");
+  const district = single("home_district");
+  snap.district = district && NAGALAND_DISTRICTS.includes(district) ? district : null;
   snap.budget = single("budget");
-  snap.scholarshipNeed = single("scholarship_need");
-  snap.institutionPref = single("institution_pref");
-  snap.hostel = single("hostel");
+  const scholarshipNeed = single("scholarship_need");
+  snap.scholarshipNeed = scholarshipNeed && scholarshipNeed !== "not-sure" && scholarshipNeed !== "prefer-not" ? scholarshipNeed : null;
+  const institutionPref = single("institution_pref");
+  snap.institutionPref = institutionPref && institutionPref !== "not-sure" ? institutionPref : null;
+  const hostel = single("hostel");
+  snap.hostel = hostel && hostel !== "not-sure" && hostel !== "prefer-not" ? hostel : null;
   snap.notes = [text("interest_story"), text("anything_else")].filter((v): v is string => Boolean(v && v.trim()));
   snap.answeredKeys = [...byKey.keys()];
 
@@ -184,7 +232,7 @@ export async function findSession(): Promise<typeof counsellingSessions.$inferSe
         .select()
         .from(counsellingSessions)
         .where(eq(counsellingSessions.userId, user.id))
-        .orderBy(desc(counsellingSessions.updatedAt))
+        .orderBy(desc(counsellingSessions.updatedAt), desc(counsellingSessions.id))
         .limit(1);
       if (rows[0]) return rows[0];
     }
@@ -194,7 +242,7 @@ export async function findSession(): Promise<typeof counsellingSessions.$inferSe
       .select()
       .from(counsellingSessions)
       .where(and(eq(counsellingSessions.anonymousKey, key), isNull(counsellingSessions.userId)))
-      .orderBy(desc(counsellingSessions.updatedAt))
+      .orderBy(desc(counsellingSessions.updatedAt), desc(counsellingSessions.id))
       .limit(1);
     return rows[0] ?? null;
   } catch {
@@ -202,19 +250,30 @@ export async function findSession(): Promise<typeof counsellingSessions.$inferSe
   }
 }
 
-export async function startSession(stage: Stage, stageDetail: string | null): Promise<number> {
+export async function startSession(stage: Stage, stageDetail: string | null, options: { startNewIfComplete?: boolean } = {}): Promise<number> {
   const user = await getCurrentUser();
   const key = (await anonKey(true))!;
   const profileId = user ? await getOrCreateProfileId(user.id) : null;
 
   const existing = await findSession();
   if (existing) {
-    await db
-      .update(counsellingSessions)
-      .set({ stage, stageDetail, userId: user?.id ?? existing.userId, profileId: profileId ?? existing.profileId, updatedAt: new Date() })
-      .where(eq(counsellingSessions.id, existing.id));
-    if (user) await syncProfileStage(user.id, stage, stageDetail);
-    return existing.id;
+    let startFresh = false;
+    if (options.startNewIfComplete) {
+      const responses = await db
+        .select({ questionKey: counsellingResponses.questionKey })
+        .from(counsellingResponses)
+        .where(eq(counsellingResponses.sessionId, existing.id));
+      startFresh = existing.status === "completed" || !nextQuestion(stage, responses.map((response) => response.questionKey));
+    }
+    if (!startFresh) {
+      await db
+        .update(counsellingSessions)
+        .set({ stage, stageDetail, userId: user?.id ?? existing.userId, profileId: profileId ?? existing.profileId, updatedAt: new Date() })
+        .where(eq(counsellingSessions.id, existing.id));
+      if (user) await syncProfileStage(user.id, stage, stageDetail);
+      return existing.id;
+    }
+    // Keep the completed responses intact; a deliberate new start gets its own session.
   }
 
   const created = await db
@@ -261,52 +320,69 @@ export async function getSessionState(): Promise<SessionState | null> {
   };
 }
 
-export async function saveAnswer(input: {
-  sessionId: number;
-  questionKey: string;
-  values: string[];
-  text?: string | null;
-}) {
-  const question = findQuestion(input.questionKey);
-  if (!question) throw new Error("Unknown question");
+type AnswerInput = { questionKey: string; values: string[]; text?: string | null };
 
-  await db
-    .delete(counsellingResponses)
-    .where(
-      and(
-        eq(counsellingResponses.sessionId, input.sessionId),
-        eq(counsellingResponses.questionKey, input.questionKey),
-      ),
-    );
-
-  await db.insert(counsellingResponses).values({
-    sessionId: input.sessionId,
-    questionKey: input.questionKey,
-    questionText: question.prompt,
-    answerType: question.answerType,
-    answerValues: input.values,
-    answerText: input.text ?? null,
+export async function saveAnswers(input: { sessionId: number; answers: AnswerInput[]; stage?: Stage; stageDetail?: string }) {
+  const resolved = input.answers.map((answer) => {
+    const question = findQuestion(answer.questionKey);
+    if (!question) throw new Error("Unknown question");
+    return { answer, question };
   });
 
-  await db
-    .update(counsellingSessions)
-    .set({ updatedAt: new Date() })
-    .where(eq(counsellingSessions.id, input.sessionId));
+  await db.transaction(async (transaction) => {
+    for (const { answer, question } of resolved) {
+      await transaction
+        .delete(counsellingResponses)
+        .where(
+          and(
+            eq(counsellingResponses.sessionId, input.sessionId),
+            eq(counsellingResponses.questionKey, answer.questionKey),
+          ),
+        );
+
+      await transaction.insert(counsellingResponses).values({
+        sessionId: input.sessionId,
+        questionKey: answer.questionKey,
+        questionText: question.prompt,
+        answerType: question.answerType,
+        answerValues: answer.values,
+        answerText: answer.text ?? null,
+      });
+    }
+
+    if (resolved.length || input.stage !== undefined || input.stageDetail !== undefined) {
+      await transaction
+        .update(counsellingSessions)
+        .set({
+          ...(input.stage !== undefined ? { stage: input.stage } : {}),
+          ...(input.stageDetail !== undefined ? { stageDetail: input.stageDetail } : {}),
+          updatedAt: new Date(),
+        })
+        .where(eq(counsellingSessions.id, input.sessionId));
+    }
+  });
+}
+
+export async function saveAnswer(input: AnswerInput & { sessionId: number }) {
+  return saveAnswers({ sessionId: input.sessionId, answers: [input] });
 }
 
 export function nextQuestion(stage: Stage, answeredKeys: string[]): CounsellingQuestion | null {
   const list = questionsForStage(stage);
-  return list.find((q) => !answeredKeys.includes(q.key)) ?? null;
+  const nextCore = list.find((q) => !answeredKeys.includes(q.key)) ?? null;
+  const strengthsIndex = list.findIndex((q) => q.key === "strengths");
+  const strengthsAndEarlierAnswered = strengthsIndex >= 0 && list.slice(0, strengthsIndex + 1).every((q) => answeredKeys.includes(q.key));
+  const nextCoreIndex = nextCore ? list.indexOf(nextCore) : list.length;
+  if (strengthsAndEarlierAnswered && !answeredKeys.includes("work_style") && nextCoreIndex > strengthsIndex) {
+    return findQuestion("work_style") ?? nextCore;
+  }
+  return nextCore;
 }
 
 export function progressFor(stage: Stage, answeredKeys: string[]) {
   const list = questionsForStage(stage);
   const answered = list.filter((q) => answeredKeys.includes(q.key)).length;
   return { answered, total: list.length };
-}
-
-export function acknowledgementFor(questionKey: string) {
-  return ACKNOWLEDGEMENTS[questionKey] ?? "Thanks for sharing that.";
 }
 
 /* ---------------------- persist structured student profile ---------------------- */
@@ -395,13 +471,5 @@ export async function completeSession(sessionId: number) {
   await db
     .update(counsellingSessions)
     .set({ status: "completed", completedAt: new Date(), updatedAt: new Date() })
-    .where(eq(counsellingSessions.id, sessionId));
-}
-
-export async function resetSession(sessionId: number) {
-  await db.delete(counsellingResponses).where(eq(counsellingResponses.sessionId, sessionId));
-  await db
-    .update(counsellingSessions)
-    .set({ status: "in_progress", completedAt: null, updatedAt: new Date() })
     .where(eq(counsellingSessions.id, sessionId));
 }

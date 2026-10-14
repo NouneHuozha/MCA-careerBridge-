@@ -1,5 +1,5 @@
 /** Only allow same-app return destinations; never trust a form redirect blindly. */
-export function safeReturnPath(value: unknown, fallback = "/dashboard"): string {
+export function safeReturnPath(value: unknown, fallback = "/guidance"): string {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) return fallback;
   try {
     const url = new URL(value, "https://careerbridge.invalid");

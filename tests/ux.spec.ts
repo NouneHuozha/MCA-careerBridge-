@@ -38,14 +38,197 @@ test('animated guidance tiles can be selected and paused', async ({ page }) => {
   await expect(page.locator('.cb-guide p[aria-live]')).toContainText('fees and financial support');
 });
 
+test('counselling orientation explains the journey and continues to current position', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/start');
+  await expect(page.getByRole('heading', { name: 'Your counselling journey' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Let’s find a useful starting point.' })).toBeVisible();
+  await expect(page.getByText('This is your progress through the conversation, not a score.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Save and return later' })).toHaveCount(2);
+  await expect(page.getByRole('link', { name: 'Start counselling' })).toBeVisible();
+  await noOverflow(page);
+  await page.getByRole('link', { name: 'Start counselling' }).click();
+  await expect(page).toHaveURL('/start/current-position');
+  await expect(page.getByText('Which stage sounds like you?')).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/start');
+  await noOverflow(page);
+});
+
+test('current position supports Class 10 and 12, preserves choices on Back, and fits mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/start');
+  await page.getByRole('link', { name: 'Start counselling' }).click();
+  const class10 = page.getByRole('radio', { name: 'I’m currently in Class 10' });
+  const class12 = page.getByRole('radio', { name: 'I’m currently in Class 12' });
+  const deciding = page.getByRole('radio', { name: 'I’m taking some time to decide what comes next' });
+  await expect(class10).toBeVisible();
+  await expect(class12).toBeVisible();
+  await expect(page.getByRole('radio')).toHaveCount(6);
+  await page.getByText('I’m currently in Class 12', { exact: true }).click();
+  await deciding.focus();
+  await page.keyboard.press('Space');
+  await expect(class12).toBeChecked();
+  await expect(deciding).toBeChecked();
+  await page.reload();
+  await expect(page.getByRole('radio', { name: 'I’m currently in Class 12' })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'I’m taking some time to decide what comes next' })).toBeChecked();
+  await page.getByRole('link', { name: 'Back', exact: true }).click();
+  await page.getByRole('link', { name: 'Start counselling' }).click();
+  await expect(page.getByRole('radio', { name: 'I’m currently in Class 12' })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'I’m taking some time to decide what comes next' })).toBeChecked();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await noOverflow(page);
+  await page.getByRole('button', { name: 'Save and return later' }).click();
+  await expect(page).toHaveURL(/\/start(?:\?counsellingSaved=1|\/current-position\?error=unavailable)/);
+  if (new URL(page.url()).pathname === '/start') {
+    await expect(page.getByRole('status')).toContainText('Your counselling progress has been saved.');
+  } else {
+    await expect(page.locator('p[role="alert"]')).toContainText('We couldn’t save your starting point');
+  }
+});
+
+test('Class 10 education page preserves stream choice and optional context through refresh, Back, and save', async ({ page }) => {
+  await page.goto('/start');
+  await page.getByRole('link', { name: 'Start counselling' }).click();
+  await page.getByText('I’m currently in Class 10', { exact: true }).click();
+  await page.getByText('I’m waiting for results', { exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page).toHaveURL('/counselling?first=stream_intent');
+
+  await expect(page.getByRole('heading', { name: 'What are you considering after Class 10?' })).toBeVisible();
+  await expect(page.getByRole('radio')).toHaveCount(5);
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Choose an option');
+
+  const detailToggle = page.getByRole('button', { name: 'Tell us more in your own words' });
+  await detailToggle.click();
+  await page.getByLabel('Tell us more in your own words (optional)').fill('I enjoy practical, hands-on learning.');
+  await detailToggle.click();
+  await detailToggle.click();
+
+  const science = page.getByRole('radio', { name: 'Science' });
+  await science.focus();
+  await page.keyboard.press('Space');
+  await expect(science).toBeChecked();
+  await page.getByRole('link', { name: 'Back', exact: true }).click();
+  await expect(page).toHaveURL('/start/current-position');
+  await expect(page.getByRole('radio', { name: 'I’m currently in Class 10' })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'I’m waiting for results' })).toBeChecked();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'What are you considering after Class 10?' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Science' })).toBeChecked();
+  await expect(page.getByLabel('Tell us more in your own words (optional)')).toHaveValue('I enjoy practical, hands-on learning.');
+  await page.reload();
+  await expect(page.getByRole('radio', { name: 'Science' })).toBeChecked();
+  await expect(page.getByLabel('Tell us more in your own words (optional)')).toHaveValue('I enjoy practical, hands-on learning.');
+
+  const unsure = page.getByRole('radio', { name: 'I’m not sure yet' });
+  await unsure.focus();
+  await page.keyboard.press('Space');
+  await expect(unsure).toBeChecked();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('heading', { name: "Let's start simple. Which subjects do you enjoy the most?" })).toBeVisible();
+  let savedState = await (await page.request.get('/api/counselling')).json();
+  expect(savedState.answers.stream_intent).toEqual({ values: ['not-sure'], text: 'I enjoy practical, hands-on learning.' });
+
+  await page.goto('/counselling?edit=stream_intent');
+  await expect(page.getByRole('heading', { name: 'What are you considering after Class 10?' })).toBeVisible();
+  await expect(unsure).toBeChecked();
+  await page.getByText('Science', { exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('heading', { name: "Let's start simple. Which subjects do you enjoy the most?" })).toBeVisible();
+  savedState = await (await page.request.get('/api/counselling')).json();
+  expect(savedState.answers.stream_intent).toEqual({ values: ['science'], text: 'I enjoy practical, hands-on learning.' });
+
+  await page.getByRole('button', { name: 'Mathematics', exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(page.getByRole('heading', { name: "Let's start simple. Which subjects do you enjoy the most?" })).toBeVisible();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'What are you considering after Class 10?' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Science' })).toBeChecked();
+  await expect(page.getByLabel('Tell us more in your own words (optional)')).toHaveValue('I enjoy practical, hands-on learning.');
+  await page.getByText('Commerce', { exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'What kinds of things genuinely interest you?' })).toBeVisible();
+  savedState = await (await page.request.get('/api/counselling')).json();
+  expect(savedState.answers.stream_intent).toEqual({ values: ['commerce'], text: 'I enjoy practical, hands-on learning.' });
+
+  await page.getByRole('button', { name: 'Save and return later' }).click();
+  await expect(page).toHaveURL('/start?counsellingSaved=1');
+  await expect(page.getByRole('status')).toContainText('Your counselling progress has been saved.');
+});
+
+test('Class 12 education page records a stream and optional Other detail through refresh and Back', async ({ page }) => {
+  await page.goto('/start');
+  await page.getByRole('link', { name: 'Start counselling' }).click();
+  await page.getByText('I’m currently in Class 12', { exact: true }).click();
+  await page.getByText('I’m taking some time to decide what comes next', { exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page).toHaveURL('/counselling?first=stream_current');
+  await expect(page.getByRole('heading', { name: 'What did you study in Class 11–12?' })).toBeVisible();
+  await expect(page.getByRole('radio')).toHaveCount(7);
+  for (const label of ['Science with Mathematics', 'Science with Biology', 'Commerce', 'Arts / Humanities', 'Vocational', 'Something else', 'I’m not sure yet']) {
+    await expect(page.getByRole('radio', { name: label })).toBeVisible();
+  }
+  await expect(page.getByLabel('Tell us what you studied (optional)')).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await noOverflow(page);
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.locator('p[role="alert"]')).toContainText('Choose an option');
+
+  const other = page.getByRole('radio', { name: 'Something else' });
+  await other.focus();
+  await page.keyboard.press('Space');
+  await expect(other).toBeChecked();
+  const detail = page.getByLabel('Tell us what you studied (optional)');
+  await expect(detail).toBeVisible();
+  await detail.fill('Environmental management and local ecology.');
+  const notSure = page.getByRole('radio', { name: 'I’m not sure yet' });
+  await notSure.focus();
+  await page.keyboard.press('Space');
+  await expect(detail).toHaveCount(0);
+  await other.focus();
+  await page.keyboard.press('Space');
+  await expect(detail).toHaveValue('Environmental management and local ecology.');
+  await page.reload();
+  await expect(page.getByRole('radio', { name: 'Something else' })).toBeChecked();
+  await expect(page.getByLabel('Tell us what you studied (optional)')).toHaveValue('Environmental management and local ecology.');
+
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('heading', { name: "Let's start simple. Which subjects do you enjoy the most?" })).toBeVisible();
+  let savedState = await (await page.request.get('/api/counselling')).json();
+  expect(savedState.answers.stream_current).toEqual({ values: ['other'], text: 'Environmental management and local ecology.' });
+
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'What did you study in Class 11–12?' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Something else' })).toBeChecked();
+  await expect(page.getByLabel('Tell us what you studied (optional)')).toHaveValue('Environmental management and local ecology.');
+  await page.getByText('Science with Mathematics', { exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('heading', { name: "Let's start simple. Which subjects do you enjoy the most?" })).toBeVisible();
+  savedState = await (await page.request.get('/api/counselling')).json();
+  expect(savedState.answers.stream_current).toEqual({ values: ['science-pcm'], text: 'Environmental management and local ecology.' });
+
+  await page.getByRole('button', { name: 'Save and return later' }).click();
+  await expect(page).toHaveURL('/start?counsellingSaved=1');
+  await expect(page.getByRole('status')).toContainText('Your counselling progress has been saved.');
+});
+
 test('counselling scrolls, preserves edits, and makes the next action clear', async ({ page }) => {
   await page.goto('/start');
-  await page.getByText('Waiting for results', { exact: true }).click();
+  await page.getByRole('link', { name: 'Start counselling' }).click();
+  await page.getByText('I’m currently in Class 10', { exact: true }).click();
+  await page.getByText('I’m waiting for results', { exact: true }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await expect(page).toHaveURL(/\/counselling/);
+  await expect(page).toHaveURL('/counselling?first=stream_intent');
+  await page.getByText('Science', { exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('heading', { name: "Let's start simple. Which subjects do you enjoy the most?" })).toBeVisible();
   const values: Record<string, string> = { subjects_enjoy: 'mathematics', stream_intent: 'science', interests: 'technology', strengths: 'problem-solving', goals: 'technology', values: 'learning', location_pref: 'within-nagaland', budget: 'low' };
   let initialHeight = 0;
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 7; i++) {
     const state = await (await page.request.get('/api/counselling')).json();
     const q = state.question;
     expect(q).toBeTruthy();
@@ -53,9 +236,9 @@ test('counselling scrolls, preserves edits, and makes the next action clear', as
     await page.getByRole('button', { name: option.label, exact: true }).click();
     if (!initialHeight) initialHeight = (await page.locator('.cb-counselling-shell').boundingBox())!.height;
     const saved = page.waitForResponse((response) => response.url().endsWith('/api/counselling') && response.request().method() === 'POST');
-    await page.getByRole('button', { name: i === 7 ? 'Finish & see my profile' : 'Continue', exact: true }).click();
+    await page.getByRole('button', { name: i === 6 ? 'Finish & see my profile' : 'Continue', exact: true }).click();
     expect((await saved).ok()).toBeTruthy();
-    if (i < 7) await expect(page.getByText(`${i + 1} of 8 answered`, { exact: true })).toBeVisible();
+    if (i < 6) await expect(page.getByText(`${i + 2} of 8 answered`, { exact: true })).toBeVisible();
     if (i === 6) {
       const log = page.getByRole('log');
       const scroll = await log.evaluate((el) => ({ total: el.scrollHeight, height: el.clientHeight, overflow: getComputedStyle(el).overflowY }));
@@ -64,21 +247,19 @@ test('counselling scrolls, preserves edits, and makes the next action clear', as
       expect((await page.locator('.cb-counselling-shell').boundingBox())!.height).toBe(initialHeight);
     }
   }
-  await expect(page).toHaveURL(/\/profile/);
-  await expect(page.getByRole('heading', { name: 'Pick a field to look into.' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Explore this field', exact: true })).toHaveCount(3);
-  await page.screenshot({ path: 'artifacts/profile-desktop.png', fullPage: true });
-  await page.getByRole('link', { name: 'Edit subjects you enjoy' }).click();
-  await expect(page.getByRole('button', { name: 'Mathematics', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'English', exact: true }).click();
-  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
-  await expect(page).toHaveURL(/\/profile/);
-  const state = await (await page.request.get('/api/profile')).json();
-  expect(state.snapshot.subjectsEnjoy).toContain('english');
-  await page.getByRole('link', { name: 'Explore this field', exact: true }).first().click();
-  await expect(page).toHaveURL(/\/explore\//);
+  await expect(page).toHaveURL(/\/guidance\/complete/);
+  await expect(page.getByRole('heading', { name: 'We’ve finished getting to know you' })).toBeVisible();
+  await page.getByRole('link', { name: 'Review what we understood' }).click();
+  await expect(page).toHaveURL(/\/guidance\/review$/);
+  await expect(page.getByRole('heading', { name: 'Here’s what we understood' })).toBeVisible();
+  await page.getByRole('link', { name: 'This looks right — continue' }).click();
+  await expect(page).toHaveURL(/\/guidance\/confirm$/);
+  await expect(page.getByRole('heading', { name: 'Your starting picture is confirmed' })).toBeVisible();
+  await page.getByRole('link', { name: 'Explore possible directions' }).click();
+  await expect(page).toHaveURL(/\/guidance\/possibilities$/);
+  await expect(page.getByRole('heading', { name: 'Here are a few directions to explore' })).toBeVisible();
+  await page.screenshot({ path: 'artifacts/guidance-possibilities.png', fullPage: true });
 });
-
 test('field and pathway details reveal one topic at a time', async ({ page }) => {
   await page.goto('/explore/technology');
   await expect(page.getByRole('tabpanel').filter({ visible: true })).toHaveCount(1);
@@ -156,6 +337,15 @@ test('compare controls align and show the chosen pair', async ({ page }) => {
 });
 
 test('saved state persists and sign-out requires confirmation', async ({ page }) => {
+  const answers: [string, string[]][] = [
+    ['subjects_enjoy', ['mathematics']], ['stream_intent', ['science']], ['interests', ['technology']],
+    ['strengths', ['problem-solving']], ['goals', ['technology']], ['values', ['learning']],
+    ['location_pref', ['within-nagaland']], ['budget', ['low']],
+  ];
+  for (const [questionKey, values] of answers) {
+    expect((await page.request.post('/api/counselling', { data: { action: 'answer', stage: 'class10', questionKey, values } })).ok()).toBe(true);
+  }
+  expect((await page.request.post('/api/counselling', { data: { action: 'complete' } })).ok()).toBe(true);
   await createUser(page);
   await page.goto('/courses/bca');
   const save = page.getByRole('button', { name: /^Save BCA/ });
@@ -163,7 +353,7 @@ test('saved state persists and sign-out requires confirmation', async ({ page })
   await expect(page.getByRole('button', { name: /^Unsave BCA/ })).toHaveAttribute('aria-pressed', 'true');
   await page.reload();
   await expect(page.getByRole('button', { name: /^Unsave BCA/ })).toHaveAttribute('aria-pressed', 'true');
-  await page.goto('/saved');
+  await page.goto('/guidance/saved');
   await expect(page.getByRole('main')).toContainText('BCA');
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   const confirm = page.getByRole('dialog', { name: 'Sign out for now?' });

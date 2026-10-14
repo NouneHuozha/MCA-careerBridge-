@@ -32,3 +32,113 @@ The browser suite is in `tests/ux.spec.ts`, with configuration in `playwright.co
 Use `CAREERBRIDGE_TEST_URL` to target a different preview. Tests never launch an additional app server. Screenshots are written to ignored `artifacts/`; traces are in `/tmp/careerbridge-test-results`.
 
 Tests create isolated student accounts under `example.test`; they do not modify the institution catalogue or existing student accounts.
+
+## Admin source refresh settings
+
+- `/admin/sources/settings` stores a source-specific refresh preference (daily, weekly, monthly, quarterly, or manual) and writes every change to the audit history.
+- Apply `src/db/migrations/0001_source_refresh_settings.sql` before using the save action in a database-backed environment.
+- The scheduled fetcher, parser, and refresh-run history are not implemented yet. The UI labels saved cadence as a preference only and does not claim that a check ran or is scheduled.
+
+## Proposed catalogue change review (item 14)
+
+- `/admin/change-history/proposed/[id]` compares the approved value with a proposed value, displays source evidence and prior decisions, and supports approve, edit-and-approve, keep-current, reject, or keep-pending.
+- Apply `src/db/migrations/0002_catalogue_change_proposals.sql` before using proposal storage or decisions in a database-backed environment. The change-history page distinguishes unavailable storage from an empty queue.
+- Approved values are applied only to allowlisted text fields after checking that the current catalogue value still matches the proposal's captured value. A concurrent edit leaves the proposal unchanged and returns a conflict message.
+- Proposals may be created through the admin-only `/api/admin/change-proposals` endpoint. The scheduled source fetcher/parser that would discover and submit proposals remains unimplemented; no proposal is fabricated from sample data.
+
+## Student feedback flags (item 15)
+
+- Students can report incorrect details, broken application links, outdated deadlines, course availability, missing sources, or another issue from institution, course, scholarship, entrance-exam, and opportunity detail pages. Submission requires a signed-in account.
+- Reports enter `/admin/feedback-flags` and the admin home Review queue. The workspace filters by status, issue, entity and report date, supports search and CSV export, and provides assignment, review, resolve, and duplicate-dismiss actions.
+- Resolving or dismissing requires a closure reason. Reports are audited and never directly edit student-facing catalogue data; admins inspect the linked catalogue record and separately decide any correction.
+- Apply `src/db/migrations/0003_feedback_flag_review.sql` before using report intake and the review workflow in a database-backed environment. If storage is unavailable, the admin page explains the migration prerequisite.
+
+## Institution admission information (item 18)
+
+- `/admin/catalogue/institutions/[code]/admission` manages institution- and course-specific admission cycles, dates, process steps, document requirement statuses, fee notes, source evidence, and reviewer checks. It is linked from the institution verification workspace.
+- Drafts are stored separately from approved admission records. Save draft never changes student-facing data; Mark verified requires all six reviewer checks, a source title/URL, a cycle, and a reviewer note, then updates the approved record and writes an audit event.
+- Student application pages only read verified admission records, show the cycle label and last verification date, and preserve `Not confirmed` separately from `Not required`. Draft changes remain hidden.
+- Apply `src/db/migrations/0005_admission_information_editor.sql` before saving drafts or publishing verified values in a database-backed environment. Source links are recorded but are not fetched automatically.
+
+## Entrance exam detail review (item 19)
+
+- `/admin/catalogue/exams/[slug]` provides an exam identity, one-cycle date editor, eligibility sections, document-status checklist, preparation notes, official source evidence, and verification checklist.
+- `Save draft` stores proposed values separately from the student-facing catalogue row. The currently published values and verification status remain unchanged until an administrator verifies the draft.
+- Verification requires a named cycle, application period, exam date, eligibility summary, conducting body, valid HTTP(S) official source, reviewer note, and explicit evidence confirmation. Unknown details can be recorded as “Not currently confirmed”; absence from the document list never implies “not required.”
+- Draft saves and verification decisions are added to audit history. Marking verified publishes only that cycle's reviewed values; dates from separate cycles are not combined.
+- Student-facing exam details render the published cycle, application/exam/correction/result dates, and per-document states. Unconfirmed details stay explicit, and generic national/undergraduate claims are not substituted for the reviewed stage.
+- Apply `src/db/migrations/0005_entrance_exam_review_details.sql` before using the cycle-specific fields or draft endpoint in a database-backed environment.
+
+
+## Scholarship detail review (item 20)
+
+- `/admin/catalogue/scholarships/[slug]` reviews provider, category, education stages, cycle, deadline, eligibility sections, support, document statuses, source metadata, and the reviewer checklist.
+- `Save draft` upserts a private `scholarship_review_drafts` record and leaves published catalogue values unchanged. `Mark verified` requires cycle context, a provider, stage, deadline or honest confirmation state, eligibility summary, source evidence, reviewer note, and explicit confirmation before publishing the cycle and audit entry.
+- Missing dates, support details, eligibility sections, and documents remain visibly unconfirmed; unreviewed documents are not represented as required. The student-facing page shows each document as Required, Not required, or Not currently confirmed, and displays the published fields and source title/retrieval metadata.
+- Apply `src/db/migrations/0006_scholarship_detail_review.sql` before using draft storage or cycle-specific fields in a database-backed environment.
+
+
+## Source conflict resolution (item 21)
+
+- `/admin/change-history/conflicts` and `/admin/change-history/conflicts/[caseKey]` compare source title/type, checked date, value found, evidence excerpt, and an explicit primary/internal/secondary authority hierarchy.
+- No conflicting value is preselected. A reviewer must choose an availability value or edit it to a supported option, add a reason, and confirm evidence review. “Not listed” is not treated as “Not offered”; unresolved records remain unpublished.
+- The Screen 21 example for BCA at Modern College is labeled synthetic. It has no fabricated source links and can write only its sample decision and audit event, never a real catalogue row. Real availability publication is limited to guarded institution-course records and requires a current official-source URL plus a compare-and-set check.
+- Original source rows and the previous approved value remain in the conflict record and decision audit. Apply `src/db/migrations/0007_source_conflict_resolution.sql` to enable the queue and decision actions. The source fetcher/import conflict detector is not implemented and this screen does not invent live conflicts.
+
+## Catalogue network-error preview (task 39)
+
+- `/admin/catalogue/network-error-preview` is a protected, explicitly labeled visual preview of the catalogue load-error state. It does not fake a live request or change catalogue data.
+- The preview offers a retry link to the live catalogue page and a direct route back to the admin review queue. Failure copy makes clear that no catalogue data was changed.
+- The catalogue overview links to the preview so admins can inspect the resilience state without disconnecting a service or inducing a real failure.
+
+## Admin offline-state preview (task 40)
+
+- `/admin/catalogue/offline-preview` shows the institution-detail offline layout with sample-only values, a stale-data caution, disabled save/publish actions, and a route back to the review queue.
+- The retry control checks only `navigator.onLine` and explains that no service sync was attempted. It does not claim a device cache, offline persistence, or server retry exists.
+
+## Source failure preview (task 43)
+
+- `/admin/sources/source-failure-preview` shows a sample failed-check record, its failure reason, prior approved deadline, and retained student-facing value. No new value is proposed from an incomplete extraction.
+- Run-check and open-source controls are disabled in the sample. The refresh panel states that saved cadence is a preference and no fetcher or retry scheduler is connected; the review can retain the prior value without a database write.
+
+## Import validation error preview (task 44)
+
+- `/admin/imports/validation-error-preview` shows required-column, duplicate-record, and invalid-URL blockers; import review/approval remains unavailable until correction.
+- The synthetic sample keeps the catalogue unchanged and offers a locally generated sample error report and navigation back to the browser-based import flow. It clearly states that files are not uploaded or imported server-side.
+
+## Permission-limited proposed-change preview (task 45)
+
+- `/admin/change-history/permission-error-preview` presents a read-only proposed-change example, its current/proposed values, and the missing approval permission. Edit/publish actions are not shown.
+- The sample Request access control only explains that no request or permission change was sent. The preview route itself remains protected by the actual admin access guard.
+
+## Mobile admin shell (task 46)
+
+- Updated the shared `/admin` shell with a compact CareerBridge header, accessible expandable navigation menu, admin avatar, and fixed four-destination bottom navigation for Review, Catalogue, Sources, and Settings.
+- The full sidebar remains for desktop, while the mobile content reserves space above the bottom bar and menu links close the drawer after navigation.
+
+## Mobile catalogue filters (task 47)
+
+- `/admin/search` now keeps its full filter form at desktop widths and provides a compact mobile search field plus right-side drawer for record type, status, district, and search query.
+- Apply submits the same existing query parameters; Clear preserves the search term while resetting filters. The results remain the existing responsive result list; no filter semantics or catalogue data are changed.
+
+## Confirmation dialog patterns (task 48)
+
+- `/admin/confirmation-dialogs-preview` demonstrates consequence-first approve/reject, rollback, refresh-pause, and archive confirmations with a cancel path, required notes where appropriate, and destructive action styling.
+- It is linked from the Review queue. All records are examples and final clicks only report that no operation ran; no live catalogue, import, or scheduler action is connected to this showcase.
+
+## Admin profile and actionable review menu (task 49)
+
+- The shared admin header now uses the authenticated administrator's account identity and opens a profile popover with My account, Role and permissions, Review center, Settings, and the existing sign-out endpoint.
+- The review badge is calculated from pending institution reviews and open/in-review reports; routine source checks are excluded. If the count cannot be loaded, no invented badge value is shown.
+- `/admin/profile` is a read-only authenticated account page; Role and permissions opens the existing Settings team-access tab. No separate notification delivery service or account-edit flow is claimed.
+- `/admin/profile-menu-preview` is a public design-only route using a synthetic `example.invalid` account and a fixed sample count, with sign-out disabled. The real `/admin/profile` and profile API remain protected.
+
+## Draft-save status preview (task 41)
+
+- `/admin/catalogue/save-status-preview` presents distinct failure and success outcomes for one illustrative editor context; it states that these are alternatives, not simultaneous notifications.
+- Failure copy keeps edits on the page and lets admins continue to a real catalogue editor. Retry and View draft explain that the preview sends no request and stores no draft. The success state clearly separates saving from verification and publication.
+
+## Partial-data institution preview (task 42)
+
+- `/admin/catalogue/partial-data-preview` distinguishes verified sample values, unverified fields, unavailable fields, and an unavailable source at the field level.
+- The preview preserves the last-approved contact value and explicitly says missing information is not a negative claim. Sample-only actions are disabled; “Not currently available” is distinct from “Not offered” and “Not required.”

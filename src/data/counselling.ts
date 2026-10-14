@@ -8,13 +8,45 @@
  *   a broad budget band the student can skip)
  */
 
+import { NAGALAND_DISTRICTS } from "@/data/institutions";
+
 export type Stage = "class10" | "class12";
+
+export const STAGE_DETAIL_VALUES = ["studying", "completed", "awaiting_results", "deciding"] as const;
+export type StageDetail = (typeof STAGE_DETAIL_VALUES)[number];
+
+export function isStageDetail(value: string): value is StageDetail {
+  return STAGE_DETAIL_VALUES.includes(value as StageDetail);
+}
 
 export type QuestionOption = {
   value: string;
   label: string;
   hint?: string;
 };
+
+export const SCHOLARSHIP_NEED_OPTIONS: QuestionOption[] = [
+  { value: "yes", label: "Yes, it would matter a lot" },
+  { value: "maybe", label: "Maybe — good to know either way" },
+  { value: "no", label: "Not a priority right now" },
+  { value: "not-sure", label: "I’m not sure yet" },
+  { value: "prefer-not", label: "Prefer not to answer" },
+];
+
+export const INSTITUTION_PREF_OPTIONS: QuestionOption[] = [
+  { value: "government", label: "Prefer government" },
+  { value: "private", label: "Prefer private" },
+  { value: "either", label: "Either is fine" },
+  { value: "not-sure", label: "I’m not sure yet" },
+];
+
+export const HOSTEL_OPTIONS: QuestionOption[] = [
+  { value: "yes", label: "Yes, I’d need a hostel" },
+  { value: "day-scholar", label: "No, I’d stay at home" },
+  { value: "depends", label: "It depends on the institution" },
+  { value: "not-sure", label: "I’m not sure yet" },
+  { value: "prefer-not", label: "Prefer not to answer" },
+];
 
 export type CounsellingQuestion = {
   key: string;
@@ -30,17 +62,9 @@ export type CounsellingQuestion = {
   /**
    * Core questions form the short guided flow. Everything else is optional
    * depth the student can choose to add later — we never pile it on up front.
-   */
+  */
   core?: boolean;
 };
-
-export const SECTIONS: { key: CounsellingQuestion["section"]; label: string }[] = [
-  { key: "academics", label: "Your studies" },
-  { key: "interests", label: "What interests you" },
-  { key: "strengths", label: "What you're good at" },
-  { key: "goals", label: "What matters to you" },
-  { key: "practical", label: "Practical realities" },
-];
 
 export const SUBJECT_OPTIONS: QuestionOption[] = [
   { value: "mathematics", label: "Mathematics" },
@@ -49,6 +73,7 @@ export const SUBJECT_OPTIONS: QuestionOption[] = [
   { value: "chemistry", label: "Chemistry" },
   { value: "biology", label: "Biology" },
   { value: "computer-science", label: "Computer Science" },
+  { value: "information-technology", label: "Information Technology" },
   { value: "english", label: "English" },
   { value: "social-science", label: "Social Science" },
   { value: "history", label: "History" },
@@ -59,43 +84,64 @@ export const SUBJECT_OPTIONS: QuestionOption[] = [
   { value: "arts", label: "Arts / Fine Arts" },
 ];
 
+/** Presentation-only groups. Stored answer values remain the existing subject slugs. */
+export const SUBJECT_GROUPS = [
+  { key: "science-and-mathematics", label: "Science and mathematics", values: ["science", "mathematics", "physics", "chemistry", "biology"] },
+  { key: "technology-and-computing", label: "Technology and computing", values: ["computer-science", "information-technology"] },
+  { key: "languages-and-society", label: "Languages and society", values: ["english", "social-science", "history", "political-science", "geography"] },
+  { key: "business-and-creative-subjects", label: "Business and creative subjects", values: ["economics", "commerce", "arts"] },
+] as const;
+
 export const INTEREST_OPTIONS: QuestionOption[] = [
-  { value: "technology", label: "Technology & computers" },
-  { value: "engineering", label: "Engineering & building things" },
-  { value: "medicine", label: "Medicine & health" },
-  { value: "science", label: "Science & experiments" },
-  { value: "business", label: "Business & enterprise" },
-  { value: "finance", label: "Finance & accounts" },
-  { value: "government", label: "Government & public service" },
-  { value: "law", label: "Law & justice" },
-  { value: "education", label: "Teaching & education" },
-  { value: "arts", label: "Art, design & making things" },
-  { value: "media", label: "Media, writing & communication" },
-  { value: "agriculture", label: "Agriculture & farming" },
-  { value: "environment", label: "Environment & nature" },
-  { value: "hospitality", label: "Hospitality, food & tourism" },
-  { value: "research", label: "Research & discovering things" },
-  { value: "social-sciences", label: "People, society & communities" },
+  { value: "technology", label: "Technology and computers" },
+  { value: "engineering", label: "Engineering and building things" },
+  { value: "medicine", label: "Medicine and health" },
+  { value: "science", label: "Science and experiments" },
+  { value: "business", label: "Business and enterprise" },
+  { value: "finance", label: "Finance and accounts" },
+  { value: "government", label: "Government and public service" },
+  { value: "law", label: "Law and justice" },
+  { value: "education", label: "Teaching and education" },
+  { value: "arts", label: "Art, design, and making things" },
+  { value: "media", label: "Media, writing, and communication" },
+  { value: "agriculture", label: "Agriculture and farming" },
+  { value: "environment", label: "Environment and nature" },
+  { value: "hospitality", label: "Hospitality, food, and tourism" },
+  { value: "research", label: "Research and discovering things" },
+  { value: "social-sciences", label: "People, society, and communities" },
   { value: "helping", label: "Helping people directly" },
 ];
+
+/** Presentation-only interest groups; individual option slugs remain stored as before. */
+export const INTEREST_GROUPS = [
+  { key: "health-science-nature", label: "Health, science, and nature", values: ["medicine", "science", "agriculture", "environment"] },
+  { key: "technology-engineering-making", label: "Technology, engineering, and making", values: ["technology", "engineering", "research", "arts"] },
+  { key: "people-public-life", label: "People and public life", values: ["helping", "education", "social-sciences", "government", "law"] },
+  { key: "business-communication", label: "Business and communication", values: ["business", "finance", "media"] },
+  { key: "practical-service-work", label: "Practical and service work", values: ["hospitality"] },
+] as const;
 
 export const STRENGTH_OPTIONS: QuestionOption[] = [
   { value: "problem-solving", label: "Problem solving" },
   { value: "communication", label: "Communication" },
-  { value: "creativity", label: "Creativity" },
   { value: "leadership", label: "Leadership" },
   { value: "people", label: "Working with people" },
   { value: "analytical", label: "Analytical thinking" },
-  { value: "practical", label: "Practical / hands-on work" },
   { value: "writing", label: "Writing" },
-  { value: "organising", label: "Organising and planning" },
+  { value: "practical", label: "Practical / hands-on work" },
   { value: "teaching", label: "Explaining and teaching" },
+  { value: "creativity", label: "Creativity" },
+  { value: "teamwork", label: "Teamwork" },
+  { value: "organising", label: "Organising and planning" },
+  { value: "listening-understanding-people", label: "Listening and understanding people" },
   { value: "research", label: "Finding things out" },
+  { value: "other", label: "Something else I’m good at" },
+  { value: "patience-persistence", label: "Patience and persistence" },
 ];
 
 export const GOAL_OPTIONS: QuestionOption[] = [
   { value: "stable", label: "A stable career" },
-  { value: "high-growth", label: "A fast-growing field" },
+  { value: "high-growth", label: "A field with growing opportunities" },
   { value: "government", label: "Government service" },
   { value: "entrepreneurship", label: "Running my own thing" },
   { value: "research", label: "Research and deep study" },
@@ -116,43 +162,10 @@ export const VALUE_OPTIONS: QuestionOption[] = [
   { value: "recognition", label: "Recognition and respect" },
   { value: "learning", label: "Continuous learning" },
   { value: "location", label: "Staying close to home" },
-  { value: "family", label: "Family considerations" },
+  { value: "family", label: "Family and personal responsibilities" },
 ];
 
 export const QUESTIONS: CounsellingQuestion[] = [
-  {
-    key: "subjects_enjoy",
-    core: true,
-    section: "academics",
-    prompt: "Let's start simple. Which subjects do you enjoy the most?",
-    helper: "Pick as many as you like. Enjoying a subject matters more here than your marks in it.",
-    answerType: "multi",
-    options: SUBJECT_OPTIONS,
-    allowOther: true,
-  },
-  {
-    key: "subjects_difficult",
-    section: "academics",
-    prompt: "Which subjects do you find difficult right now?",
-    helper: "This isn't a judgement. Knowing this helps us suggest realistic routes — and difficulty often changes with teaching and time.",
-    answerType: "multi",
-    options: SUBJECT_OPTIONS,
-    allowSkip: true,
-  },
-  {
-    key: "performance",
-    section: "academics",
-    prompt: "How would you describe how your studies are going?",
-    helper: "A rough sense is enough. We never rank students.",
-    answerType: "single",
-    options: [
-      { value: "strong", label: "Going well overall" },
-      { value: "mixed", label: "Strong in some subjects, weaker in others" },
-      { value: "struggling", label: "Finding it hard at the moment" },
-      { value: "awaiting", label: "Waiting for my results" },
-      { value: "prefer-not", label: "I'd rather not say" },
-    ],
-  },
   {
     key: "stream_intent",
     core: true,
@@ -176,12 +189,33 @@ export const QUESTIONS: CounsellingQuestion[] = [
     answerType: "single",
     stages: ["class12"],
     options: [
-      { value: "science-pcm", label: "Science with Mathematics" },
-      { value: "science-pcb", label: "Science with Biology" },
+      { value: "science", label: "Science" },
       { value: "commerce", label: "Commerce" },
       { value: "arts", label: "Arts / Humanities" },
       { value: "vocational", label: "Vocational" },
+      { value: "other", label: "Something else" },
     ],
+    allowOther: true,
+  },
+  {
+    key: "subjects_enjoy",
+    core: true,
+    section: "academics",
+    prompt: "Let's start simple. Which subjects do you enjoy the most?",
+    helper: "Pick as many as you like. Enjoying a subject matters more here than your marks in it.",
+    answerType: "multi",
+    options: SUBJECT_OPTIONS,
+    allowOther: true,
+  },
+  {
+    key: "subjects_difficult",
+    section: "academics",
+    prompt: "Which subjects do you find difficult right now?",
+    helper: "This isn't a judgement. Knowing this helps us suggest realistic routes — and difficulty often changes with teaching and time.",
+    answerType: "multi",
+    options: [...SUBJECT_OPTIONS, { value: "other", label: "Something else" }, { value: "prefer-not", label: "Prefer not to say" }],
+    allowOther: true,
+    allowSkip: true,
   },
   {
     key: "interests",
@@ -216,13 +250,15 @@ export const QUESTIONS: CounsellingQuestion[] = [
     key: "work_style",
     section: "strengths",
     prompt: "Which kind of work would suit you better day to day?",
+    helper: "This is only a starting clue, not a personality test.",
     answerType: "single",
+    allowSkip: true,
     options: [
       { value: "with-people", label: "Working closely with people" },
       { value: "independent", label: "Working mostly on my own" },
       { value: "hands-on", label: "Hands-on, practical work" },
       { value: "outdoors", label: "Outdoors and moving around" },
-      { value: "mixed", label: "A mix — I'd like variety" },
+      { value: "mixed", label: "A mix — I’d like variety" },
     ],
   },
   {
@@ -240,10 +276,11 @@ export const QUESTIONS: CounsellingQuestion[] = [
     core: true,
     section: "goals",
     prompt: "Which of these matter most to you in a career?",
-    helper: "Pick up to three so we can see what you'd prioritise if you had to choose.",
+    helper: "Pick up to three. There is no right combination.",
     answerType: "multi",
     options: VALUE_OPTIONS,
     maxSelections: 3,
+    allowOther: true,
   },
   {
     key: "location_pref",
@@ -253,7 +290,7 @@ export const QUESTIONS: CounsellingQuestion[] = [
     helper: "We only need a general preference — never your exact address.",
     answerType: "single",
     options: [
-      { value: "home-district", label: "In or near my own district" },
+      { value: "home-district", label: "Near home" },
       { value: "within-nagaland", label: "Anywhere within Nagaland" },
       { value: "outside-open", label: "Open to studying outside Nagaland" },
     ],
@@ -262,80 +299,63 @@ export const QUESTIONS: CounsellingQuestion[] = [
     key: "home_district",
     section: "practical",
     prompt: "Which district are you closest to?",
-    helper: "This helps us show nearby institutions and travel distance. You can skip it.",
+    helper: "This helps us understand nearby study options and travel distance. We do not need your exact address.",
     answerType: "single",
     allowSkip: true,
     options: [
-      { value: "Kohima", label: "Kohima" },
-      { value: "Dimapur", label: "Dimapur" },
-      { value: "Chümoukedima", label: "Chümoukedima" },
-      { value: "Mokokchung", label: "Mokokchung" },
-      { value: "Zunheboto", label: "Zunheboto" },
-      { value: "Wokha", label: "Wokha" },
-      { value: "Phek", label: "Phek" },
-      { value: "Tuensang", label: "Tuensang" },
-      { value: "Mon", label: "Mon" },
-      { value: "Longleng", label: "Longleng" },
-      { value: "Kiphire", label: "Kiphire" },
-      { value: "Peren", label: "Peren" },
-      { value: "Niuland", label: "Niuland" },
-      { value: "Tseminyü", label: "Tseminyü" },
-      { value: "Shamator", label: "Shamator" },
-      { value: "Noklak", label: "Noklak" },
+      ...NAGALAND_DISTRICTS.map((district) => ({ value: district, label: district === "Tseminyü" ? "Tseminyu" : district })),
+      { value: "not-sure", label: "I’m not sure" },
+      { value: "prefer-not", label: "Prefer not to say" },
     ],
   },
   {
     key: "budget",
     core: true,
     section: "practical",
-    prompt: "What kind of course fees would be manageable for your family?",
-    helper: "A broad range is enough — we never ask for income details. Skip if you'd rather not answer.",
+    prompt: "What should we keep in mind about study costs?",
+    helper: "You do not need to share family income. A broad preference is enough.",
     answerType: "single",
     allowSkip: true,
     options: [
-      { value: "low", label: "Lower-fee government institutions" },
-      { value: "moderate", label: "Moderate fees are possible" },
+      { value: "low", label: "Lower-fee options would be helpful" },
+      { value: "moderate", label: "Moderate fees may be possible" },
       { value: "flexible", label: "Fees are not the main constraint" },
-      { value: "unsure", label: "I don't know yet" },
+      { value: "unsure", label: "I’m not sure yet" },
+      { value: "prefer-not", label: "Prefer not to answer" },
     ],
   },
   {
     key: "scholarship_need",
     section: "practical",
     prompt: "Would scholarship information be useful to you?",
+    helper: "This helps us show funding information when you explore courses and institutions.",
     answerType: "single",
-    options: [
-      { value: "yes", label: "Yes, it would matter a lot" },
-      { value: "maybe", label: "Maybe — good to know either way" },
-      { value: "no", label: "Not a priority right now" },
-    ],
+    allowSkip: true,
+    options: SCHOLARSHIP_NEED_OPTIONS,
   },
   {
     key: "institution_pref",
     section: "practical",
-    prompt: "Do you have a preference between government and private institutions?",
+    prompt: "Do you have a preference about the type of institution?",
+    helper: "You can compare both types later. This is only a starting preference.",
     answerType: "single",
-    options: [
-      { value: "government", label: "Prefer government" },
-      { value: "private", label: "Prefer private" },
-      { value: "either", label: "Either is fine" },
-    ],
+    allowSkip: true,
+    options: INSTITUTION_PREF_OPTIONS,
   },
   {
     key: "hostel",
     section: "practical",
-    prompt: "Would you need hostel accommodation?",
+    prompt: "Would you need a hostel?",
+    helper: "This helps us include practical living arrangements when comparing institutions.",
     answerType: "single",
-    options: [
-      { value: "yes", label: "Yes, I'd need a hostel" },
-      { value: "day-scholar", label: "No, I'd stay at home" },
-    ],
+    allowSkip: true,
+    options: HOSTEL_OPTIONS,
   },
   {
     key: "anything_else",
     section: "practical",
-    prompt: "Anything else you'd like us to keep in mind?",
-    helper: "For example a family responsibility, a health consideration, or a field you've already ruled out. Optional.",
+    prompt: "Is there anything else you would like us to keep in mind?",
+    helper: "You can share a situation, responsibility, concern, hope, or question in your own words.",
     answerType: "text",
     allowSkip: true,
   },
@@ -346,7 +366,7 @@ export function questionsForStage(stage: Stage): CounsellingQuestion[] {
   return QUESTIONS.filter((q) => q.core && (!q.stages || q.stages.includes(stage)));
 }
 
-/** Optional depth, offered from the profile page once the core flow is done. */
+/** Optional depth beyond the core questions; selected optional items may also be offered inline. */
 export function optionalQuestionsForStage(stage: Stage): CounsellingQuestion[] {
   return QUESTIONS.filter((q) => !q.core && (!q.stages || q.stages.includes(stage)));
 }
@@ -359,25 +379,3 @@ export function allQuestionsForStage(stage: Stage): CounsellingQuestion[] {
 export function findQuestion(key: string): CounsellingQuestion | undefined {
   return QUESTIONS.find((q) => q.key === key);
 }
-
-/** Mentor-style acknowledgements keep the conversation human without pretending to be certain. */
-export const ACKNOWLEDGEMENTS: Record<string, string> = {
-  subjects_enjoy: "Thanks — that already tells us something useful about how you like to think.",
-  subjects_difficult: "Good to know. Difficulty in a subject rules out fewer routes than most students expect.",
-  performance: "Thank you for being honest. Marks are one input here, never the whole picture.",
-  stream_intent: "Noted. Streams open doors rather than close them, and we'll show you what each one keeps open.",
-  stream_current: "Thanks. We'll focus on routes that build on what you've already studied.",
-  interests: "That's helpful. Interests are usually a better long-term signal than marks alone.",
-  interest_story: "Thank you for sharing that.",
-  strengths: "Noted — strengths matter as much as subjects when a course starts getting hard.",
-  work_style: "That's useful. Day-to-day working style is something students often discover too late.",
-  goals: "Thanks. We'll keep these in mind, and you can change them any time.",
-  values: "Understood. When two options look similar, values are usually what separates them.",
-  location_pref: "Thank you — this affects which institutions are realistic for you.",
-  home_district: "Thanks. We'll use this only to show nearby options and travel distance.",
-  budget: "Thank you. We'll flag lower-cost routes and scholarships where they exist.",
-  scholarship_need: "Noted.",
-  institution_pref: "Thanks.",
-  hostel: "Noted — this matters more than students expect when comparing colleges.",
-  anything_else: "Thank you. That context helps.",
-};

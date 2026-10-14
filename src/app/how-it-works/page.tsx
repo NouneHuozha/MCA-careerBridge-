@@ -9,13 +9,13 @@ const steps = [
   { n: "1", title: "Tell us about yourself", detail: "Share your interests, strengths and what matters to you.", href: "/start", image: "/images/hero-student.png", tone: "bg-[#edf8f4]", badge: "bg-[#e4f4ed] text-[#1f8068]" },
   { n: "2", title: "Explore possibilities", detail: "Discover careers, courses and skills that match who you are.", href: "/explore", image: "/images/possibilities-landscape.png", tone: "bg-[#eef5ff]", badge: "bg-[#e5efff] text-[#3f70b1]" },
   { n: "3", title: "Understand different routes", detail: "Compare study options, time, skills and where each path can lead.", href: "/pathways", image: "/images/field-engineering.png", tone: "bg-[#f6f0ff]", badge: "bg-[#eee5ff] text-[#7054b2]" },
-  { n: "4", title: "Take one small next step", detail: "Save options, build a plan and get ready for what’s next.", href: "/action-plan", image: "/images/students-campus.jpg", tone: "bg-[#fff8e7]", badge: "bg-[#fff0c4] text-[#9d761d]" },
+  { n: "4", title: "Take one small next step", detail: "Save options, build a plan and get ready for what’s next.", href: "/guidance/action-plan", image: "/images/students-campus.jpg", tone: "bg-[#fff8e7]", badge: "bg-[#fff0c4] text-[#9d761d]" },
 ];
 
 const journey = [
   { label: "Explore a direction", href: "/explore", icon: Compass },
   { label: "Learn about options", href: "/courses", icon: BookOpen },
-  { label: "Make a plan", href: "/action-plan", icon: Route },
+  { label: "Make a plan", href: "/guidance/action-plan", icon: Route },
   { label: "Take action", href: "/start", icon: Flag },
 ];
 

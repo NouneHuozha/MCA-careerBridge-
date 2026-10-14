@@ -7,6 +7,7 @@ import { CourseJourneyShell } from "@/components/journey-sidebar";
 import { ContextualMentor } from "@/components/contextual-mentor";
 import { levelLabelSafe } from "@/components/course-helpers";
 import { SaveButton } from "@/components/save-button";
+import { ReportCatalogueIssue } from "@/components/report-catalogue-issue";
 import { getCourse, getCourses, getExams, getField, getInstitutionsForCourse } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
@@ -51,7 +52,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             </div>
             <div className="xl:sticky xl:top-24"><ContextualMentor courseName={course.name} sourceUrl={course.sourceUrl} /></div>
           </main>
-          <div className="mt-5"><Callout tone="neutral"><p>Course information is a starting point. Always verify current admission, fees and eligibility with the institution.</p></Callout></div>
+          <div className="mt-5"><Callout tone="neutral"><p>Course information is a starting point. Always verify current admission, fees and eligibility with the institution.</p></Callout></div><div className="mt-5"><ReportCatalogueIssue entityType="course" entityRef={course.slug} entityName={course.name} sourceUrl={course.sourceUrl} /></div>
         </div>
       </div>
     </CourseJourneyShell>

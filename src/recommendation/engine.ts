@@ -12,6 +12,8 @@
 import type { Field, Pathway } from "@/services/catalog";
 import { getFields, getPathways } from "@/services/catalog";
 import { labelFor, type StudentSnapshot } from "@/services/profile";
+import { matchedWorkStyle, matchingAnswerValues } from "./tag-matches";
+import { pathwayStreamFit } from "./pathway-fit";
 
 export type ReasonFactor = "interest" | "academic" | "strength" | "goal" | "value" | "practical";
 
@@ -59,10 +61,10 @@ const LONG_PATH = new Set(["healthcare", "science-research", "law"]);
 
 export function scoreField(field: Field, snapshot: StudentSnapshot): FieldSuggestion {
   const interests = overlap(field.interestTags, snapshot.interests);
-  const subjects = overlap(field.subjectTags, snapshot.subjectsEnjoy);
-  const strengths = overlap(field.strengthTags, snapshot.strengths);
+  const subjects = matchingAnswerValues(field.subjectTags, snapshot.subjectsEnjoy, "subject");
+  const strengths = matchingAnswerValues(field.strengthTags, snapshot.strengths, "strength");
   const goals = overlap(field.goalTags, snapshot.goals);
-  const values = overlap(field.valueTags, snapshot.values);
+  const values = matchingAnswerValues(field.valueTags, snapshot.values, "value");
 
   const reasons: Reason[] = [];
   let relevance = 0;
@@ -103,7 +105,7 @@ export function scoreField(field: Field, snapshot: StudentSnapshot): FieldSugges
     relevance += Math.min(values.length, 2) * 5;
     reasons.push({
       factor: "value",
-      detail: `You said ${listToSentence(values.map((v) => labelFor("value", v).toLowerCase()))} matters to you, which this field can offer — though it varies by role.`,
+      detail: `This field may support the career values you selected — ${listToSentence(values.map((v) => labelFor("value", v).toLowerCase()))} — though it varies by role.`,
       weight: Math.min(values.length, 2) * 5,
     });
   }
@@ -144,7 +146,7 @@ export function scoreField(field: Field, snapshot: StudentSnapshot): FieldSugges
     );
   }
 
-  const difficultClash = overlap(field.subjectTags, snapshot.subjectsDifficult);
+  const difficultClash = matchingAnswerValues(field.subjectTags, snapshot.subjectsDifficult, "subject");
   if (difficultClash.length) {
     relevance -= difficultClash.length * 4;
     cautions.push(
@@ -159,6 +161,15 @@ export function scoreField(field: Field, snapshot: StudentSnapshot): FieldSugges
   if (snapshot.workStyle === "with-people" && ["healthcare", "education", "social-sciences", "hospitality-tourism"].includes(field.slug)) {
     relevance += 5;
     reasons.push({ factor: "practical", detail: "You preferred working closely with people, which this field involves daily.", weight: 5 });
+  }
+  const workStyleMatch = matchedWorkStyle(field.strengthTags, snapshot.workStyle);
+  if (workStyleMatch === "hands-on") {
+    relevance += 5;
+    reasons.push({ factor: "practical", detail: "Your preference for hands-on work aligns with practical strengths used in this field.", weight: 5 });
+  }
+  if (workStyleMatch === "independent") {
+    relevance += 4;
+    reasons.push({ factor: "practical", detail: "Some routes in this field involve independent analytical, research, or writing work, which may fit your preference.", weight: 4 });
   }
 
   const headline = reasons.length
@@ -210,19 +221,10 @@ export async function suggestPathways(snapshot: StudentSnapshot, limit = 4): Pro
       score += 3;
       reasons.push("Can usually be started within Nagaland.");
     }
-    if (snapshot.stream === "science" || snapshot.stream === "science-pcm" || snapshot.stream === "science-pcb") {
-      if (pathway.fieldSlug === "healthcare" || pathway.fieldSlug === "engineering" || pathway.fieldSlug === "technology" || pathway.fieldSlug === "science-research") {
-        score += 5;
-        reasons.push("Builds directly on the science subjects you have already studied.");
-      }
-    }
-    if (snapshot.stream === "commerce" && pathway.fieldSlug === "business") {
-      score += 5;
-      reasons.push("Builds directly on your commerce background.");
-    }
-    if (snapshot.stream === "arts" && (pathway.fieldSlug === "social-sciences" || pathway.fieldSlug === "education")) {
-      score += 5;
-      reasons.push("Builds directly on your arts background.");
+    const streamFit = pathwayStreamFit(snapshot.stream, pathway.routeType, pathway.fieldSlug);
+    if (streamFit) {
+      score += streamFit.score;
+      reasons.push(streamFit.reason);
     }
     return { pathway, score, reasons };
   });

@@ -6,6 +6,7 @@ import { Callout } from "@/components/ui";
 import { getCurrentUser } from "@/auth";
 import { safeReturnPath } from "@/lib/return-path";
 import { SignUpForm } from "@/components/auth/sign-up-form";
+import { Logo } from "@/components/logo";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Create your account" };
@@ -22,7 +23,7 @@ export default async function SignUpPage({ searchParams }: { searchParams: Promi
       <div className="cb-container relative grid min-h-[calc(100vh-5rem)] items-center gap-8 py-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(500px,0.95fr)] lg:gap-12 lg:py-12">
         <section className="relative flex min-h-[700px] flex-col overflow-hidden rounded-[2rem] bg-[#e6f2fb] p-8 sm:p-10 lg:min-h-[760px]">
           <div className="flex items-center gap-5">
-            <Image src="/images/logo.png" alt="CareerBridge Nagaland" width={210} height={76} className="h-auto w-[175px]" />
+            <Logo size="md" />
             <span className="hidden h-12 w-px bg-[#91aabd] sm:block" />
             <p className="hidden max-w-[160px] text-sm leading-relaxed text-[#46627a] sm:block">Explore today.<br />A brighter tomorrow.</p>
           </div>

@@ -14,9 +14,12 @@ import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/db";
 import { authSessions, studentProfiles, users } from "@/db/schema";
+import { safeReturnPath } from "@/lib/return-path";
 
 export const SESSION_COOKIE = "cb_session";
+export const ADMIN_SESSION_NOTICE_COOKIE = "cb_admin_session_notice";
 const SESSION_DAYS = 30;
+const EXPIRED_NOTICE_DAYS = 7;
 
 export type AuthUser = {
   id: number;
@@ -57,7 +60,7 @@ function verifyPassword(password: string, stored: string | null) {
 
 /* ------------------------------- sessions ------------------------------ */
 
-async function createSession(userId: number) {
+async function createSession(userId: number, isAdmin = false) {
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
   await db.insert(authSessions).values({ userId, token, expiresAt });
@@ -69,6 +72,18 @@ async function createSession(userId: number) {
     path: "/",
     expires: expiresAt,
   });
+  if (isAdmin) {
+    // This marker only improves expiry messaging; the database expiry remains authoritative.
+    jar.set(ADMIN_SESSION_NOTICE_COOKIE, "1", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      expires: new Date(expiresAt.getTime() + EXPIRED_NOTICE_DAYS * 24 * 60 * 60 * 1000),
+    });
+  } else {
+    jar.delete(ADMIN_SESSION_NOTICE_COOKIE);
+  }
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
@@ -92,6 +107,15 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     // Database or cookie store unavailable — treat as signed out rather than crashing.
     return null;
   }
+}
+
+export async function getAdminAuthRedirect(next: string): Promise<string> {
+  const requested = safeReturnPath(next, "/admin");
+  const destination = requested === "/admin" || requested.startsWith("/admin/") ? requested : "/admin";
+  const jar = await cookies();
+  const expiredAdminNotice = jar.get(ADMIN_SESSION_NOTICE_COOKIE)?.value === "1" && !jar.get(SESSION_COOKIE)?.value;
+  const page = expiredAdminNotice ? "/admin/session-expired" : "/admin/login";
+  return `${page}?next=${encodeURIComponent(destination)}`;
 }
 
 export async function requireUser(): Promise<AuthUser | null> {
@@ -126,18 +150,21 @@ export async function signUpWithPassword(input: {
 
   const user = inserted[0];
   await db.insert(studentProfiles).values({ userId: user.id, displayName: user.name }).onConflictDoNothing();
-  await createSession(user.id);
+  await createSession(user.id, user.role === "admin");
   return { ok: true, user };
 }
 
-export async function signInWithPassword(input: { email: string; password: string }): Promise<AuthResult> {
+export async function signInWithPassword(input: { email: string; password: string; requiredRole?: string }): Promise<AuthResult> {
   const email = normaliseEmail(input.email);
   const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);
   const record = rows[0];
-  if (!record || !verifyPassword(input.password, record.passwordHash)) {
-    return { ok: false, error: "We couldn't match that email and password." };
+  if (!record || !verifyPassword(input.password, record.passwordHash) || (input.requiredRole && record.role !== input.requiredRole)) {
+    const error = input.requiredRole === "admin"
+      ? "We couldn't verify an administrator account with those details."
+      : "We couldn't match that email and password.";
+    return { ok: false, error };
   }
-  await createSession(record.id);
+  await createSession(record.id, record.role === "admin");
   return {
     ok: true,
     user: { id: record.id, email: record.email, name: record.fullName, role: record.role },
@@ -149,6 +176,7 @@ export async function signOut() {
   const token = jar.get(SESSION_COOKIE)?.value;
   if (token) await db.delete(authSessions).where(eq(authSessions.token, token)).catch(() => undefined);
   jar.delete(SESSION_COOKIE);
+  jar.delete(ADMIN_SESSION_NOTICE_COOKIE);
   // A shared device must not retain access to the previous student's journey.
   // Account-owned answers stay in PostgreSQL and return after sign-in.
   jar.delete("cb_journey");
