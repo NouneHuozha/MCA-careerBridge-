@@ -375,7 +375,7 @@ function ExplorationHistoryTracker() {
 }
 
 export function GuidanceShell({ children }: { children: ReactNode }) {
-  return <div className="min-h-screen bg-[#fcfcfa] text-[#243b32]">
+  return <div className="cb-guidance min-h-screen bg-[#fcfcfa] text-[#243b32]">
     <ExplorationHistoryTracker />
     <GuidanceHeader />
     <ExplorationContextBar />

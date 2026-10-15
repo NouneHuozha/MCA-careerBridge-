@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Inter } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import { getCurrentUser } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -17,5 +18,5 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
-  return <html lang="en" className={inter.variable}><body className="flex min-h-screen flex-col bg-canvas text-ink-700 antialiased"><a href="#main" className="cb-skip-link">Skip to main content</a><AppShell user={user ? { name: user.name, email: user.email } : null}>{children}</AppShell></body></html>;
+  return <html lang="en" className={`${inter.variable} ${playfair.variable}`}><body className="flex min-h-screen flex-col bg-canvas text-ink-700 antialiased"><a href="#main" className="cb-skip-link">Skip to main content</a><AppShell user={user ? { name: user.name, email: user.email } : null}>{children}</AppShell></body></html>;
 }

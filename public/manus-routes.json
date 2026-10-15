@@ -1,0 +1,307 @@
+{
+  "routes": [
+    {
+      "path": "/"
+    },
+    {
+      "path": "/about"
+    },
+    {
+      "path": "/admin"
+    },
+    {
+      "path": "/admin/catalogue"
+    },
+    {
+      "path": "/admin/catalogue/:category"
+    },
+    {
+      "path": "/admin/catalogue/archived"
+    },
+    {
+      "path": "/admin/catalogue/courses"
+    },
+    {
+      "path": "/admin/catalogue/courses/:slug"
+    },
+    {
+      "path": "/admin/catalogue/exams"
+    },
+    {
+      "path": "/admin/catalogue/exams/:slug"
+    },
+    {
+      "path": "/admin/catalogue/institution-courses"
+    },
+    {
+      "path": "/admin/catalogue/institutions"
+    },
+    {
+      "path": "/admin/catalogue/institutions/:code"
+    },
+    {
+      "path": "/admin/catalogue/institutions/:code/admission"
+    },
+    {
+      "path": "/admin/catalogue/network-error-preview"
+    },
+    {
+      "path": "/admin/catalogue/offline-preview"
+    },
+    {
+      "path": "/admin/catalogue/partial-data-preview"
+    },
+    {
+      "path": "/admin/catalogue/pathways"
+    },
+    {
+      "path": "/admin/catalogue/save-status-preview"
+    },
+    {
+      "path": "/admin/catalogue/scholarships"
+    },
+    {
+      "path": "/admin/catalogue/scholarships/:slug"
+    },
+    {
+      "path": "/admin/change-history"
+    },
+    {
+      "path": "/admin/change-history/:id"
+    },
+    {
+      "path": "/admin/change-history/conflicts"
+    },
+    {
+      "path": "/admin/change-history/conflicts/:caseKey"
+    },
+    {
+      "path": "/admin/change-history/permission-error-preview"
+    },
+    {
+      "path": "/admin/change-history/proposed"
+    },
+    {
+      "path": "/admin/change-history/proposed/:id"
+    },
+    {
+      "path": "/admin/confirmation-dialogs-preview"
+    },
+    {
+      "path": "/admin/empty-queue-preview"
+    },
+    {
+      "path": "/admin/feedback-flags"
+    },
+    {
+      "path": "/admin/imports"
+    },
+    {
+      "path": "/admin/imports/history"
+    },
+    {
+      "path": "/admin/imports/history/rollback"
+    },
+    {
+      "path": "/admin/imports/validation-error-preview"
+    },
+    {
+      "path": "/admin/invitation"
+    },
+    {
+      "path": "/admin/loading-preview"
+    },
+    {
+      "path": "/admin/login"
+    },
+    {
+      "path": "/admin/profile"
+    },
+    {
+      "path": "/admin/profile-menu-preview"
+    },
+    {
+      "path": "/admin/review-center"
+    },
+    {
+      "path": "/admin/safe-changes"
+    },
+    {
+      "path": "/admin/search"
+    },
+    {
+      "path": "/admin/session-expired"
+    },
+    {
+      "path": "/admin/settings"
+    },
+    {
+      "path": "/admin/sources"
+    },
+    {
+      "path": "/admin/sources/activity"
+    },
+    {
+      "path": "/admin/sources/history"
+    },
+    {
+      "path": "/admin/sources/history/snapshot"
+    },
+    {
+      "path": "/admin/sources/settings"
+    },
+    {
+      "path": "/admin/sources/source-failure-preview"
+    },
+    {
+      "path": "/careers/:slug"
+    },
+    {
+      "path": "/compare"
+    },
+    {
+      "path": "/counselling"
+    },
+    {
+      "path": "/courses"
+    },
+    {
+      "path": "/courses/:slug"
+    },
+    {
+      "path": "/exams"
+    },
+    {
+      "path": "/exams/:slug"
+    },
+    {
+      "path": "/explore"
+    },
+    {
+      "path": "/explore/:slug"
+    },
+    {
+      "path": "/guidance"
+    },
+    {
+      "path": "/guidance/action-plan"
+    },
+    {
+      "path": "/guidance/compare"
+    },
+    {
+      "path": "/guidance/complete"
+    },
+    {
+      "path": "/guidance/confirm"
+    },
+    {
+      "path": "/guidance/direction/:slug"
+    },
+    {
+      "path": "/guidance/direction/:slug/explore-another"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses/:courseSlug"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses/:courseSlug/exams-scholarships"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses/:courseSlug/exams-scholarships/:opportunitySlug"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses/:courseSlug/institutions"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses/:courseSlug/institutions/:code"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses/:courseSlug/institutions/:code/application"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses/:courseSlug/institutions/:code/map"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses/:courseSlug/institutions/unavailable"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses/:courseSlug/practical-checks"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses/:courseSlug/sources/official"
+    },
+    {
+      "path": "/guidance/direction/:slug/routes/:pathwaySlug/courses/compare"
+    },
+    {
+      "path": "/guidance/explorations"
+    },
+    {
+      "path": "/guidance/not-sure"
+    },
+    {
+      "path": "/guidance/possibilities"
+    },
+    {
+      "path": "/guidance/review"
+    },
+    {
+      "path": "/guidance/review/details"
+    },
+    {
+      "path": "/guidance/saved"
+    },
+    {
+      "path": "/how-it-works"
+    },
+    {
+      "path": "/institutions"
+    },
+    {
+      "path": "/institutions/:code"
+    },
+    {
+      "path": "/mentor"
+    },
+    {
+      "path": "/opportunities"
+    },
+    {
+      "path": "/opportunities/:slug"
+    },
+    {
+      "path": "/pathways"
+    },
+    {
+      "path": "/pathways/:slug"
+    },
+    {
+      "path": "/scholarships"
+    },
+    {
+      "path": "/scholarships/:slug"
+    },
+    {
+      "path": "/sign-in"
+    },
+    {
+      "path": "/sign-up"
+    },
+    {
+      "path": "/start"
+    },
+    {
+      "path": "/start/current-position"
+    }
+  ]
+}
