@@ -246,14 +246,10 @@ export default async function MyGuidanceOverviewPage() {
     <section className="cb-home mx-auto w-full">
       <header className="cb-home-header">
         <div>
-          <p className="cb-home-kicker">My Guidance · after counselling</p>
+          <p className="cb-home-kicker">My Guidance · your space, at your pace</p>
           <h1>{primaryEntry ? "Your next step is yours to choose." : "A thoughtful place to begin."}</h1>
           <p className="cb-home-intro">{primaryEntry ? "Pick up where you left off, or take a fresh look around. Your profile is a guide—not a decision." : "Explore a few possibilities, learn what fits, and take your time deciding what comes next."}</p>
         </div>
-        <aside className="cb-home-header-note" aria-label="Counselling status">
-          <span className="cb-home-header-note-icon" aria-hidden="true"><Check className="h-4 w-4" /></span>
-          <span className="cb-home-header-note-copy"><strong>Counselling complete</strong><span>Your guidance is here when you need it.</span></span>
-        </aside>
       </header>
 
       <section aria-label={primaryEntry ? "Current exploration" : "Start exploring"} className="cb-home-hero">
