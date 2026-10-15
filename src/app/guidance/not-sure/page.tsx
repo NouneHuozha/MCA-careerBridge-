@@ -49,25 +49,25 @@ export default async function OrientationPage() {
 
   return <main className="relative isolate flex min-h-[calc(100dvh-140px)] flex-col overflow-hidden px-5 pb-32 pt-8 sm:px-8 sm:pt-10 lg:min-h-[calc(100dvh-140px)] lg:justify-center lg:pb-36 lg:pt-8">
     <section className="relative z-10 mx-auto w-full max-w-[1060px] text-center">
-      <p className="text-[11px] font-semibold uppercase tracking-[.22em] text-[#286b61] sm:text-xs">You do not have to choose yet</p>
+      <p className="text-[14px] font-semibold uppercase tracking-[.22em] text-[var(--cb-primary)] sm:text-sm">You do not have to choose yet</p>
       <h1 className="mx-auto mt-4 max-w-[1000px] font-serif text-[clamp(2.15rem,4.2vw,3.45rem)] leading-[1.08] tracking-[-.04em] text-[#15223a]">You can look around before choosing a direction.</h1>
       <p className="mx-auto mt-4 max-w-[790px] font-serif text-[clamp(1.05rem,1.8vw,1.35rem)] leading-[1.4] text-[#626a7d]">We’ll help you compare a few possibilities at a time. You can open more than one, save what interests you, and come back whenever you’re ready.</p>
 
       <div className="mt-7 grid gap-3 sm:grid-cols-3 sm:gap-4 lg:mt-8">
-        {orientationSteps.map(({ title, description, Icon }) => <article key={title} className="flex min-h-[186px] flex-col items-center justify-center rounded-xl border border-[#e8e4dc] bg-[#fffefa]/95 px-5 py-5 shadow-[0_5px_24px_-24px_rgba(40,69,60,.6)] sm:min-h-[196px] sm:px-4">
+        {orientationSteps.map(({ title, description, Icon }) => <article key={title} className="flex min-h-[186px] flex-col items-center justify-center rounded-xl border border-[#e8e4dc] bg-[var(--cb-surface)]/95 px-5 py-5 shadow-[0_5px_24px_-24px_rgba(40,69,60,.6)] sm:min-h-[196px] sm:px-4">
           <span aria-hidden className="grid h-[76px] w-[76px] place-items-center rounded-full bg-[#e8f2ed] text-[#12625a]"><Icon className="h-10 w-10" strokeWidth={1.8} /></span>
           <h2 className="mt-3.5 font-serif text-[1.28rem] leading-tight text-[#15223a]">{title}</h2>
           <p className="mt-2 max-w-[225px] font-serif text-[1.03rem] leading-[1.35] text-[#626a7d]">{description}</p>
         </article>)}
       </div>
 
-      <Link href="/guidance/compare?type=field&returnTo=%2Fguidance%2Fnot-sure" className="mx-auto mt-6 inline-flex min-h-[58px] w-full max-w-[445px] items-center justify-center rounded-xl bg-[#075a58] px-6 py-4 font-serif text-[1.13rem] font-semibold text-white shadow-[0_5px_15px_-10px_#163c35] transition hover:bg-[#064a49] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#286b61]">See a few directions side by side</Link>
-      <div className="mt-3 flex flex-col items-center justify-center gap-2 font-serif text-[1rem] text-[#35675b] sm:flex-row sm:gap-5">
-        <Link href="/guidance/review" className="min-h-10 inline-flex items-center underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[#174d42] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Review what we understood</Link>
+      <Link href="/guidance/compare?type=field&returnTo=%2Fguidance%2Fnot-sure" className="mx-auto mt-6 inline-flex min-h-[58px] w-full max-w-[445px] items-center justify-center rounded-xl bg-[var(--cb-primary)] px-6 py-4 font-serif text-[1.13rem] font-semibold text-white shadow-[0_5px_15px_-10px_#163c35] transition hover:bg-[var(--cb-primary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#286b61]">See a few directions side by side</Link>
+      <div className="mt-3 flex flex-col items-center justify-center gap-2 font-serif text-[1rem] text-[var(--cb-primary)] sm:flex-row sm:gap-5">
+        <Link href="/guidance/review" className="min-h-10 inline-flex items-center underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[var(--cb-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Review what we understood</Link>
         <span aria-hidden className="hidden h-5 w-px bg-[#c9d8cf] sm:block" />
-        <Link href="/guidance" className="min-h-10 inline-flex items-center underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[#174d42] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Save and come back later</Link>
+        <Link href="/guidance" className="min-h-10 inline-flex items-center underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[var(--cb-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Save and come back later</Link>
       </div>
-      <p className="mx-auto mt-2 max-w-[390px] border-t border-[#ece9e1] pt-3 font-serif text-[15px] text-[#77786f]">Nothing here is a final answer.</p>
+      <p className="mx-auto mt-2 max-w-[390px] border-t border-[#ece9e1] pt-3 font-serif text-[16px] text-[var(--cb-muted)]">Nothing here is a final answer.</p>
     </section>
     <QuietLandscape />
   </main>;

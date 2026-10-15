@@ -60,11 +60,11 @@ function editProfileHref() {
 }
 
 function EditLink({ section }: { section: string }) {
-  return <Link href={editProfileHref()} aria-label={`Edit ${section}`} className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-[#176b62] transition hover:bg-[#f0f6f2] hover:text-[#124e46] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]"><Pencil aria-hidden className="h-4 w-4" strokeWidth={1.8} />Edit</Link>;
+  return <Link href={editProfileHref()} aria-label={`Edit ${section}`} className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-[var(--cb-primary)] transition hover:bg-[#f0f6f2] hover:text-[#124e46] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]"><Pencil aria-hidden className="h-4 w-4" strokeWidth={1.8} />Edit</Link>;
 }
 
 function SummaryCard({ title, items, editSection }: { title: string; items: ReviewItem[]; editSection: string }) {
-  return <article className="min-w-0 rounded-xl border border-[#dfe5df] bg-white px-5 py-4 shadow-[0_4px_18px_-18px_rgba(40,69,60,.45)] sm:px-6 sm:py-5">
+  return <article className="min-w-0 rounded-xl border border-[var(--cb-line)] bg-white px-5 py-4 shadow-[0_4px_18px_-18px_rgba(40,69,60,.45)] sm:px-6 sm:py-5">
     <header className="flex items-start justify-between gap-3">
       <h2 className="font-semibold leading-tight tracking-[-.025em] text-[#20272b] sm:text-[1.15rem]">{title}</h2>
       <EditLink section={editSection} />
@@ -72,7 +72,7 @@ function SummaryCard({ title, items, editSection }: { title: string; items: Revi
     <dl className="mt-3 divide-y divide-[#e7e9e5]">
       {items.map((item) => <div key={item.label} className="grid min-w-0 grid-cols-[minmax(92px,.42fr)_minmax(0,1fr)] gap-x-3 py-2.5 text-sm leading-snug sm:grid-cols-[minmax(110px,.42fr)_minmax(0,1fr)]">
         <dt className="text-[#27333a]">{item.label}</dt>
-        <dd className="m-0 min-w-0 break-words text-[#68758a]">{item.value}</dd>
+        <dd className="m-0 min-w-0 break-words text-[var(--cb-muted)]">{item.value}</dd>
       </div>)}
     </dl>
   </article>;
@@ -84,13 +84,13 @@ function StillOpenCard({ detail, additional }: { detail: string | null; addition
     <header className="flex shrink-0 items-start">
       <h2 className="font-semibold leading-tight tracking-[-.025em] text-[#20272b] sm:text-[1.15rem]">Still open</h2>
     </header>
-    <p className="mt-3 shrink-0 text-sm leading-relaxed text-[#68758a]">You have not told us everything, and that is okay. You can add more later if it feels useful.</p>
+    <p className="mt-3 shrink-0 text-sm leading-relaxed text-[var(--cb-muted)]">You have not told us everything, and that is okay. You can add more later if it feels useful.</p>
     <div role="region" aria-label="Saved and optional details" tabIndex={0} className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
       {detail ? <p className="rounded-lg border border-[#eee9dc] bg-white/80 px-3 py-2.5 text-sm leading-relaxed text-[#4c5a54]"><span className="font-medium text-[#344740]">Extra detail you shared:</span> {detail}</p> : null}
       {additional.map((item) => <p key={item.label} className="rounded-lg border border-[#eee9dc] bg-white/80 px-3 py-2.5 text-sm leading-relaxed text-[#4c5a54]"><span className="font-medium text-[#344740]">{item.label}:</span> {item.value}</p>)}
     </div>
     <div className="mt-4 grid shrink-0 gap-2 sm:grid-cols-2">
-      <Link href={optionalDetailHref} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#3d927f] bg-[#f5fbf7] px-4 text-center text-sm font-semibold text-[#176b62] transition hover:bg-[#eaf5ee] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Add more detail</Link>
+      <Link href={optionalDetailHref} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#3d927f] bg-[#f5fbf7] px-4 text-center text-sm font-semibold text-[var(--cb-primary)] transition hover:bg-[#eaf5ee] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Add more detail</Link>
       <Link href="/guidance/confirm" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#cbd8e3] bg-white px-4 text-center text-sm font-medium text-[#24344c] transition hover:bg-[#f7f9fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Continue without adding</Link>
     </div>
   </article>;
@@ -153,9 +153,9 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
   return <CounsellingJourneyShell currentSection="reflection" completedSections={completedSections} progress={{ current: answeredCount, total: answeredCount }} variant="grouped">
     <section className="min-w-0 pb-5" aria-labelledby="review-heading">
       <header className="mb-5">
-        <p className="inline-flex rounded-full bg-[#edf6f2] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[.09em] text-[#1b7165]">Step 5 of 5</p>
+        <p className="inline-flex rounded-full bg-[#edf6f2] px-3.5 py-1.5 text-sm font-semibold uppercase tracking-[.09em] text-[#1b7165]">Step 5 of 5</p>
         <h1 id="review-heading" className="mt-3 font-semibold text-[clamp(2rem,4vw,3.15rem)] leading-[1.04] tracking-[-.045em] text-[#111827]">Here’s what we understood</h1>
-        <p className="mt-2 max-w-[850px] text-[clamp(1rem,1.35vw,1.15rem)] leading-relaxed text-[#68758a]">This is a starting picture, not a final judgement. Check each section and change anything that doesn’t feel right.</p>
+        <p className="mt-2 max-w-[850px] text-[clamp(1rem,1.35vw,1.15rem)] leading-relaxed text-[var(--cb-muted)]">This is a starting picture, not a final judgement. Check each section and change anything that doesn’t feel right.</p>
       </header>
 
       <div className="grid min-w-0 items-start gap-3 lg:grid-cols-2">
@@ -175,7 +175,7 @@ export default async function ProfileReviewPage({ searchParams }: { searchParams
       </aside>
 
       <div className="mt-5 flex flex-col gap-3 border-t border-[#e4e8e7] pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <Link href={editProfileHref()} className="inline-flex min-h-12 items-center gap-2 self-start rounded-lg px-1 text-[1rem] font-medium text-[#263b55] transition hover:text-[#176b62] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]"><ArrowLeft aria-hidden className="h-5 w-5" />Go back and edit</Link>
+        <Link href={editProfileHref()} className="inline-flex min-h-12 items-center gap-2 self-start rounded-lg px-1 text-[1rem] font-medium text-[#263b55] transition hover:text-[var(--cb-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]"><ArrowLeft aria-hidden className="h-5 w-5" />Go back and edit</Link>
         <Link href="/guidance/confirm" className="inline-flex min-h-[54px] items-center justify-center gap-3 rounded-lg bg-[#087663] px-5 py-3 text-center font-semibold text-white shadow-[0_4px_10px_-7px_#163c35] transition hover:bg-[#066555] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#286b61]">This starting picture feels right — continue<ArrowRight aria-hidden className="h-5 w-5" /></Link>
       </div>
     </section>

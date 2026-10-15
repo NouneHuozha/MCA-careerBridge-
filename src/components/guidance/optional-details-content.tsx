@@ -102,24 +102,24 @@ export function OptionalDetailsContent({ answers, answered }: { answers: Record<
     >
       <main className="min-w-0 pb-5" aria-labelledby="optional-details-heading">
         <header>
-          <p className="inline-flex rounded-full bg-[#edf6f2] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[.09em] text-[#1b7165]">
+          <p className="inline-flex rounded-full bg-[var(--cb-surface-soft)] px-3.5 py-1.5 text-sm font-semibold uppercase tracking-[.09em] text-[var(--cb-primary)]">
             Step 5 of 5 · Optional
           </p>
-          <h1 id="optional-details-heading" className="mt-4 font-semibold text-[clamp(2rem,3.5vw,3.1rem)] leading-[1.06] tracking-[-.045em] text-[#111827]">
+          <h1 id="optional-details-heading" className="mt-4 font-semibold text-[clamp(2rem,3.5vw,3.1rem)] leading-[1.06] tracking-[-.045em] text-[var(--cb-ink-strong)]">
             Add anything else that may help
           </h1>
-          <p className="mt-3 max-w-[900px] text-[clamp(1rem,1.35vw,1.15rem)] leading-relaxed text-[#68758a]">
+          <p className="mt-3 max-w-[900px] text-[clamp(1rem,1.35vw,1.15rem)] leading-relaxed text-[var(--cb-muted)]">
             You do not need to answer everything. Add only what feels useful, and you can skip anything.
           </p>
         </header>
 
-        <aside role="note" className="mt-4 flex items-start gap-4 rounded-lg border border-[#e7eae5] bg-[#fafbf9] px-4 py-3.5 sm:px-5">
-          <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#e8f3ee] text-[#317b6c]">
+        <aside role="note" className="mt-4 flex items-start gap-4 rounded-lg border border-[var(--cb-line)] bg-[var(--cb-canvas)] px-4 py-3.5 sm:px-5">
+          <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[var(--cb-surface-soft)] text-[var(--cb-primary)]">
             <Info className="h-5 w-5" strokeWidth={1.8} />
           </span>
           <div className="min-w-0">
-            <p className="font-semibold leading-snug text-[#20272b]">We are not asking the same questions again.</p>
-            <p className="mt-1 text-sm leading-relaxed text-[#68758a]">This page is only for a few additional details that can help us understand you better.</p>
+            <p className="font-semibold leading-snug text-[var(--cb-ink-strong)]">We are not asking the same questions again.</p>
+            <p className="mt-1 text-sm leading-relaxed text-[var(--cb-muted)]">This page is only for a few additional details that can help us understand you better.</p>
           </div>
         </aside>
 
@@ -127,7 +127,7 @@ export function OptionalDetailsContent({ answers, answered }: { answers: Record<
           role="region"
           aria-label="Optional details list"
           tabIndex={0}
-          className="mt-4 max-h-[50vh] overflow-y-auto overscroll-contain rounded-lg border border-[#e7eae5] bg-[#fafbf9] p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] sm:p-3 md:max-h-[420px]"
+          className="mt-4 max-h-[50vh] overflow-y-auto overscroll-contain rounded-lg border border-[var(--cb-line)] bg-[var(--cb-canvas)] p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] sm:p-3 md:max-h-[420px]"
         >
         <ul aria-label="Optional details you can add" className="space-y-1.5">
           {optionalDetails.map(({ key, title, description, questionKey, icon: Icon }) => {
@@ -136,18 +136,18 @@ export function OptionalDetailsContent({ answers, answered }: { answers: Record<
             const action = hasAnswer ? "Edit" : "Add";
             const summary = hasAnswer && answer ? answerSummary(answer, questionKey) : "";
             return (
-              <li key={key} className="flex min-h-[68px] min-w-0 items-center gap-3 rounded-lg border border-[#e9ece7] bg-white/80 px-3.5 py-2.5 sm:gap-4 sm:px-5">
-                <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#e8f3ee] text-[#317b6c] sm:h-11 sm:w-11">
+              <li key={key} className="flex min-h-[68px] min-w-0 items-center gap-3 rounded-lg border border-[var(--cb-line)] bg-white/80 px-3.5 py-2.5 sm:gap-4 sm:px-5">
+                <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[var(--cb-surface-soft)] text-[var(--cb-primary)] sm:h-11 sm:w-11">
                   <Icon className="h-5 w-5 sm:h-[22px] sm:w-[22px]" strokeWidth={1.8} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <h2 className="font-semibold leading-snug text-[#20272b]">{title}</h2>
-                  <p className="mt-0.5 text-xs leading-snug text-[#68758a] sm:text-sm">{hasAnswer ? `Added · ${summary}` : description}</p>
+                  <h2 className="font-semibold leading-snug text-[var(--cb-ink-strong)]">{title}</h2>
+                  <p className="mt-0.5 text-sm leading-snug text-[var(--cb-muted)] sm:text-sm">{hasAnswer ? `Added · ${summary}` : description}</p>
                 </div>
                 <Link
                   href={questionHref(questionKey)}
                   aria-label={`${action} ${title}`}
-                  className="inline-flex min-h-9 w-[76px] shrink-0 items-center justify-center rounded-md border border-[#a9c8bf] bg-white px-3 text-sm font-semibold text-[#287669] transition hover:bg-[#f1f8f4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] sm:w-[90px]"
+                  className="inline-flex min-h-9 w-[76px] shrink-0 items-center justify-center rounded-md border border-[var(--cb-line-strong)] bg-white px-3 text-sm font-semibold text-[var(--cb-primary)] transition hover:bg-[var(--cb-surface-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] sm:w-[90px]"
                 >
                   {action}
                 </Link>
@@ -157,15 +157,15 @@ export function OptionalDetailsContent({ answers, answered }: { answers: Record<
         </ul>
         </section>
 
-        <nav aria-label="Optional detail navigation" className="mt-5 flex flex-col gap-3 border-t border-[#e4e8e7] pt-3 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/guidance/review" className="inline-flex min-h-11 items-center gap-2 self-start rounded-lg px-1 text-sm font-medium text-[#263b55] transition hover:text-[#176b62] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
+        <nav aria-label="Optional detail navigation" className="mt-5 flex flex-col gap-3 border-t border-[var(--cb-line)] pt-3 sm:flex-row sm:items-center sm:justify-between">
+          <Link href="/guidance/review" className="inline-flex min-h-11 items-center gap-2 self-start rounded-lg px-1 text-sm font-medium text-[var(--cb-ink)] transition hover:text-[var(--cb-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
             <ArrowLeft aria-hidden className="h-5 w-5" />Back to review
           </Link>
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:gap-4">
-            <Link href="/guidance/review" className="inline-flex min-h-10 items-center justify-center px-3 text-sm font-semibold text-[#287669] transition hover:text-[#14584e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
+            <Link href="/guidance/review" className="inline-flex min-h-10 items-center justify-center px-3 text-sm font-semibold text-[var(--cb-primary)] transition hover:text-[var(--cb-primary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
               Skip for now
             </Link>
-            <Link href="/guidance/review" className="inline-flex min-h-[54px] items-center justify-center gap-3 rounded-lg bg-[#087663] px-5 py-3 text-center text-sm font-semibold text-white shadow-[0_4px_10px_-7px_#163c35] transition hover:bg-[#066555] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#286b61]">
+            <Link href="/guidance/review" className="inline-flex min-h-[54px] items-center justify-center gap-3 rounded-lg bg-[var(--cb-primary)] px-5 py-3 text-center text-sm font-semibold text-white shadow-[0_4px_10px_-7px_#163c35] transition hover:bg-[var(--cb-primary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#286b61]">
               Save and return to review<ArrowRight aria-hidden className="h-5 w-5" />
             </Link>
           </div>

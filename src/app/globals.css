@@ -38,6 +38,41 @@
   --radius-card: 1rem;
 }
 
+/* Guidance-only palette: brand color for actions, warm neutrals for content. */
+.cb-guidance-scope {
+  --cb-primary: #145b50;
+  --cb-primary-hover: #0f493f;
+  --cb-secondary: #745611;
+  --cb-secondary-soft: #d5a33a;
+  --cb-canvas: #f7f6f2;
+  --cb-surface: #fffefa;
+  --cb-surface-soft: #f0f1ee;
+  --cb-ink-strong: #172b3a;
+  --cb-ink: #3c4a4b;
+  --cb-muted: #5f6b6d;
+  --cb-line: #dedfd9;
+  --cb-line-strong: #b9c1bb;
+  --cb-success: #226a4a;
+  --cb-warning: #806315;
+  color: var(--cb-ink);
+}
+
+.cb-guidance-scope .font-serif:not(h1, h2, h3, h4) {
+  font-family: var(--font-sans) !important;
+}
+.cb-guidance-scope h1.font-serif,
+.cb-guidance-scope h2.font-serif,
+.cb-guidance-scope h3.font-serif,
+.cb-guidance-scope h4.font-serif {
+  font-family: Georgia, "Times New Roman", serif !important;
+}
+.cb-guidance-scope .text-xs,
+.cb-guidance-scope [class~="text-[11px]"],
+.cb-guidance-scope [class~="sm:text-[13px]"] {
+  font-size: .875rem !important;
+  line-height: 1.45 !important;
+}
+
 @layer base {
   html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 7rem; }
   body { margin: 0; min-width: 320px; background: var(--color-canvas); color: var(--color-ink-700); font-family: var(--font-sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }

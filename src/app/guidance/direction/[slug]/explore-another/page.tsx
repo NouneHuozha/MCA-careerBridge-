@@ -21,13 +21,13 @@ function DirectionIcon({ slug }: { slug: string }) {
 }
 
 function PossibilityCard({ field }: { field: Field }) {
-  return <article className="grid min-w-0 grid-cols-[72px_minmax(0,1fr)] gap-x-4 gap-y-3 rounded-xl border border-[#e4e2d9] bg-[#fffefa] p-4 sm:p-5">
-    <span aria-hidden className="row-span-1 grid h-[72px] w-[72px] place-items-center self-center rounded-full bg-[#e8f0ec] text-[#12615b]"><DirectionIcon slug={field.slug} /></span>
+  return <article className="grid min-w-0 grid-cols-[72px_minmax(0,1fr)] gap-x-4 gap-y-3 rounded-xl border border-[var(--cb-line)] bg-[var(--cb-surface)] p-4 sm:p-5">
+    <span aria-hidden className="row-span-1 grid h-[72px] w-[72px] place-items-center self-center rounded-full bg-[var(--cb-surface-soft)] text-[#12615b]"><DirectionIcon slug={field.slug} /></span>
     <div className="self-center">
       <h2 className="font-serif text-[1.3rem] leading-tight text-[#18364a]">{field.name}</h2>
       <p className="mt-2 text-sm leading-relaxed text-[#5d6962]">{field.tagline || field.overview}</p>
     </div>
-    <Link href={`/guidance/direction/${encodeURIComponent(field.slug)}`} className="col-span-2 inline-flex min-h-12 items-center justify-center rounded-lg bg-[#07655f] px-4 text-center font-serif text-base font-semibold text-white transition hover:bg-[#075a58] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Explore this possibility</Link>
+    <Link href={`/guidance/direction/${encodeURIComponent(field.slug)}`} className="col-span-2 inline-flex min-h-12 items-center justify-center rounded-lg bg-[var(--cb-primary)] px-4 text-center font-serif text-base font-semibold text-white transition hover:bg-[var(--cb-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">Explore this possibility</Link>
   </article>;
 }
 
@@ -60,18 +60,18 @@ export default async function ExploreAnotherPossibilityPage({ params }: { params
       </div> : null}
 
       <header className="mx-auto mt-5 max-w-[850px] text-center">
-        <p className="text-xs font-semibold uppercase tracking-[.2em] text-[#286b61]">Look around without choosing yet</p>
-        <h1 className="mt-2 font-serif text-[clamp(2.3rem,5vw,3.7rem)] leading-[1.04] tracking-[-.04em] text-[#102c43]">Explore another possibility.</h1>
+        <p className="text-sm font-semibold uppercase tracking-[.2em] text-[var(--cb-primary)]">Look around without choosing yet</p>
+        <h1 className="mt-2 font-serif text-[clamp(2.3rem,5vw,3.7rem)] leading-[1.04] tracking-[-.04em] text-[var(--cb-ink-strong)]">Explore another possibility.</h1>
         <p className="mx-auto mt-3 max-w-[760px] font-serif text-[clamp(1.05rem,1.8vw,1.3rem)] leading-[1.42] text-[#59645e]">These are different areas you can understand at your own pace. Opening one does not close or replace your {currentField.name} exploration.</p>
-        <p className="mx-auto mt-3 inline-flex min-h-9 items-center rounded-full bg-[#eaf5ef] px-5 text-sm font-medium text-[#315f53]">Every direction is a starting point, not a prediction</p>
+        <p className="mx-auto mt-3 inline-flex min-h-9 items-center rounded-full bg-[var(--cb-surface-soft)] px-5 text-sm font-medium text-[#315f53]">Every direction is a starting point, not a prediction</p>
       </header>
 
       <section aria-label="Other possibilities to explore" className="mt-4 grid gap-3 sm:grid-cols-2 sm:gap-4">
         {possibilities.map((field) => <PossibilityCard key={field.slug} field={field} />)}
       </section>
 
-      <section className="mx-auto mt-4 max-w-[1108px] border-t border-[#e5e2d8] pt-3 text-center">
-        <Link href="/guidance/not-sure" className="inline-flex min-h-10 items-center font-serif text-[1rem] text-[#35675b] underline decoration-[#9ebfb2] underline-offset-4 hover:text-[#174d42]">I’m not sure yet — help me look around</Link>
+      <section className="mx-auto mt-4 max-w-[1108px] border-t border-[var(--cb-line)] pt-3 text-center">
+        <Link href="/guidance/not-sure" className="inline-flex min-h-10 items-center font-serif text-[1rem] text-[var(--cb-primary)] underline decoration-[#9ebfb2] underline-offset-4 hover:text-[var(--cb-primary)]">I’m not sure yet — help me look around</Link>
       </section>
     </section>
 

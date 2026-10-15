@@ -34,11 +34,11 @@ export function SaveGuidanceComparison({ kind, itemRefs, signedIn, signInHref }:
   }
 
   if (!signedIn) {
-    return <a href={signInHref} className="inline-flex min-h-10 items-center rounded-lg border border-[#91b4a7] bg-white px-4 text-sm font-semibold text-[#286b61] underline underline-offset-4">Sign in to save comparison</a>;
+    return <a href={signInHref} className="inline-flex min-h-10 items-center rounded-lg border border-[var(--cb-line-strong)] bg-white px-4 text-sm font-semibold text-[var(--cb-primary)] underline underline-offset-4">Sign in to save comparison</a>;
   }
 
   return <div className="flex flex-col items-start gap-2">
-    <button type="button" onClick={save} disabled={saving || saved} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#91b4a7] bg-white px-4 text-sm font-semibold text-[#286b61] transition hover:bg-[#f1f7f3] disabled:cursor-not-allowed disabled:opacity-70">
+    <button type="button" onClick={save} disabled={saving || saved} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--cb-line-strong)] bg-white px-4 text-sm font-semibold text-[var(--cb-primary)] transition hover:bg-[#f1f7f3] disabled:cursor-not-allowed disabled:opacity-70">
       {saving ? <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" /> : saved ? <Check aria-hidden className="h-4 w-4" /> : <Save aria-hidden className="h-4 w-4" />}
       {saving ? "Saving…" : saved ? "Comparison saved" : "Save comparison"}
     </button>

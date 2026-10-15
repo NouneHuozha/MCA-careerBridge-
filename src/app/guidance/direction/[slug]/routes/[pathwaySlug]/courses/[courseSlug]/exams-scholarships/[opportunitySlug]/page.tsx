@@ -60,8 +60,8 @@ const checks = [
 ];
 
 function AtAGlanceRow({ Icon, label, value }: { Icon: typeof GraduationCap; label: string; value: string }) {
-  return <div className="flex items-center gap-3 border-t border-[#e7eee8] px-3 py-2.5 first:border-t-0">
-    <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#e5f3ed] text-[#176b5d]"><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></span>
+  return <div className="flex items-center gap-3 border-t border-[var(--cb-line)] px-3 py-2.5 first:border-t-0">
+    <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#e5f3ed] text-[var(--cb-primary)]"><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></span>
     <span className="min-w-0 flex-1 text-sm text-[#607067]">{label}</span>
     <span className="max-w-[58%] text-right font-serif text-sm text-[#263b34]">{value}</span>
   </div>;
@@ -105,14 +105,14 @@ export default async function EntranceProcessDetailPage({ params }: { params: Pr
   const returnHref = `/guidance/direction/${encodeURIComponent(slug)}/routes/${encodeURIComponent(pathwaySlug)}/courses/${encodeURIComponent(courseSlug)}/exams-scholarships`;
   const studentStage = state.stage === "class10" ? "Class 10" : "Class 12";
 
-  return <main className="relative isolate min-h-[calc(100dvh-134px)] overflow-hidden bg-[#fcfcfa] px-5 pb-32 pt-6 text-[#26312c] sm:px-8 sm:pt-8 lg:px-12 lg:pb-36">
+  return <main className="relative isolate min-h-[calc(100dvh-134px)] overflow-hidden bg-[var(--cb-canvas)] px-5 pb-32 pt-6 text-[var(--cb-ink-strong)] sm:px-8 sm:pt-8 lg:px-12 lg:pb-36">
     <section className="relative z-10 mx-auto max-w-[1500px]">
       <header className="mb-5">
         <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
-          <h1 className="max-w-[900px] font-serif text-[clamp(2rem,4vw,3.35rem)] leading-[1.07] tracking-[-.04em] text-[#102c43]">{opportunityTitle}</h1>
+          <h1 className="max-w-[900px] font-serif text-[clamp(2rem,4vw,3.35rem)] leading-[1.07] tracking-[-.04em] text-[var(--cb-ink-strong)]">{opportunityTitle}</h1>
           <span className="mt-1 inline-flex rounded-full border border-[#f0d79e] bg-[#fff1cf] px-3 py-1.5 font-serif text-sm text-[#675a38]">Example opportunity for design review only</span>
         </div>
-        <p className="mt-2 font-serif text-[clamp(1.05rem,1.7vw,1.35rem)] leading-[1.35] text-[#596960]">An admission process that may apply to some BCA programmes.</p>
+        <p className="mt-2 font-serif text-[clamp(1.05rem,1.7vw,1.35rem)] leading-[1.35] text-[var(--cb-ink)]">An admission process that may apply to some BCA programmes.</p>
       </header>
 
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(330px,.98fr)]">
@@ -122,22 +122,22 @@ export default async function EntranceProcessDetailPage({ params }: { params: Pr
             <p className="font-serif text-[1rem] leading-snug">Seeing this opportunity does not mean you are eligible. Confirm the current rules with the official source.</p>
           </div>
 
-          <section aria-labelledby="why-title" className="overflow-hidden rounded-xl border border-[#dce8df] bg-white/95 shadow-[0_6px_24px_-24px_rgba(40,69,60,.6)]">
-            <div className="flex gap-4 bg-[#eff7f3] px-5 py-5 sm:px-6">
-              <span aria-hidden className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#dff1e9] text-[#176b5d]"><FileText className="h-7 w-7" strokeWidth={1.7} /></span>
-              <div><h2 id="why-title" className="font-serif text-[1.7rem] leading-tight text-[#173d4a]">Why it may matter</h2><p className="mt-2 max-w-[790px] font-serif text-[1.05rem] leading-relaxed text-[#596960]">Some institutions or programmes may use an entrance process for admission to BCA. The process, eligibility criteria, subjects, dates, and application method can vary across institutions. Always refer to the official source for the most accurate and up-to-date information.</p></div>
+          <section aria-labelledby="why-title" className="overflow-hidden rounded-xl border border-[var(--cb-line)] bg-white/95 shadow-[0_6px_24px_-24px_rgba(40,69,60,.6)]">
+            <div className="flex gap-4 bg-[var(--cb-surface-soft)] px-5 py-5 sm:px-6">
+              <span aria-hidden className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#dff1e9] text-[var(--cb-primary)]"><FileText className="h-7 w-7" strokeWidth={1.7} /></span>
+              <div><h2 id="why-title" className="font-serif text-[1.7rem] leading-tight text-[var(--cb-ink-strong)]">Why it may matter</h2><p className="mt-2 max-w-[790px] font-serif text-[1.05rem] leading-relaxed text-[var(--cb-ink)]">Some institutions or programmes may use an entrance process for admission to BCA. The process, eligibility criteria, subjects, dates, and application method can vary across institutions. Always refer to the official source for the most accurate and up-to-date information.</p></div>
             </div>
 
             <div className="px-5 pb-4 pt-5 sm:px-6">
               <div className="flex items-center gap-3">
-                <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#e3f3eb] text-[#176b5d]"><CheckCircle2 className="h-6 w-6" strokeWidth={1.7} /></span>
-                <div><h2 className="font-serif text-[1.6rem] leading-tight text-[#173d4a]">What to verify</h2><p className="mt-1 font-serif text-base text-[#637168]">Check the following details with the official source before you plan or apply.</p></div>
+                <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#e3f3eb] text-[var(--cb-primary)]"><CheckCircle2 className="h-6 w-6" strokeWidth={1.7} /></span>
+                <div><h2 className="font-serif text-[1.6rem] leading-tight text-[var(--cb-ink-strong)]">What to verify</h2><p className="mt-1 font-serif text-base text-[var(--cb-ink)]">Check the following details with the official source before you plan or apply.</p></div>
               </div>
 
               <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-                {checks.map(({ title, description, Icon }) => <article key={title} className="flex min-h-[72px] items-start gap-3 rounded-lg border border-[#e5ebe5] bg-[#fffefa] px-3 py-3">
-                  <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#e8f4ee] text-[#176b5d]"><Icon className="h-5 w-5" strokeWidth={1.7} /></span>
-                  <div><h3 className="font-serif text-base leading-tight text-[#263b34]">{title}</h3><p className="mt-1 font-serif text-sm leading-snug text-[#66736b]">{description}</p></div>
+                {checks.map(({ title, description, Icon }) => <article key={title} className="flex min-h-[72px] items-start gap-3 rounded-lg border border-[#e5ebe5] bg-[var(--cb-surface)] px-3 py-3">
+                  <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[var(--cb-surface-soft)] text-[var(--cb-primary)]"><Icon className="h-5 w-5" strokeWidth={1.7} /></span>
+                  <div><h3 className="font-serif text-base leading-tight text-[#263b34]">{title}</h3><p className="mt-1 font-serif text-sm leading-snug text-[var(--cb-muted)]">{description}</p></div>
                 </article>)}
               </div>
               <div role="note" className="mt-3 flex items-start gap-2 rounded-lg bg-[#e8f6ef] px-4 py-3 font-serif text-sm leading-snug text-[#386c5b]"><Info aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />Dates, subjects, fees, and eligibility can change. Always refer to the official source.</div>
@@ -146,8 +146,8 @@ export default async function EntranceProcessDetailPage({ params }: { params: Pr
         </div>
 
         <aside className="space-y-4">
-          <section aria-labelledby="glance-title" className="rounded-xl border border-[#dce8df] bg-[#eff7f3] p-4 sm:p-5">
-            <div className="flex items-center gap-3 px-1 pb-3"><span aria-hidden className="grid h-12 w-12 place-items-center rounded-full bg-[#dff1e9] text-[#176b5d]"><BarChart3 className="h-6 w-6" /></span><div><h2 id="glance-title" className="font-serif text-[1.55rem] leading-tight text-[#173d4a]">At a glance</h2><p className="mt-1 font-serif text-sm text-[#68766e]">Key details about this opportunity.</p></div></div>
+          <section aria-labelledby="glance-title" className="rounded-xl border border-[var(--cb-line)] bg-[var(--cb-surface-soft)] p-4 sm:p-5">
+            <div className="flex items-center gap-3 px-1 pb-3"><span aria-hidden className="grid h-12 w-12 place-items-center rounded-full bg-[#dff1e9] text-[var(--cb-primary)]"><BarChart3 className="h-6 w-6" /></span><div><h2 id="glance-title" className="font-serif text-[1.55rem] leading-tight text-[var(--cb-ink-strong)]">At a glance</h2><p className="mt-1 font-serif text-sm text-[#68766e]">Key details about this opportunity.</p></div></div>
             <div className="overflow-hidden rounded-lg bg-white/85">
               <AtAGlanceRow Icon={GraduationCap} label="Course" value="BCA" />
               <AtAGlanceRow Icon={UserRound} label="Student stage" value={studentStage} />
@@ -157,11 +157,11 @@ export default async function EntranceProcessDetailPage({ params }: { params: Pr
             </div>
           </section>
 
-          <section aria-labelledby="next-step-title" className="rounded-xl border border-[#dce8df] bg-[#eff7f3] p-4 sm:p-5">
-            <div className="flex items-center gap-3 px-1"><span aria-hidden className="grid h-12 w-12 place-items-center rounded-full bg-[#dff1e9] text-[#176b5d]"><Leaf className="h-6 w-6" /></span><div><h2 id="next-step-title" className="font-serif text-[1.55rem] leading-tight text-[#173d4a]">Next step</h2><p className="mt-1 font-serif text-sm text-[#68766e]">Check the official source for the latest information.</p></div></div>
+          <section aria-labelledby="next-step-title" className="rounded-xl border border-[var(--cb-line)] bg-[var(--cb-surface-soft)] p-4 sm:p-5">
+            <div className="flex items-center gap-3 px-1"><span aria-hidden className="grid h-12 w-12 place-items-center rounded-full bg-[#dff1e9] text-[var(--cb-primary)]"><Leaf className="h-6 w-6" /></span><div><h2 id="next-step-title" className="font-serif text-[1.55rem] leading-tight text-[var(--cb-ink-strong)]">Next step</h2><p className="mt-1 font-serif text-sm text-[#68766e]">Check the official source for the latest information.</p></div></div>
             <button type="button" disabled className="mt-4 inline-flex min-h-11 w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-[#a9bdc4] px-4 font-serif text-sm text-white/95" aria-disabled="true"><ExternalLink aria-hidden className="h-4 w-4" />Official source not connected</button>
-            <div className="mt-2 flex justify-center rounded-lg border border-[#70a99a] bg-white px-3 py-2.5"><SaveButton itemType="opportunity" itemRef="bca-institution-entrance-process" label={opportunityTitle} saveText="Save this opportunity" savedText="Opportunity saved" className="[&>button]:min-h-7 [&>button]:border-0 [&>button]:bg-transparent [&>button]:px-2 [&>button]:py-0 [&>button]:font-serif [&>button]:text-[#176b5d] [&>button]:hover:bg-[#eff7f3]" /></div>
-            <Link href={returnHref} className="mt-3 inline-flex min-h-9 items-center gap-2 font-serif text-sm text-[#35675b] underline decoration-[#9ebfb2] underline-offset-4 hover:text-[#174d42]"><ArrowLeft aria-hidden className="h-4 w-4" />Return to exams and scholarships</Link>
+            <div className="mt-2 flex justify-center rounded-lg border border-[#70a99a] bg-white px-3 py-2.5"><SaveButton itemType="opportunity" itemRef="bca-institution-entrance-process" label={opportunityTitle} saveText="Save this opportunity" savedText="Opportunity saved" className="[&>button]:min-h-7 [&>button]:border-0 [&>button]:bg-transparent [&>button]:px-2 [&>button]:py-0 [&>button]:font-serif [&>button]:text-[var(--cb-primary)] [&>button]:hover:bg-[var(--cb-surface-soft)]" /></div>
+            <Link href={returnHref} className="mt-3 inline-flex min-h-9 items-center gap-2 font-serif text-sm text-[var(--cb-primary)] underline decoration-[#9ebfb2] underline-offset-4 hover:text-[var(--cb-primary)]"><ArrowLeft aria-hidden className="h-4 w-4" />Return to exams and scholarships</Link>
           </section>
         </aside>
       </div>

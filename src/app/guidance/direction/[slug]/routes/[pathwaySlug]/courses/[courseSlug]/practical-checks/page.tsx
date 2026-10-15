@@ -39,10 +39,10 @@ export default async function PracticalChecksPage({ params }: { params: Promise<
     { title: "Compare study costs and support", detail: "Check current fees, scholarships, hostel or travel support where relevant.", icon: "coins" as const },
   ];
 
-  return <main className="min-h-[calc(100dvh-77px)] bg-[#fcfcfa] px-5 pb-8 pt-6 text-[#26312c] sm:px-8 lg:px-12"><section className="mx-auto max-w-[1500px]">
+  return <main className="min-h-[calc(100dvh-77px)] bg-[var(--cb-canvas)] px-5 pb-8 pt-6 text-[var(--cb-ink-strong)] sm:px-8 lg:px-12"><section className="mx-auto max-w-[1500px]">
     <PracticalChecklist items={items} />
-    <p className="mt-5 flex items-center gap-3 rounded-lg bg-[#eef7f2] px-4 py-3 font-serif text-sm leading-relaxed text-[#49645a]"><Info aria-hidden className="h-5 w-5 shrink-0 text-[#176b5d]" />Current rules can change. Check the institution’s official information before acting.</p>
-    <div className="mt-5 flex justify-center rounded-lg bg-[#176b6b] px-5 py-2.5"><SaveButton itemType="course" itemRef={`${course.slug}:practical-checks`} label={`${course.name} practical checklist`} saveText="Save my checklist" savedText="Checklist saved" className="[&>button]:min-h-10 [&>button]:border-0 [&>button]:bg-transparent [&>button]:font-serif [&>button]:text-lg [&>button]:font-semibold [&>button]:text-white" /></div>
-    <p className="mt-3 text-center font-serif text-sm text-[#718078]">You can return to this checklist or change direction later.</p>
+    <p className="mt-5 flex items-center gap-3 rounded-lg bg-[var(--cb-surface-soft)] px-4 py-3 font-serif text-sm leading-relaxed text-[#49645a]"><Info aria-hidden className="h-5 w-5 shrink-0 text-[var(--cb-primary)]" />Current rules can change. Check the institution’s official information before acting.</p>
+    <div className="mt-5 flex justify-center rounded-lg bg-[var(--cb-primary)] px-5 py-2.5"><SaveButton itemType="course" itemRef={`${course.slug}:practical-checks`} label={`${course.name} practical checklist`} saveText="Save my checklist" savedText="Checklist saved" className="[&>button]:min-h-10 [&>button]:border-0 [&>button]:bg-transparent [&>button]:font-serif [&>button]:text-lg [&>button]:font-semibold [&>button]:text-white" /></div>
+    <p className="mt-3 text-center font-serif text-sm text-[var(--cb-muted)]">You can return to this checklist or change direction later.</p>
   </section></main>;
 }
