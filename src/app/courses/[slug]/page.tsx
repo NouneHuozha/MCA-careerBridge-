@@ -1,60 +1,164 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BarChart3, Building2, CalendarDays, CheckCircle2, ClipboardList, GraduationCap, Scale, Users } from "lucide-react";
 import { notFound } from "next/navigation";
-import { Badge, ButtonLink, Callout, Eyebrow, VerificationBadge } from "@/components/ui";
-import { CourseJourneyShell } from "@/components/journey-sidebar";
-import { ContextualMentor } from "@/components/contextual-mentor";
-import { levelLabelSafe } from "@/components/course-helpers";
+import { ArrowRight, BookOpen, Building2, Scale } from "lucide-react";
 import { SaveButton } from "@/components/save-button";
 import { ReportCatalogueIssue } from "@/components/report-catalogue-issue";
-import { getCourse, getCourses, getExams, getField, getInstitutionsForCourse } from "@/services/catalog";
+import { VerificationBadge } from "@/components/ui";
+import {
+  LibraryBreadcrumbs,
+  LibraryDetailFrame,
+  LibraryDetailIntro,
+  LibraryRecordLink,
+  LibrarySection,
+  LibrarySourceLink,
+} from "@/components/library-detail";
+import { getCourse, getExams, getField, getInstitutionsForCourse } from "@/services/catalog";
+import { levelLabelSafe } from "@/components/course-helpers";
 
 export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   return { title: (await getCourse((await params).slug))?.name ?? "Course" };
 }
 
-const tabs = ["Overview", "What you learn", "Where to study", "Entry requirements", "Fees and support"];
-
 export default async function CoursePage({ params }: { params: Promise<{ slug: string }> }) {
   const course = await getCourse((await params).slug);
   if (!course) notFound();
-  const [institutions, exams, field, siblings] = await Promise.all([
+
+  const [institutions, exams, field] = await Promise.all([
     getInstitutionsForCourse(course.slug),
     getExams({ slugs: course.examSlugs ?? [] }),
     course.fieldSlug ? getField(course.fieldSlug) : Promise.resolve(null),
-    getCourses({ fieldSlug: course.fieldSlug ?? undefined }),
   ]);
-  void institutions; void exams; void field; void siblings;
-  const skills = (course.relevantSubjects ?? []).slice(0, 5);
-  const nextSteps = (course.careerDirections ?? []).slice(0, 4);
-  const requirements = [course.eligibility, course.entranceRequirement].filter(Boolean).slice(0, 3) as string[];
+  const requirements = [course.eligibility, course.entranceRequirement].filter((value): value is string => Boolean(value));
+  const verificationDate = course.lastVerifiedAt
+    ? new Date(course.lastVerifiedAt).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" })
+    : null;
 
   return (
-    <CourseJourneyShell current={2}>
-      <div className="bg-white">
-        <div className="cb-container cb-page mx-auto max-w-[1320px]">
-          <div className="mb-6 flex items-center gap-3 text-sm text-ink-500"><Link href="/explore" className="hover:text-forest-700">Explore</Link><span>/</span><Link href="/courses" className="hover:text-forest-700">Courses</Link><span>/</span><span className="text-ink-800">{course.name}</span></div>
-          <header className="flex flex-wrap items-start justify-between gap-8">
-            <div className="min-w-0 flex-1"><Eyebrow>Course</Eyebrow><h1 className="mt-2 max-w-[900px] text-[clamp(2.2rem,4.3vw,4.4rem)] font-semibold leading-[1.04] tracking-[-.055em] text-[#071533]">{course.name}</h1><p className="mt-3 max-w-[850px] text-xl text-ink-500">Build practical knowledge and skills for a tech-enabled world.</p><div className="mt-5 flex flex-wrap gap-3"><span className="inline-flex items-center gap-2 rounded-full bg-[#eef3fb] px-4 py-2 text-sm font-semibold text-ink-600"><GraduationCap className="h-4 w-4 text-forest-700" />{levelLabelSafe(course.level)}</span>{course.durationLabel && <span className="inline-flex items-center gap-2 rounded-full bg-[#eef3fb] px-4 py-2 text-sm font-semibold text-ink-600"><CalendarDays className="h-4 w-4 text-forest-700" />{course.durationLabel}</span>}<span className="inline-flex items-center gap-2 rounded-full bg-[#eef3fb] px-4 py-2 text-sm font-semibold text-ink-600"><Users className="h-4 w-4 text-forest-700" />After Class 12</span></div><div className="mt-6 flex flex-wrap gap-3"><ButtonLink href={`/institutions?course=${course.slug}`}><Building2 className="h-4 w-4" />Find institutions</ButtonLink><SaveButton itemType="course" itemRef={course.slug} label={course.name} /><ButtonLink href={`/compare?type=course&a=${course.slug}`} variant="secondary"><Scale className="h-4 w-4" />Compare</ButtonLink></div></div>
-            <div className="relative hidden h-[190px] w-[270px] overflow-hidden rounded-2xl border border-ink-100 bg-[#f1f8fb] lg:block"><Image src="/images/possibilities-landscape.png" alt="" fill sizes="270px" className="object-cover object-right opacity-70" /><div className="absolute inset-0 bg-gradient-to-t from-[#e8f4f4] via-transparent to-transparent" /><ClipboardList className="absolute left-12 top-9 h-20 w-20 text-forest-700/70" /></div>
-          </header>
-          <nav aria-label="Course sections" className="mt-7 border-b border-ink-200"><ol className="flex gap-1 overflow-x-auto">{tabs.map((tab, index) => <li key={tab}><a href={index === 0 ? "#overview" : "#learn"} className={`block whitespace-nowrap border-b-[3px] px-4 py-3 text-sm font-semibold ${index === 0 ? "border-[#198b6e] text-forest-700" : "border-transparent text-ink-500 hover:border-forest-300 hover:text-ink-800"}`}>{tab}</a></li>)}</ol></nav>
-          <main className="mt-5 grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_380px]">
-            <div className="min-w-0">
-              <section id="overview" className="grid gap-5 rounded-2xl border border-ink-100 bg-[#f7fbfb] p-5 sm:grid-cols-3 sm:p-6">
-                <article><div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-full bg-[#dff3eb] text-forest-700"><GraduationCap className="h-6 w-6" /></span><h2 className="text-lg font-semibold text-[#071533]">What you will learn</h2></div><p className="mt-3 text-sm leading-relaxed text-ink-500">Core subjects and practical skills to build a strong foundation.</p><ul className="mt-5 space-y-3">{skills.map((item) => <li key={item} className="flex gap-2 text-sm text-ink-700"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-forest-600" />{item}</li>)}</ul><Link href="#learn" className="cb-source mt-6 text-sm">View full curriculum <ArrowRight className="h-4 w-4" /></Link></article>
-                <article id="learn" className="rounded-2xl bg-[#fbf9ff] p-1"><div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-full bg-[#eee7ff] text-[#7252b8]"><ClipboardList className="h-6 w-6" /></span><h2 className="text-lg font-semibold text-[#071533]">What do I need to apply?</h2></div><p className="mt-3 text-sm leading-relaxed text-ink-500">Check the basic eligibility and documents.</p><ul className="mt-5 space-y-3">{requirements.map((item) => <li key={item} className="flex gap-2 text-sm text-ink-700"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#8a70d2]" />{item}</li>)}</ul><div className="mt-5 rounded-xl bg-white px-3 py-2"><VerificationBadge status={course.verificationStatus} lastVerifiedAt={course.lastVerifiedAt} /></div></article>
-                <article className="rounded-2xl bg-[#fffaf0] p-1"><div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-full bg-[#fff0c9] text-[#a77b1c]"><BarChart3 className="h-6 w-6" /></span><h2 className="text-lg font-semibold text-[#071533]">Possible next steps</h2></div><p className="mt-3 text-sm leading-relaxed text-ink-500">Where this route can take you.</p><ul className="mt-5 space-y-3">{nextSteps.map((item) => <li key={item} className="flex gap-2 text-sm text-ink-700"><ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-[#d29b20]" />{item}</li>)}</ul><Link href={`/explore/${course.fieldSlug ?? "technology"}`} className="cb-source mt-6 text-sm">Explore career options <ArrowRight className="h-4 w-4" /></Link></article>
-              </section>
-              <section className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#d6e5f0] bg-[#f1f7fc] px-5 py-4 text-sm text-ink-600"><span>Course duration, fees and eligibility may vary. Always confirm details on the official website.</span><Link href={course.sourceUrl ?? "/courses"} className="cb-source">Learn more <ArrowRight className="h-4 w-4" /></Link></section>
+    <LibraryDetailFrame>
+      <LibraryBreadcrumbs items={[
+        { label: "Explore", href: "/explore" },
+        { label: "Courses", href: "/courses" },
+        { label: course.name },
+      ]} />
+
+      <LibraryDetailIntro
+        variant="course"
+        title={course.name}
+        titleClassName="max-w-[24ch] text-[clamp(1.75rem,5vw,5.25rem)] font-semibold leading-[1] tracking-[-.055em] text-[#17201b]"
+        description={field
+          ? `${course.name} is listed in the ${field.name} area. Use the details below to explore its subjects, entry notes and connected institutions.`
+          : "Explore the subjects, entry notes and institutions connected to this course catalogue entry."}
+        facts={
+          <>
+            <span>{levelLabelSafe(course.level)}</span>
+            {course.durationLabel && <span>{course.durationLabel}</span>}
+            {field && <Link href={`/explore/${field.slug}`} className="font-semibold underline underline-offset-4">{field.name}</Link>}
+          </>
+        }
+        actions={
+          <>
+            <SaveButton itemType="course" itemRef={course.slug} label={course.name} tone="forest" />
+            <a href="#institutions" className="cb-button cb-button-primary px-5 py-2.5 text-sm">
+              <Building2 className="h-4 w-4" /> Find institutions
+            </a>
+            <Link href={`/compare?type=course&a=${course.slug}`} className="cb-button cb-button-secondary px-5 py-2.5 text-sm">
+              <Scale className="h-4 w-4" /> Compare courses
+            </Link>
+          </>
+        }
+        aside={
+          <aside className="bg-[#dde4df] p-6 sm:p-7">
+            <h2 className="text-xl font-semibold tracking-[-.03em]">Course record</h2>
+            <div className="mt-5 space-y-4">
+              <div>
+                <p className="text-sm font-semibold">Catalogue status</p>
+                <VerificationBadge status={course.verificationStatus} lastVerifiedAt={course.lastVerifiedAt} />
+              </div>
+              {verificationDate && <p className="text-sm text-[#405349]">Last checked: {verificationDate}</p>}
+              {course.sourceUrl ? (
+                <LibrarySourceLink href={course.sourceUrl}>Open listed source</LibrarySourceLink>
+              ) : <p className="text-sm text-[#52635a]">A source link is not currently recorded.</p>}
             </div>
-            <div className="xl:sticky xl:top-24"><ContextualMentor courseName={course.name} sourceUrl={course.sourceUrl} /></div>
-          </main>
-          <div className="mt-5"><Callout tone="neutral"><p>Course information is a starting point. Always verify current admission, fees and eligibility with the institution.</p></Callout></div><div className="mt-5"><ReportCatalogueIssue entityType="course" entityRef={course.slug} entityName={course.name} sourceUrl={course.sourceUrl} /></div>
+          </aside>
+        }
+      />
+
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(250px,.62fr)]">
+        <div className="space-y-12">
+          <LibrarySection title="What you may study" intro="Subjects listed for this course entry are shown below. The exact curriculum is set by the institution.">
+            {course.relevantSubjects?.length ? (
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {course.relevantSubjects.map((subject) => <li key={subject} className="bg-[#dde4df] px-4 py-4 text-base text-[#17201b]">{subject}</li>)}
+              </ul>
+            ) : <p className="text-sm text-[#52635a]">A subject list is not available for this course entry yet.</p>}
+          </LibrarySection>
+
+          <LibrarySection title="Entry requirements" intro="Requirements may vary by institution and admission cycle. Confirm the current rules before applying.">
+            {requirements.length ? (
+              <ul className="space-y-4">
+                {requirements.map((item) => <li key={item} className="max-w-[70ch] bg-[#edf1ee] px-5 py-4 text-base leading-relaxed text-[#263a30]">{item}</li>)}
+              </ul>
+            ) : <p className="text-sm text-[#52635a]">Entry requirements are not currently listed.</p>}
+          </LibrarySection>
+
+          <LibrarySection id="institutions" title="Institutions linked in the catalogue" intro="A listed link does not confirm current course availability. Check the institution’s latest prospectus or admission notice.">
+            {institutions.length ? institutions.map((institution) => (
+              <LibraryRecordLink key={institution.code} href={`/institutions/${institution.code}`} title={institution.name} detail={`${institution.city ? `${institution.city}, ` : ""}${institution.district}`} action="View institution" />
+            )) : <p className="text-sm text-[#52635a]">No institutions are linked to this course in the current catalogue.</p>}
+          </LibrarySection>
         </div>
+
+        <aside className="space-y-12">
+          <LibrarySection title="Where it may lead">
+            {course.careerDirections?.length ? (
+              <ul className="space-y-3 text-sm leading-relaxed text-[#263a30]">
+                {course.careerDirections.map((direction) => <li key={direction} className="bg-[#f0f3f1] px-4 py-3">{direction}</li>)}
+              </ul>
+            ) : <p className="text-sm text-[#52635a]">No career directions are listed for this course yet.</p>}
+            {course.furtherStudy?.length ? <div className="mt-7">
+              <h3 className="text-lg font-semibold">Further study</h3>
+              <ul className="mt-3 space-y-3 text-sm leading-relaxed text-[#405349]">
+                {course.furtherStudy.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </div> : null}
+            {field && <Link href={`/careers?field=${field.slug}`} className="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-[#09332a] underline underline-offset-4">
+              Browse careers in {field.name} <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>}
+          </LibrarySection>
+
+          <LibrarySection title="Entrance exams">
+            {exams.length ? exams.map((exam) => (
+              <LibraryRecordLink key={exam.slug} href={`/exams/${exam.slug}`} title={exam.shortName ?? exam.name} detail={exam.conductingBody} action="View exam" />
+            )) : <p className="text-sm text-[#52635a]">No entrance exams are linked to this course entry.</p>}
+          </LibrarySection>
+
+          <LibrarySection title="Fees and support">
+            <dl className="space-y-6">
+              <div>
+                <dt className="font-semibold text-[#17201b]">Fee note</dt>
+                <dd className="mt-2 text-sm leading-relaxed text-[#405349]">{course.feeNote || "Fees are not currently listed for this course entry. Check with the institution."}</dd>
+              </div>
+              <div>
+                <dt className="font-semibold text-[#17201b]">Scholarship note</dt>
+                <dd className="mt-2 text-sm leading-relaxed text-[#405349]">{course.scholarshipNote || "No scholarship information is currently attached to this entry."}</dd>
+              </div>
+            </dl>
+            <Link href="/scholarships" className="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-[#09332a] underline underline-offset-4">
+              Browse scholarships <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
+          </LibrarySection>
+        </aside>
       </div>
-    </CourseJourneyShell>
+
+      <div className="mt-14">
+        <ReportCatalogueIssue entityType="course" entityRef={course.slug} entityName={course.name} sourceUrl={course.sourceUrl} />
+      </div>
+      <p className="mt-6 flex items-start gap-3 bg-[#dde4df] px-5 py-4 text-sm leading-relaxed text-[#263a30]">
+        <BookOpen aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#09332a]" />
+        Course details are a starting point. Confirm current admissions, subjects and costs with the institution before making decisions.
+      </p>
+    </LibraryDetailFrame>
   );
 }

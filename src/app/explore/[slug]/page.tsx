@@ -1,35 +1,161 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BarChart3, FlaskConical, Leaf, Settings2 } from "lucide-react";
 import { notFound } from "next/navigation";
-import { Badge, ButtonLink, Callout, Eyebrow, accentSurface } from "@/components/ui";
-import { DetailJourneyShell } from "@/components/journey-sidebar";
-import { fieldVisual } from "@/components/field-visuals";
-import { getCareers, getField, getInstitutions, getPathways, getCourses } from "@/services/catalog";
+import { ArrowRight, BookOpen, BriefcaseBusiness, GraduationCap, MapPin, Route, Scale } from "lucide-react";
+import { ButtonLink } from "@/components/ui";
+import {
+  LibraryBreadcrumbs,
+  LibraryDetailFrame,
+  LibraryDetailIntro,
+  LibraryRecordLink,
+  LibrarySection,
+} from "@/components/library-detail";
+import { LibraryReveal } from "@/components/library-motion";
+import {
+  getCareers,
+  getCourses,
+  getField,
+  getInstitutions,
+  getPathways,
+} from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) { const field = await getField((await params).slug); return { title: field?.name ?? "Explore an area" }; }
-const tabs = ["Overview", "Careers", "Courses & pathways", "Institutions", "Why this?", "Why not?", "What if?"];
-const detailVisuals = [FlaskConical, BarChart3, Leaf, Settings2];
 
-export default async function FieldPage({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const field = await getField((await params).slug);
+  return { title: field?.name ?? "Explore an area" };
+}
+
+export default async function FieldDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const field = await getField((await params).slug);
   if (!field) notFound();
-  const [careers, pathways, courses, institutions] = await Promise.all([getCareers(field.slug), getPathways({ fieldSlug: field.slug }), getCourses({ fieldSlug: field.slug }), getInstitutions({ fieldSlug: field.slug })]);
-  const accent = fieldVisual(field.slug).accent;
-  const shortCareers = careers.slice(0, 4);
-  const subjects = (field.usefulSubjects ?? []).slice(0, 5);
-  const image = field.slug === "science-research" ? "/images/field-healthcare.png" : "/images/possibilities-landscape.png";
-  return <DetailJourneyShell current={0}>
-    <div className="bg-white"><div className="cb-container cb-page mx-auto max-w-[1320px]">
-      <header className="flex flex-wrap items-start justify-between gap-6 pb-5"><div><Eyebrow>Explore fields</Eyebrow><h1 className="mt-2 text-[clamp(2.3rem,4.1vw,4.2rem)] font-semibold leading-[1.05] tracking-[-.055em] text-[#071533]">{field.name}</h1><p className="mt-3 text-lg text-ink-500">Ask questions, explore careers, and find what fits you.</p></div><div className="relative hidden h-[98px] w-[390px] overflow-hidden rounded-2xl bg-[#edf5fc] lg:block"><Image src="/images/possibilities-landscape.png" alt="" fill sizes="390px" className="object-cover object-right opacity-65" /><div className="absolute inset-0 bg-gradient-to-r from-[#edf5fc] via-[#edf5fccc] to-transparent" /><p className="relative z-10 max-w-[180px] px-7 py-7 text-sm font-medium text-ink-600">Curious minds<br />build a better tomorrow.</p></div></header>
-      <nav aria-label="Field detail sections" className="border-b border-ink-200"><ol className="flex gap-1 overflow-x-auto">{tabs.map((tab, index) => <li key={tab}><a href={index === 0 ? "#overview" : index === 1 ? "#careers" : "#details"} className={`block whitespace-nowrap border-b-[3px] px-5 py-3 text-sm font-semibold ${index === 0 ? "border-[#2877df] text-[#2877df]" : "border-transparent text-ink-500 hover:border-sky-300 hover:text-ink-800"}`}>{tab}</a></li>)}</ol></nav>
-      <main className="mt-5 space-y-7">
-        <section id="overview" className="relative grid min-h-[350px] overflow-hidden rounded-2xl bg-[#f3f7fc] lg:grid-cols-[52%_48%]" aria-labelledby="overview-title"><div className="relative z-10 flex flex-col justify-center px-8 py-9 sm:px-10"><Eyebrow>Explore this field</Eyebrow><h2 id="overview-title" className="mt-3 max-w-[20ch] text-[clamp(1.8rem,3vw,2.6rem)] font-semibold leading-[1.08] text-[#071533]">What is {field.name}?</h2><p className="mt-4 max-w-[52ch] text-base leading-relaxed text-ink-600">{field.overview}</p><div className="mt-6 flex flex-wrap gap-2">{subjects.map((subject, index) => <Badge key={subject} className={accentSurface[["sky", "lavender", "mint", "butter", "peach"][index % 5] as keyof typeof accentSurface]}>{subject}</Badge>)}</div></div><div className="relative min-h-[250px] lg:min-h-0"><Image src={image} alt="" fill sizes="(max-width: 1024px) 100vw, 48vw" className="object-cover object-center" /><div className="absolute inset-0 bg-gradient-to-r from-[#f3f7fc] via-transparent to-transparent lg:w-1/3" /></div></section>
-        <section id="careers" aria-labelledby="careers-title"><div className="flex items-end justify-between gap-4"><div><h2 id="careers-title" className="text-2xl font-semibold text-[#071533]">Possible careers</h2><p className="mt-1 text-sm text-ink-500">Notice the kinds of work this field can lead towards.</p></div><Link href={`/careers?field=${field.slug}`} className="cb-source hidden text-sm sm:inline-flex">View all careers <ArrowRight className="h-4 w-4" /></Link></div><div className="mt-4 grid gap-4 border-b border-ink-200 pb-6 sm:grid-cols-2 lg:grid-cols-4">{shortCareers.map((career, index) => { const Icon = detailVisuals[index % detailVisuals.length]; return <Link key={career.slug} href={`/careers/${career.slug}`} className="group flex gap-3 rounded-xl p-2 hover:bg-ink-50"><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-full ${accentSurface[["sky", "lavender", "mint", "peach"][index % 4] as keyof typeof accentSurface]}`}><Icon className="h-5 w-5 text-[#214b83]" /></span><span><span className="block text-sm font-semibold text-[#071533] group-hover:text-[#2877df]">{career.title}</span><span className="mt-1 block text-xs leading-relaxed text-ink-500">{career.summary}</span></span></Link>; })}</div><Link href={`/careers?field=${field.slug}`} className="cb-source mt-4 ml-auto text-sm sm:hidden">View all careers <ArrowRight className="h-4 w-4" /></Link></section>
-        <section id="details" className="grid gap-4 border-t border-ink-100 pt-6 md:grid-cols-3"><div className="rounded-2xl bg-[#f5f9fd] p-5"><h3 className="font-semibold text-[#071533]">Courses & pathways</h3><p className="mt-2 text-sm leading-relaxed text-ink-500">Compare routes, subjects, duration and the next step.</p><ButtonLink href={`/pathways?field=${field.slug}`} variant="secondary" size="sm" className="mt-4">Explore routes<ArrowRight className="h-4 w-4" /></ButtonLink></div><div className="rounded-2xl bg-[#f1faf5] p-5"><h3 className="font-semibold text-[#071533]">Institutions</h3><p className="mt-2 text-sm leading-relaxed text-ink-500">See where related courses and pathways may be available.</p><ButtonLink href={`/institutions?field=${field.slug}`} variant="secondary" size="sm" className="mt-4">Find institutions<ArrowRight className="h-4 w-4" /></ButtonLink></div><div className="rounded-2xl bg-[#fff8e9] p-5"><h3 className="font-semibold text-[#071533]">What to think about</h3><p className="mt-2 text-sm leading-relaxed text-ink-500">Interest matters, but so do time, cost, location and requirements.</p><Link href="/mentor" className="cb-source mt-4 text-sm">Talk it through <ArrowRight className="h-4 w-4" /></Link></div></section>
-        <Callout tone="neutral"><p><strong>About this information:</strong> This is general guidance. Check official course, institution and admission sources before acting.</p></Callout>
-      </main>
-    </div></div>
-  </DetailJourneyShell>;
+
+  const [careers, courses, pathways, institutions] = await Promise.all([
+    getCareers(field.slug),
+    getCourses({ fieldSlug: field.slug }),
+    getPathways({ fieldSlug: field.slug }),
+    getInstitutions({ fieldSlug: field.slug }),
+  ]);
+  const exploreTags = [...new Set([
+    ...(field.interestTags ?? []),
+    ...(field.strengthTags ?? []),
+    ...(field.goalTags ?? []),
+  ])].slice(0, 8);
+
+  return (
+    <LibraryDetailFrame>
+      <LibraryBreadcrumbs items={[
+        { label: "Explore", href: "/explore" },
+        { label: field.name },
+      ]} />
+
+      <LibraryDetailIntro
+        title={field.name}
+        description={field.tagline || field.overview}
+        facts={
+          <>
+            <span>Career area</span>
+            {exploreTags.map((tag) => <span key={tag}>{tag}</span>)}
+          </>
+        }
+        actions={
+          <>
+            <Link href={`/careers?field=${field.slug}`} className="cb-button cb-button-primary px-5 py-2.5 text-sm">
+              <BriefcaseBusiness className="h-4 w-4" /> Explore careers
+            </Link>
+            <Link href={`/compare?type=field&a=${field.slug}`} className="cb-button cb-button-secondary px-5 py-2.5 text-sm">
+              <Scale className="h-4 w-4" /> Compare areas
+            </Link>
+          </>
+        }
+        aside={
+          <aside className="bg-[#09332a] p-6 text-white sm:p-7">
+            <h2 className="text-xl font-semibold text-white">An area to explore, not a decision</h2>
+            <p className="mt-4 text-sm leading-relaxed text-[#e3ece7]">
+              There are many roles and study options within each area. Browse the examples below and check each course or institution for its current requirements.
+            </p>
+          </aside>
+        }
+      />
+
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(250px,.62fr)]">
+        <div className="space-y-12">
+          <LibrarySection title={`What is ${field.name}?`}>
+            <p className="max-w-[70ch] text-lg leading-relaxed text-[#263a30]">{field.overview}</p>
+            {field.whatPeopleDo?.length ? (
+              <ul className="mt-8 grid gap-x-10 gap-y-4 sm:grid-cols-2">
+                {field.whatPeopleDo.map((item) => <li key={item} className="flex gap-3 text-base leading-relaxed text-[#263a30]"><BriefcaseBusiness aria-hidden="true" className="mt-1 h-5 w-5 shrink-0 text-[#6f887b]" />{item}</li>)}
+              </ul>
+            ) : null}
+          </LibrarySection>
+
+          <LibrarySection title="Careers in this area" intro="These are examples from the catalogue. Roles, qualifications and working environments vary.">
+            {careers.length ? careers.map((career) => <LibraryRecordLink key={career.slug} href={`/careers/${career.slug}`} title={career.title} detail={career.summary} action="Explore career" />) : <p className="text-sm text-[#52635a]">No career entries are listed for this area yet.</p>}
+          </LibrarySection>
+
+          <LibrarySection title="Study routes and courses" intro="Explore linked routes and course entries separately; the exact choices available depend on the institution and admission cycle.">
+            {pathways.length > 0 && <div>
+              <h3 className="mb-2 flex items-center gap-3 text-lg font-semibold"><Route aria-hidden="true" className="h-5 w-5 text-[#6f887b]" />Pathways</h3>
+              {pathways.map((pathway) => <LibraryRecordLink key={pathway.slug} href={`/pathways/${pathway.slug}`} title={pathway.title} detail={pathway.typicalDuration} action="View pathway" />)}
+            </div>}
+            {courses.length > 0 && <div className="mt-8">
+              <h3 className="mb-2 flex items-center gap-3 text-lg font-semibold"><GraduationCap aria-hidden="true" className="h-5 w-5 text-[#6f887b]" />Courses</h3>
+              {courses.map((course) => <LibraryRecordLink key={course.slug} href={`/courses/${course.slug}`} title={course.name} detail={[course.level.replace(/_/g, " "), course.durationLabel].filter(Boolean).join(" · ")} action="View course" />)}
+            </div>}
+            {!pathways.length && !courses.length && <p className="text-sm text-[#52635a]">No pathways or courses are linked to this area yet.</p>}
+          </LibrarySection>
+        </div>
+
+        <aside className="space-y-12">
+          {field.usefulSubjects?.length ? (
+            <LibrarySection title="Subjects to explore">
+              <ul className="space-y-3">
+                {field.usefulSubjects.map((subject) => <li key={subject} className="bg-[#dde4df] px-4 py-3 text-sm text-[#17201b]">{subject}</li>)}
+              </ul>
+            </LibrarySection>
+          ) : null}
+
+          {field.skills?.length ? (
+            <LibrarySection title="Skills people use">
+              <ul className="space-y-3 text-sm leading-relaxed text-[#405349]">
+                {field.skills.map((skill) => <li key={skill}>{skill}</li>)}
+              </ul>
+            </LibrarySection>
+          ) : null}
+
+          {field.pros?.length || field.challenges?.length ? (
+            <LibrarySection title="Things to weigh up" intro="Every area can include different opportunities and constraints. Think about what matters to you and seek advice from trusted people.">
+              {field.pros?.length ? <>
+                <h3 className="font-semibold">Possibilities</h3>
+                <ul className="mt-3 space-y-3 text-sm leading-relaxed text-[#405349]">{field.pros.map((item) => <li key={item}>{item}</li>)}</ul>
+              </> : null}
+              {field.challenges?.length ? <>
+                <h3 className="mt-7 font-semibold">Considerations</h3>
+                <ul className="mt-3 space-y-3 text-sm leading-relaxed text-[#405349]">{field.challenges.map((item) => <li key={item}>{item}</li>)}</ul>
+              </> : null}
+            </LibrarySection>
+          ) : null}
+
+          {institutions.length > 0 && (
+            <LibrarySection title="Institutions linked to this area">
+              {institutions.slice(0, 8).map((institution) => (
+                <LibraryRecordLink key={institution.code} href={`/institutions/${institution.code}`} title={institution.name} detail={institution.district} action="View institution" />
+              ))}
+              {institutions.length > 8 && <Link href={`/institutions?field=${field.slug}`} className="mt-4 inline-flex min-h-11 items-center gap-2 font-semibold text-[#09332a] underline underline-offset-4">Browse all <ArrowRight className="h-4 w-4" /></Link>}
+            </LibrarySection>
+          )}
+
+          <LibrarySection title="Keep exploring">
+            <div className="space-y-3">
+              <ButtonLink href="/courses" variant="secondary" className="w-full justify-start"><BookOpen className="h-4 w-4" /> Browse courses</ButtonLink>
+              <ButtonLink href="/institutions" variant="secondary" className="w-full justify-start"><MapPin className="h-4 w-4" /> Browse institutions</ButtonLink>
+            </div>
+          </LibrarySection>
+        </aside>
+      </div>
+
+      <LibraryReveal className="mt-14 bg-[#dde4df] p-5 text-sm leading-relaxed text-[#263a30] sm:p-7">
+        This area is for general exploration and is not a personalized recommendation. Learn about different options and verify current details with official providers.
+      </LibraryReveal>
+    </LibraryDetailFrame>
+  );
 }

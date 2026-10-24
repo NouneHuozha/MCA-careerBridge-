@@ -10,3 +10,26 @@ test-results/
 artifacts/
 next-env.d.ts
 .codeatlas
+
+# Local LiteLLM configuration and logs
+litellm_config.yaml
+litellm_config.yaml.bak
+litellm_test.yaml
+litellm_startup.log
+/start-litellm.ps1
+
+# Local AI assistants, skills, MCP servers, and design tooling
+/.agents/
+/.claude/
+/.codex/
+/.impeccable/
+/.21st/
+/.taste-skill/
+/.skill-test/
+/.cursor/
+/.github/
+/.mcp.json
+/.vscode/mcp.json
+/AGENTS.md
+/skills-lock.json
+/docs/project doc/

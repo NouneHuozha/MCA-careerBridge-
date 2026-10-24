@@ -4,6 +4,7 @@ import { CounsellingJourneyMap, CounsellingStartHeader } from "@/components/coun
 import { CurrentPositionForm } from "@/components/current-position-form";
 import { isStageDetail, type Stage } from "@/data/counselling";
 import { getSessionState, startSession } from "@/services/profile";
+import { getCurrentUser } from "@/auth";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Where are you right now?" };
@@ -12,6 +13,7 @@ type PositionParams = { error?: string };
 
 export default async function CurrentPositionPage({ searchParams }: { searchParams: Promise<PositionParams> }) {
   const params = await searchParams;
+  const user = await getCurrentUser();
   let savedState = null;
   try {
     savedState = await getSessionState();
@@ -51,11 +53,11 @@ export default async function CurrentPositionPage({ searchParams }: { searchPara
             form="current-position-form"
             name="intent"
             value="save"
-            aria-label="Save and return later"
+            aria-label={user ? "Save and return later" : "Save for this session"}
             className="inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-1 text-xs font-medium text-[#47796d] transition hover:bg-[#f0f6f2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#397c6e] focus-visible:ring-offset-2 sm:gap-3 sm:px-3 sm:text-sm"
           >
             <Bookmark aria-hidden="true" className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" strokeWidth={1.8} />
-            <span>Save and return later</span>
+            <span>{user ? "Save and return later" : "Save for this session"}</span>
           </button>
         }
       />

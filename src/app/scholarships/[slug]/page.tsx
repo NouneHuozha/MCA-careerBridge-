@@ -1,36 +1,174 @@
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight, Award, CalendarDays, CheckCircle2, Coins, FileCheck2, FileText, Landmark } from "lucide-react";
 import { notFound } from "next/navigation";
-import { Badge, ButtonLink, Callout, Eyebrow, VerificationBadge } from "@/components/ui";
+import { ArrowRight, FileCheck2 } from "lucide-react";
 import { SaveButton } from "@/components/save-button";
 import { ReportCatalogueIssue } from "@/components/report-catalogue-issue";
+import { VerificationBadge } from "@/components/ui";
+import {
+  LibraryBreadcrumbs,
+  LibraryDetailFrame,
+  LibraryDetailIntro,
+  LibrarySection,
+  LibrarySourceLink,
+} from "@/components/library-detail";
 import { getScholarships } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) { const { slug } = await params; const item = (await getScholarships()).find((s) => s.slug === slug); return { title: item?.name ?? "Scholarship" }; }
-const tabs = ["Overview", "Eligibility", "Benefits", "Documents", "Sources"];
+
+const stageNames: Record<string, string> = {
+  class10: "Class 10",
+  class12: "Class 11–12",
+  undergraduate: "Undergraduate",
+  postgraduate: "Postgraduate",
+  certificate: "Certificate",
+};
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const item = (await getScholarships()).find((scholarship) => scholarship.slug === slug);
+  return { title: item?.name ?? "Scholarship" };
+}
 
 export default async function ScholarshipPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const scholarship = (await getScholarships()).find((s) => s.slug === slug);
+  const scholarship = (await getScholarships()).find((item) => item.slug === slug);
   if (!scholarship) notFound();
+
   const stages = scholarship.appliesToStage ?? [];
-  const stageNames: Record<string, string> = { class10: "School stage", class12: "Class 11–12", undergraduate: "Undergraduate", postgraduate: "Postgraduate", certificate: "Certificate" };
-  const stageLabel = stages.map((stage) => stageNames[stage] ?? stage).join(" · ") || "Applicable students not confirmed";
-  const documentLabels = ["Academic record", "Identity document", "Income certificate, if applicable", "Category certificate, if applicable", "Bank details, if applicable", "Institution verification, if applicable"] as const;
-  const documentStatus = scholarship.documentStatus ?? {};
-  const documents = documentLabels.map((label) => ({
+  const titleWords = scholarship.name.split(/\s+/);
+  const needsTitleContinuation = scholarship.name.length > 32;
+  const displayTitle = needsTitleContinuation ? titleWords.slice(0, 3).join(" ") : scholarship.name;
+  const titleContinuation = needsTitleContinuation ? titleWords.slice(3).join(" ") : "";
+  const documents = (scholarship.documents ?? []).map((label) => ({
     label,
-    status: documentStatus[label] ?? ((scholarship.documents ?? []).includes(label) ? "required" : "not_confirmed"),
+    status: scholarship.documentStatus?.[label] ?? "not_confirmed",
   }));
-  const official = scholarship.officialUrl ?? scholarship.sourceUrl ?? "#";
-  return <div className="bg-white"><div className="cb-container cb-page mx-auto max-w-[1320px]">
-    <div className="mb-6 flex items-center gap-3 text-sm text-ink-500"><Link href="/" className="hover:text-forest-700">Home</Link><span>/</span><Link href="/scholarships" className="hover:text-forest-700">Learn</Link><span>/</span><Link href="/scholarships" className="hover:text-forest-700">Scholarships</Link><span>/</span><span className="text-ink-800">{scholarship.name}</span></div>
-    <main className="grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_330px]"><div className="min-w-0"><header className="relative overflow-hidden rounded-2xl bg-[#f2f8fc] p-6 shadow-[0_12px_36px_-30px_#2877df66] sm:p-8"><div className="relative z-10 max-w-[720px]"><Eyebrow>Scholarship</Eyebrow><h1 className="mt-3 text-[clamp(2.2rem,4.5vw,4.3rem)] font-semibold leading-[1.04] tracking-[-.05em] text-[#071533]">{scholarship.name}</h1><p className="mt-3 text-xl text-ink-500">Support for students pursuing further study.</p><div className="mt-5 flex flex-wrap gap-3"><Badge>{stageLabel}</Badge><Badge tone="forest">{scholarship.category ?? "Category not currently confirmed"}</Badge></div><div className="mt-6 flex flex-wrap gap-3"><ButtonLink href="#eligibility">Check eligibility <ArrowRight className="h-4 w-4" /></ButtonLink><SaveButton itemType="scholarship" itemRef={scholarship.slug} label={scholarship.name} /><a href={official} target="_blank" rel="noreferrer" className="cb-button cb-button-secondary px-5">Visit official source <ArrowRight className="h-4 w-4" /></a></div></div><div className="absolute inset-y-0 right-0 hidden w-[45%] lg:block"><Image src="/images/possibilities-landscape.png" alt="" fill sizes="500px" className="object-cover opacity-55" /><div className="absolute inset-0 bg-gradient-to-r from-[#f2f8fc] via-[#f2f8fccc] to-transparent" /><Award className="absolute bottom-8 right-24 h-24 w-24 text-[#2877df]/50" /></div></header>
-    <nav aria-label="Scholarship sections" className="mt-5 border-b border-ink-200"><ol className="flex gap-1 overflow-x-auto">{tabs.map((tab, index) => <li key={tab}><a href={index === 0 ? "#overview" : index === 1 ? "#eligibility" : "#details"} className={`block whitespace-nowrap border-b-[3px] px-5 py-3 text-sm font-semibold ${index === 0 ? "border-[#198b6e] text-forest-700" : "border-transparent text-ink-500 hover:border-forest-300 hover:text-ink-800"}`}>{tab}</a></li>)}</ol></nav>
-    <section id="overview" className="mt-5 rounded-2xl border border-ink-200 bg-white p-6"><h2 className="text-2xl font-semibold text-[#071533]">Who is this for?</h2><p className="mt-3 max-w-3xl text-base leading-relaxed text-ink-600">{scholarship.eligibility ?? `${scholarship.name} is intended to support eligible students continuing their education. Check the official notice for the current criteria.`}</p><div className="mt-6 grid gap-4 md:grid-cols-3"><div className="rounded-xl bg-[#eaf8f2] p-5"><Coins className="h-6 w-6 text-forest-700" /><p className="mt-3 text-sm text-ink-500">Award</p><p className="mt-1 font-semibold text-[#071533]">{scholarship.amountNote ?? "Currently unavailable"}</p><p className="mt-1 text-xs text-ink-500">Check the official notice</p></div><div className="rounded-xl bg-[#f1edff] p-5"><Landmark className="h-6 w-6 text-[#7054b2]" /><p className="mt-3 text-sm text-ink-500">Provider</p><p className="mt-1 font-semibold text-[#071533]">{scholarship.provider ?? "Currently unavailable"}</p><p className="mt-1 text-xs text-ink-500">Scholarship provider</p></div><div className="rounded-xl bg-[#eaf3ff] p-5"><CalendarDays className="h-6 w-6 text-[#2877df]" /><p className="mt-3 text-sm text-ink-500">Deadline</p><p className="mt-1 font-semibold text-[#071533]">{scholarship.deadlineNote ?? "Not currently confirmed"}</p><p className="mt-1 text-xs text-ink-500">{scholarship.cycleLabel ? `Cycle: ${scholarship.cycleLabel}` : scholarship.deadlineNote ? "Cycle not recorded — confirm the current notice" : "Dates may change each year"}</p></div></div><div className="mt-5 rounded-xl bg-[#fff5df] px-4 py-3 text-sm text-[#86621b]"><FileCheck2 className="mr-2 inline h-4 w-4" />Always confirm the latest details, including eligibility, amount and deadline, on the official notice before applying.</div></section>
-    <section id="eligibility" className="mt-5 grid gap-5 md:grid-cols-2"><article className="rounded-2xl border border-ink-200 p-6"><div className="flex items-center gap-3"><CheckCircle2 className="h-6 w-6 text-forest-700" /><h2 className="text-xl font-semibold">Eligibility</h2></div><p className="mt-4 text-sm leading-relaxed text-ink-600">{scholarship.eligibility ?? "Current eligibility information is unavailable. Check the official source."}</p><dl className="mt-4 space-y-3 text-sm">{([["Academic conditions", scholarship.academicConditions], ["Income or category conditions", scholarship.incomeCategoryConditions], ["State or residency conditions", scholarship.residencyConditions], ["Other conditions", scholarship.otherConditions]] as const).map(([label, value]) => <div key={label}><dt className="font-semibold text-ink-700">{label}</dt><dd className="mt-0.5 leading-relaxed text-ink-600">{value || "Not currently confirmed. Check the official notice."}</dd></div>)}</dl><div className="mt-5 flex flex-wrap gap-2">{stages.map((stage) => <Badge key={stage}>{stageNames[stage] ?? stage}</Badge>)}</div></article><article id="details" className="rounded-2xl border border-ink-200 p-6"><div className="flex items-center gap-3"><FileText className="h-6 w-6 text-[#7054b2]" /><h2 className="text-xl font-semibold">Document requirements</h2></div><ul className="mt-4 space-y-3">{documents.map(({ label, status }) => <li key={label} className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-100 pb-3 text-sm last:border-0 last:pb-0"><span className="text-ink-700">{label}</span><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${status === "required" ? "bg-[#eaf8f2] text-forest-800" : status === "not_required" ? "bg-[#f1f3f2] text-ink-500" : "bg-[#fff5df] text-[#94610c]"}`}>{status === "required" ? "Required" : status === "not_required" ? "Not required" : "Not currently confirmed"}</span></li>)}</ul><p className="mt-4 text-xs leading-relaxed text-ink-500">Requirements are cycle-specific. “Not currently confirmed” is not the same as “Not required.” Check the current official notice.</p></article></section><section className="mt-5 rounded-2xl border border-ink-200 bg-white p-6"><h2 className="text-xl font-semibold text-[#071533]">Support details</h2><p className="mt-2 text-sm text-ink-500">Support details vary by cycle and should be checked in the official notice.</p><dl className="mt-4 grid gap-4 sm:grid-cols-2">{([["Tuition support", scholarship.tuitionSupport], ["Maintenance support", scholarship.maintenanceSupport], ["Renewal note", scholarship.renewalNote]] as const).map(([label, value]) => <div key={label}><dt className="text-sm font-semibold text-ink-700">{label}</dt><dd className="mt-1 text-sm leading-relaxed text-ink-600">{value || "Not currently confirmed"}</dd></div>)}</dl></section><Callout tone="neutral"><p>Scholarship information may change from year to year. Verify the current application notice and eligibility with the official provider.</p></Callout><div className="mt-5"><ReportCatalogueIssue entityType="scholarship" entityRef={scholarship.slug} entityName={scholarship.name} sourceUrl={scholarship.sourceUrl ?? scholarship.officialUrl} /></div></div>
-    <aside className="space-y-5 xl:sticky xl:top-24"><section className="rounded-2xl bg-[#fffaf0] p-6 shadow-[0_12px_36px_-30px_#a77b1c66]"><h2 className="text-2xl font-semibold text-[#071533]">Before you apply</h2><p className="mt-2 text-sm leading-relaxed text-ink-500">Make sure you complete these steps to have a smooth application process.</p><ol className="mt-6 space-y-5">{["Check class and marks requirement", "Gather documents", "Confirm deadline"].map((step, index) => <li key={step} className="flex gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#e1f4ed] font-semibold text-forest-800">{index + 1}</span><div><h3 className="text-sm font-semibold">{step}</h3><p className="mt-1 text-xs leading-relaxed text-ink-500">{index === 0 ? "Ensure you meet the current marks criteria." : index === 1 ? "Keep your mark sheets, ID proof and other required documents ready." : "Note the application deadline and apply before the due date."}</p></div></li>)}</ol></section><section className="rounded-2xl bg-[#eefaf5] p-6"><h2 className="text-2xl font-semibold text-[#071533]">Official source</h2><p className="mt-2 text-sm leading-relaxed text-ink-500">View the official notice and apply through the provider website.</p><div className="mt-5 rounded-xl bg-white px-4 py-3"><VerificationBadge status={scholarship.verificationStatus} lastVerifiedAt={scholarship.lastVerifiedAt} /><p className="mt-3 text-xs leading-relaxed text-ink-500"><strong>Provider source:</strong> {scholarship.sourceTitle || "Source title not recorded"}</p><p className="mt-1 text-xs text-ink-500"><strong>Retrieved:</strong> {scholarship.sourceRetrievedAt ? new Date(scholarship.sourceRetrievedAt).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" }) : "Not recorded"}</p></div><a href={official} target="_blank" rel="noreferrer" className="cb-button cb-button-primary mt-5 w-full">Visit official source <ArrowRight className="h-4 w-4" /></a></section></aside></main>
-  </div></div>;
+  const retrievedDate = scholarship.sourceRetrievedAt
+    ? new Date(scholarship.sourceRetrievedAt).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" })
+    : null;
+
+  return (
+    <LibraryDetailFrame>
+      <LibraryBreadcrumbs items={[
+        { label: "Explore", href: "/explore" },
+        { label: "Scholarships", href: "/scholarships" },
+        { label: scholarship.name },
+      ]} />
+
+      <LibraryDetailIntro
+        variant="scholarship"
+        title={displayTitle}
+        titleClassName="max-w-[24ch] text-[clamp(1.75rem,5vw,5.25rem)] font-semibold leading-[1] tracking-[-.055em] text-[#17201b]"
+        description={scholarship.eligibility || "Review the recorded eligibility, support and application notes. Confirm the current scheme details with its provider before applying."}
+        facts={
+          <>
+            {titleContinuation && <span className="basis-full text-base">Continued: {titleContinuation}</span>}
+            {scholarship.provider && <span>Provider: {scholarship.provider}</span>}
+            {scholarship.category && <span>{scholarship.category}</span>}
+            {stages.map((stage) => <span key={stage}>{stageNames[stage] ?? stage}</span>)}
+          </>
+        }
+        actions={
+          <>
+            <SaveButton itemType="scholarship" itemRef={scholarship.slug} label={scholarship.name} tone="forest" />
+            {scholarship.officialUrl && (
+              <a href={scholarship.officialUrl} target="_blank" rel="noreferrer" className="cb-button cb-button-primary px-5 py-2.5 text-sm">
+                Check official scheme <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </a>
+            )}
+            <a href="#eligibility" className="cb-button cb-button-secondary px-5 py-2.5 text-sm">Review eligibility</a>
+          </>
+        }
+        aside={
+          <aside className="bg-[#09332a] p-6 text-white sm:p-7">
+            <h2 className="text-xl font-semibold text-white">Scheme details can change</h2>
+            <p className="mt-4 text-sm leading-relaxed text-[#e3ece7]">
+              Award amounts, deadlines and eligibility can vary by cycle. Verify the current notice with the provider before relying on these notes.
+            </p>
+            <div className="mt-5"><VerificationBadge status={scholarship.verificationStatus} lastVerifiedAt={scholarship.lastVerifiedAt} /></div>
+            {scholarship.cycleLabel && <p className="mt-3 text-sm text-[#e3ece7]">Recorded cycle: {scholarship.cycleLabel}</p>}
+          </aside>
+        }
+      />
+
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(250px,.62fr)]">
+        <div className="space-y-12">
+          <LibrarySection id="eligibility" title="Eligibility and conditions">
+            <dl className="space-y-6">
+              <div><dt className="font-semibold text-[#17201b]">Eligibility</dt><dd className="mt-2 max-w-[70ch] text-sm leading-relaxed text-[#405349]">{scholarship.eligibility || "Eligibility details are not currently recorded. Check the official scheme notice."}</dd></div>
+              {([
+                ["Academic conditions", scholarship.academicConditions],
+                ["Income or category conditions", scholarship.incomeCategoryConditions],
+                ["Residency conditions", scholarship.residencyConditions],
+                ["Other conditions", scholarship.otherConditions],
+              ] as const).map(([label, value]) => value ? (
+                <div key={label}><dt className="font-semibold text-[#17201b]">{label}</dt><dd className="mt-2 max-w-[70ch] text-sm leading-relaxed text-[#405349]">{value}</dd></div>
+              ) : null)}
+              {!scholarship.eligibility && !scholarship.academicConditions && !scholarship.incomeCategoryConditions && !scholarship.residencyConditions && !scholarship.otherConditions && (
+                <p className="text-sm text-[#52635a]">No eligibility conditions are recorded for this entry.</p>
+              )}
+            </dl>
+          </LibrarySection>
+
+          <LibrarySection title="Financial support">
+            <dl className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
+              {([
+                ["Amount", scholarship.amountNote],
+                ["Tuition support", scholarship.tuitionSupport],
+                ["Maintenance support", scholarship.maintenanceSupport],
+                ["Renewal", scholarship.renewalNote],
+              ] as const).map(([label, value]) => (
+                <div key={label}><dt className="font-semibold text-[#17201b]">{label}</dt><dd className="mt-2 text-sm leading-relaxed text-[#405349]">{value || "Not currently recorded. Check the provider’s current notice."}</dd></div>
+              ))}
+            </dl>
+          </LibrarySection>
+
+          <LibrarySection title="Documents">
+            {documents.length ? (
+              <ul className="space-y-0">
+                {documents.map(({ label, status }) => (
+                  <li key={label} className="grid gap-2 bg-[#edf1ee] px-4 py-3 text-sm sm:grid-cols-[1fr_auto]">
+                    <span>{label}</span>
+                    <span className="font-semibold text-[#405349]">
+                      {status === "required" ? "Required" : status === "not_required" ? "Not required" : "Not confirmed"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="text-sm text-[#52635a]">A document list is not currently available for this scholarship.</p>}
+            {documents.length > 0 && <p className="mt-4 text-sm leading-relaxed text-[#52635a]">A document marked “Not confirmed” may still be required. Check the current official notice.</p>}
+          </LibrarySection>
+
+          <LibrarySection title="Application timing">
+            <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+              <div><dt className="font-semibold text-[#17201b]">Deadline note</dt><dd className="mt-2 text-sm leading-relaxed text-[#405349]">{scholarship.deadlineNote || "A current deadline is not recorded. Check the provider’s current notice."}</dd></div>
+              <div><dt className="font-semibold text-[#17201b]">Cycle</dt><dd className="mt-2 text-sm leading-relaxed text-[#405349]">{scholarship.cycleLabel || "Not currently recorded"}</dd></div>
+            </dl>
+          </LibrarySection>
+        </div>
+
+        <aside className="space-y-12">
+          <LibrarySection title="Source record">
+            <div className="space-y-4">
+              <VerificationBadge status={scholarship.verificationStatus} lastVerifiedAt={scholarship.lastVerifiedAt} />
+              {scholarship.sourceTitle && <p className="text-sm text-[#405349]">Source: {scholarship.sourceTitle}</p>}
+              {retrievedDate && <p className="text-sm text-[#52635a]">Retrieved: {retrievedDate}</p>}
+              <LibrarySourceLink href={scholarship.officialUrl}>Official scheme page</LibrarySourceLink>
+              {scholarship.sourceUrl && scholarship.sourceUrl !== scholarship.officialUrl && <LibrarySourceLink href={scholarship.sourceUrl}>Recorded source</LibrarySourceLink>}
+              {!scholarship.officialUrl && !scholarship.sourceUrl && <p className="text-sm leading-relaxed text-[#52635a]">No source link is recorded for this entry. Search the provider’s official website for current details.</p>}
+            </div>
+          </LibrarySection>
+          <LibrarySection title="Before applying">
+            <p className="flex items-start gap-3 text-sm leading-relaxed text-[#405349]">
+              <FileCheck2 aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#6f887b]" />
+              Confirm that the scheme is open, that you meet the current criteria and that you have the required documents.
+            </p>
+          </LibrarySection>
+        </aside>
+      </div>
+
+      <div className="mt-14">
+        <ReportCatalogueIssue entityType="scholarship" entityRef={scholarship.slug} entityName={scholarship.name} sourceUrl={scholarship.sourceUrl ?? scholarship.officialUrl} />
+      </div>
+    </LibraryDetailFrame>
+  );
 }

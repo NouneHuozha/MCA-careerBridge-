@@ -1,32 +1,36 @@
-import Image from "next/image";
-import Link from "next/link";
-import { BookOpen, CheckCircle2, Compass, Flag, ListChecks, MapPin, Sparkles, UsersRound } from "lucide-react";
-import { ArrowGlyph, Badge, ButtonLink, Eyebrow, accentSurface, cx, type Accent } from "@/components/ui";
-import { Reveal } from "@/components/reveal";
-import { getFields, getPathways } from "@/services/catalog";
-import { getSessionState } from "@/services/profile";
-import { suggestPathways } from "@/recommendation/engine";
+import { PathwaysExplorer } from "@/components/pathways/pathways-explorer";
+import { getCourses, getExams, getFields, getPathways } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Pathways" };
-const routeMeta: Record<string, { label: string; accent: Accent; icon: typeof Compass; button: string; stage: string; duration: string }> = {
-  academic: { label: "Degree route", accent: "mint", icon: BookOpen, button: "bg-[#39aa87]", stage: "After Class 12", duration: "3–4 years" },
-  diploma: { label: "Diploma route", accent: "butter", icon: ListChecks, button: "bg-[#f5b932] text-ink-900", stage: "After Class 12", duration: "1–3 years" },
-  vocational: { label: "Skill-first route", accent: "lavender", icon: UsersRound, button: "bg-[#7550d7]", stage: "After Class 10", duration: "6 months – 2 years" },
-  professional: { label: "Professional route", accent: "sky", icon: Flag, button: "bg-[#3a83d7]", stage: "After Class 12", duration: "2–5 years" },
-};
-
-function JourneyStrip() { return <div className="-mx-4 flex min-h-[76px] items-center gap-5 overflow-x-auto border-y border-[#dceee9] bg-[#f0faf7] px-6 sm:-mx-6 sm:px-10 lg:-mx-8 lg:px-12"><span className="shrink-0 text-lg font-semibold text-[#173451]">Your journey</span><div className="hidden h-px w-8 shrink-0 bg-[#b7cec6] sm:block" />{[{ icon: Compass, label: "Explore a direction", active: true }, { icon: BookOpen, label: "Learn about options" }, { icon: ListChecks, label: "Make a plan" }, { icon: Flag, label: "Take action" }].map(({ icon: Icon, label, active }, i) => <div key={label} className="flex shrink-0 items-center gap-3"><span className={cx("grid h-9 w-9 place-items-center rounded-full border", active ? "border-[#2eb18e] bg-[#2eb18e] text-white" : "border-ink-200 bg-white text-ink-400")}><Icon className="h-4 w-4" /></span><span className={active ? "font-semibold text-[#25866f]" : "text-ink-400"}>{label}</span>{i < 3 ? <span className="hidden h-px w-10 bg-[#b7cec6] md:block" /> : null}</div>)}<span className="ml-auto hidden shrink-0 items-center gap-2 rounded-full bg-[#dcefe9] px-5 py-2.5 text-sm font-semibold text-[#237d69] lg:flex"><MapPin className="h-4 w-4" />Exploring Technology &amp; computers</span></div>; }
+export const metadata = { title: "Explore study routes" };
 
 export default async function PathwaysPage({ searchParams }: { searchParams: Promise<{ stage?: string; field?: string }> }) {
   const params = await searchParams;
-  const stage = params.stage === "class12" ? "class12" : params.stage === "class10" ? "class10" : undefined;
-  const [pathways, fields, state] = await Promise.all([getPathways({ stage, fieldSlug: params.field }), getFields(), getSessionState()]);
-  const suggested = state ? await suggestPathways(state.snapshot, 3) : [];
-  const suggestedSlugs = new Set(suggested.map((s) => s.pathway.slug));
-  const featured = ["academic", "diploma", "vocational"].map((type) => pathways.find((pathway) => pathway.routeType === type)).filter((pathway): pathway is NonNullable<typeof pathway> => Boolean(pathway)).slice(0, 3);
-  return <div className="relative overflow-hidden"><div className="cb-container cb-page"><JourneyStrip /><section className="relative mt-4 h-[510px] overflow-hidden sm:h-[540px]"><Image src="/images/pathways-scene.png" alt="Different routes through learning" fill sizes="1400px" className="object-contain object-top" priority /><div className="absolute inset-x-[11%] bottom-4 grid gap-4 md:grid-cols-3">{featured.map((pathway, index) => { const meta = routeMeta[pathway.routeType] ?? routeMeta.academic; const Icon = meta.icon; return <Reveal key={pathway.slug} delay={index * 80}><Link href={`/pathways/${pathway.slug}`} className={cx("group flex min-h-[230px] flex-col rounded-2xl border p-5 shadow-sm transition-transform hover:-translate-y-1", index === 0 ? "border-[#d6e9e0] bg-white/95" : index === 1 ? "border-[#f0dfab] bg-[#fffdf5]/95" : "border-[#ddd2f4] bg-[#fbf9ff]/95")}><div className="flex-1 text-center"><h2 className="text-2xl font-semibold text-[#102044]">{meta.label}</h2><p className="mt-1 text-sm text-ink-600">{index === 0 ? "Deep learning. Wider options." : index === 1 ? "Practical learning. Job-ready sooner." : "Build skills. Gain experience. Keep growing."}</p><div className="mt-6 flex items-center justify-center gap-3 text-sm text-ink-700"><span className={`inline-flex items-center gap-2 rounded-full px-3 py-2 ${accentSurface[meta.accent]}`}><Icon className="h-4 w-4" />{meta.stage}</span><span className="h-6 w-px bg-ink-200" /><span>{meta.duration}</span></div></div><span className={`mt-5 flex items-center justify-center gap-2 rounded-full px-4 py-3 text-base font-semibold ${meta.button}`}>See route <ArrowGlyph className="h-5 w-5" /></span></Link></Reveal>; })}</div></section><div className="mx-auto -mt-1 flex max-w-2xl items-center justify-center gap-5 rounded-2xl border border-[#c9e5f6] bg-[#eaf6ff] px-6 py-5 text-base font-semibold text-[#183253]"><Sparkles className="h-6 w-6 text-[#387ac7]" /><span>Not sure which route fits?</span><ButtonLink href="/mentor" variant="secondary" size="sm">Ask Mentor <ArrowGlyph /></ButtonLink></div>
-    <section className="mt-12" aria-label="All pathways"><div className="mb-4 flex items-end justify-between gap-4"><div><Eyebrow>All routes</Eyebrow><h2 className="mt-2 text-2xl font-semibold text-[#071533]">Explore every pathway</h2></div><span className="text-sm text-ink-500">{pathways.length} routes</span></div><div className="space-y-4">{pathways.map((pathway, index) => { const meta = routeMeta[pathway.routeType] ?? routeMeta.academic; const steps = pathway.steps ?? []; const Icon = meta.icon; return <Reveal key={pathway.slug} delay={Math.min(index * 40, 240)}><Link href={`/pathways/${pathway.slug}`} className={cx("group block rounded-2xl border bg-white p-5 transition-all hover:-translate-y-1 hover:border-forest-300", suggestedSlugs.has(pathway.slug) ? "border-forest-200" : "border-ink-100")}><div className="flex flex-wrap items-start justify-between gap-4"><div className="flex items-start gap-3.5"><span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${accentSurface[meta.accent]}`}><Icon className="h-[18px] w-[18px]" /></span><div><div className="flex flex-wrap items-center gap-1.5"><Badge>{pathway.entryStage === "class10" ? "From Class 10" : "From Class 12"}</Badge><Badge tone="forest">{meta.label}</Badge>{pathway.typicalDuration ? <Badge>{pathway.typicalDuration}</Badge> : null}</div><p className="mt-2.5 text-[16px] font-semibold text-ink-900">{pathway.title}</p></div></div><ArrowGlyph className="mt-2 h-4 w-4 shrink-0 text-ink-300 group-hover:text-forest-600" /></div>{steps.length ? <ol className="mt-5 flex flex-wrap items-center gap-x-1.5 gap-y-2 border-t border-dashed border-ink-100 pt-5">{steps.map((step, stepIndex) => <li key={step.label} className="flex items-center gap-1.5"><span className="rounded-full bg-canvas-deep px-3 py-1.5 text-[12px] text-ink-600 group-hover:bg-forest-50">{step.label}</span>{stepIndex < steps.length - 1 ? <span aria-hidden className="text-ink-300">→</span> : null}</li>)}</ol> : null}</Link></Reveal>; })}</div>{!pathways.length ? <p className="mt-6 text-sm text-ink-400">No route matches that filter yet.</p> : null}</section>
-    {!state ? <Reveal><div className="mt-12 flex flex-wrap items-center justify-between gap-5 rounded-[1.5rem] border border-ink-100 bg-white p-6 sm:p-8"><div><p className="text-[15px] font-semibold text-ink-900">Which of these fits you?</p><p className="mt-1 text-sm text-ink-500">Answer eight questions and we&apos;ll highlight the closest routes.</p></div><ButtonLink href="/start">Find out <ArrowGlyph /></ButtonLink></div></Reveal> : null}
-  </div></div>;
+  const [pathways, fields, courses, exams] = await Promise.all([getPathways(), getFields(), getCourses(), getExams()]);
+  const courseBySlug = new Map(courses.map((course) => [course.slug, course]));
+  const examBySlug = new Map(exams.map((exam) => [exam.slug, exam]));
+  return <PathwaysExplorer
+    initialStage={params.stage}
+    initialField={params.field?.trim()}
+    fields={fields.map((field) => ({ slug: field.slug, name: field.name }))}
+    pathways={pathways.map((pathway) => ({
+      slug: pathway.slug,
+      title: pathway.title,
+      entryStage: pathway.entryStage,
+      routeType: pathway.routeType,
+      fieldSlug: pathway.fieldSlug,
+      description: pathway.description,
+      steps: pathway.steps ?? [],
+      typicalDuration: pathway.typicalDuration,
+      notes: pathway.notes,
+      linkedCourses: (pathway.courseSlugs ?? []).flatMap((slug) => {
+        const course = courseBySlug.get(slug);
+        return course ? [{ href: `/courses/${course.slug}`, label: course.name }] : [];
+      }),
+      linkedExams: (pathway.examSlugs ?? []).flatMap((slug) => {
+        const exam = examBySlug.get(slug);
+        return exam ? [{ href: `/exams/${exam.slug}`, label: exam.shortName ?? exam.name }] : [];
+      }),
+    }))}
+  />;
 }

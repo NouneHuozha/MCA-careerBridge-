@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, Bookmark, LockKeyhole, Sprout, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, LockKeyhole, Sprout, UserRound } from "lucide-react";
+import { getCurrentUser } from "@/auth";
 import { CounsellingJourneyMap, CounsellingStartHeader } from "@/components/counselling-start-shell";
 
 type StartParams = { counsellingSaved?: string };
@@ -16,18 +17,18 @@ function SaveForLaterLink({ className = "" }: { className?: string }) {
   return (
     <Link
       href="/"
-      aria-label="Save and return later"
+      aria-label="Return home"
       className={`inline-flex min-h-11 items-center justify-center gap-3 rounded-lg text-sm font-medium text-[#47796d] transition hover:bg-[#f0f6f2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#397c6e] focus-visible:ring-offset-2 ${className}`}
-      title="Return to CareerBridge home. You have not entered any answers yet."
+      title="Return to CareerBridge home."
     >
-      <Bookmark aria-hidden="true" className="h-5 w-5 shrink-0" strokeWidth={1.8} />
-      <span>Save and return later</span>
+      <ArrowLeft aria-hidden="true" className="h-5 w-5 shrink-0" strokeWidth={1.8} />
+      <span>Return home</span>
     </Link>
   );
 }
 
 export default async function StartPage({ searchParams }: { searchParams: Promise<StartParams> }) {
-  const params = await searchParams;
+  const [params, user] = await Promise.all([searchParams, getCurrentUser()]);
   return (
     <div className="min-h-[calc(100dvh-4rem)] bg-[#fbfaf8] text-[#20272b]">
       <CounsellingStartHeader rightControl={<SaveForLaterLink className="px-2 sm:px-3" />} />
@@ -36,7 +37,9 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
         <section className="min-w-0 self-center py-1 lg:py-0" aria-labelledby="orientation-title">
           {params.counsellingSaved === "1" && (
             <p role="status" className="mb-5 rounded-xl border border-[#cfe4d8] bg-[#edf7f0] px-4 py-3 text-sm font-medium text-[#286b61]">
-              Your counselling progress has been saved. You can return whenever you’re ready.
+              {user
+                ? "Your counselling progress is saved to your account."
+                : "Your progress is available for this browser session and is deleted after 24 hours of inactivity. Sign up to keep it."}
             </p>
           )}
           <p className="text-base font-semibold text-[#477c70]">A short conversation about you</p>
@@ -45,6 +48,9 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
           </h1>
           <p className="mt-5 max-w-[67ch] text-base leading-[1.55] text-[#606667] sm:text-lg">
             Your answers help CareerBridge show possibilities that are more relevant to you. They do not decide your future, rank you, or lock you into a path.
+          </p>
+          <p className="mt-3 max-w-[67ch] text-sm leading-relaxed text-[#606667] sm:text-base">
+            You can continue as a guest. Guest progress is deleted after 24 hours of inactivity; sign up to keep it.
           </p>
           <ul className="mt-7 space-y-4" aria-label="A few things to know">
             {reassurances.map(({ title, detail, icon: Icon }) => (

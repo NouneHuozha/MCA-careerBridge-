@@ -1,26 +1,77 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Bookmark, CalendarDays, CheckCircle2, FileCheck2, GraduationCap, Info, Wallet } from "lucide-react";
-import { Badge, BulletList, ButtonLink, Disclosure, SourceLink, VerificationBadge, cx } from "@/components/ui";
-import { Logo } from "@/components/logo";
-import { SaveButton } from "@/components/save-button";
+import { ArrowRight, BadgeIndianRupee, Landmark } from "lucide-react";
+import { LibrarySearch } from "@/components/library-search";
+import { LibraryReveal } from "@/components/library-motion";
 import { getScholarships } from "@/services/catalog";
-import { getSessionState } from "@/services/profile";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Scholarships" };
-const cardImages = ["/images/scholarship-nec-reference.png", "/images/scholarship-ishan-reference.png", "/images/scholarship-nagaland-reference.png", "/images/scholarship-vidyadhan-reference.png"];
-const cardTones = ["bg-[#e8f6ef]", "bg-[#eee9ff]", "bg-[#eaf5ff]", "bg-[#fff5dc]"];
+export const metadata = { title: "Explore scholarships" };
 
-function JourneyRail() { return <aside className="hidden min-h-[calc(100dvh-4rem)] w-[285px] shrink-0 border-r border-[#dce5f3] bg-[#eef4ff] px-7 py-8 lg:block"><Logo size="sm" /><p className="mt-10 text-lg font-semibold text-[#122a52]">Your journey</p><p className="mt-1 text-xs text-ink-500">Step by step to your brighter tomorrow</p><ol className="mt-7">{[{n: 1, title: "Understand yourself", text: "Know your interests and strengths", done: true }, {n: 2, title: "Explore possibilities", text: "Discover careers and options", done: true }, {n: 3, title: "Find a route", text: "See pathways to reach your goals", done: true }, {n: 4, title: "Check requirements and funding", text: "Explore scholarships and funding support", current: true }, {n: 5, title: "Make a plan", text: "Create your action plan and take the next step" }].map((step, index, list) => <li key={step.n} className="relative flex min-h-[94px] gap-3">{index < list.length - 1 ? <span className={`absolute left-4 top-8 h-[66px] w-px ${step.current ? "bg-[#2877df]" : "bg-[#5bb795]"}`} /> : null}<span className={cx("relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border-2", step.current ? "border-[#2877df] bg-white text-[#2877df]" : step.done ? "border-[#3aa77d] bg-[#3aa77d] text-white" : "border-ink-300 bg-white text-ink-500")}>{step.done ? <CheckCircle2 className="h-5 w-5" /> : step.n}</span><span className={step.current ? "text-[#123d8f]" : "text-ink-700"}><span className="block text-sm font-semibold">{step.title}</span><span className="mt-1 block max-w-[175px] text-xs leading-relaxed text-ink-500">{step.text}</span></span></li>)}</ol><div className="relative -mx-7 mt-1 h-52 overflow-hidden"><Image src="/images/scholarships-rail-reference.png" alt="Scholarship support illustration" fill sizes="285px" className="object-cover object-top" /></div></aside>; }
-
-export default async function ScholarshipsPage({ searchParams }: { searchParams: Promise<{ stage?: string }> }) {
+export default async function ScholarshipsPage({ searchParams }: { searchParams: Promise<{ q?: string; stage?: string }> }) {
   const params = await searchParams;
-  const [scholarships, state] = await Promise.all([getScholarships({}), getSessionState()]);
-  const stages = ["class10", "class12", "diploma", "undergraduate", "postgraduate"];
-  const stage = stages.includes(params.stage ?? "") ? params.stage : null;
-  const filtered = scholarships.filter((s) => !stage || (s.appliesToStage ?? []).includes(stage));
-  const ordered = state ? [...filtered].sort((a, b) => Number((b.appliesToStage ?? []).includes(state.stage)) - Number((a.appliesToStage ?? []).includes(state.stage))) : filtered;
-  const pills = [{ id: "class10", label: "Class 10" }, { id: "class12", label: "Class 12" }, { id: "diploma", label: "Diploma" }, { id: "undergraduate", label: "Undergraduate" }, { id: "postgraduate", label: "Postgraduate" }];
-  return <div className="flex min-w-0"><JourneyRail /><main className="min-w-0 flex-1"><div className="cb-container cb-page"><header className="relative -mx-4 overflow-hidden px-6 py-8 sm:-mx-6 sm:px-10 lg:-mx-8 lg:px-12"><div className="relative z-10 max-w-2xl"><h1 className="text-[clamp(2.3rem,5vw,4rem)] font-semibold leading-[1.03] tracking-[-.04em] text-[#073f36]">Help with the cost of study.</h1><p className="mt-3 text-base text-ink-500">Explore support schemes, then check the official portal for current details.</p></div><Image src="/images/scholarships-hero-reference.png" alt="Scholarship landscape" fill sizes="1200px" className="object-cover object-right opacity-70" /><div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/10" /></header><div className="relative z-10 -mt-1 flex items-center gap-3 rounded-lg bg-[#fff5dc] px-5 py-3.5 text-sm text-[#9a6417]"><Info className="h-5 w-5 shrink-0" />Amounts and deadlines can change — verify before applying.</div><nav aria-label="Scholarship study level" className="relative z-10 mt-5 flex flex-wrap gap-3">{[{ id: "", label: "All schemes" }, ...pills].map((item) => <Link href={item.id ? `/scholarships?stage=${item.id}` : "/scholarships"} key={item.id} aria-current={(stage ?? "") === item.id ? "page" : undefined} className={cx("rounded-full border px-5 py-2.5 text-sm", (stage ?? "") === item.id ? "border-[#258e72] bg-white text-[#176f5a]" : "border-ink-200 bg-white text-ink-700 hover:border-forest-300")}>{item.label}</Link>)}</nav><div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">{ordered.map((scholarship, i) => <article key={scholarship.slug} id={scholarship.slug} className="flex h-full flex-col overflow-hidden rounded-xl border border-ink-100 bg-white shadow-[0_1px_4px_rgba(15,23,42,.04)]"><div className={`relative h-[126px] ${cardTones[i % cardTones.length]}`}><Image src={cardImages[i % cardImages.length]} alt="" fill sizes="300px" className="object-contain object-right" /><div className={`absolute inset-y-0 left-0 w-[48%] ${cardTones[i % cardTones.length]}`} /><div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-white/10" /></div><div className="flex flex-1 flex-col p-4"><h2 className="text-xl font-semibold leading-tight text-[#164a43]"><Link href={`/scholarships/${scholarship.slug}`} className="hover:text-forest-600">{scholarship.name}</Link></h2><p className="mt-2 text-xs font-medium text-ink-500">Provider</p><p className="text-sm text-ink-700">{scholarship.provider}</p><div className="mt-4 border-t border-ink-100 pt-3"><p className="text-sm font-semibold text-ink-800">Who may apply</p><p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-ink-600">{scholarship.eligibility ?? "Eligibility details are listed in the official notification."}</p><div className="mt-3 flex flex-wrap gap-1.5">{(scholarship.appliesToStage ?? []).map((s) => <Badge key={s}>{s === "class10" ? "Class 10" : s === "class12" ? "Class 12" : s[0].toUpperCase() + s.slice(1)}</Badge>)}</div></div><div className="mt-4 space-y-2 text-[13px] text-ink-700"><p><span className="block font-semibold text-ink-800">Amount</span>{scholarship.amountNote ?? "Not yet verified"}</p><p><span className="block font-semibold text-ink-800">Deadline</span><span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{scholarship.deadlineNote ?? "Check official portal"}</span></p><p className="mt-1 text-xs text-ink-500">{scholarship.cycleLabel ? `Cycle: ${scholarship.cycleLabel}` : scholarship.deadlineNote ? "Cycle not recorded — confirm on official notice" : "Check the current cycle on the official notice"}</p><VerificationBadge status={scholarship.verificationStatus} lastVerifiedAt={scholarship.lastVerifiedAt} /></div><div className="mt-auto pt-4"><Link href={`/scholarships/${scholarship.slug}`} className="flex items-center justify-center gap-2 rounded-lg bg-[#239873] px-4 py-3 text-sm font-semibold text-white hover:bg-[#197658]">Check eligibility <ArrowRight className="h-4 w-4" /></Link><SaveButton itemType="scholarship" itemRef={scholarship.slug} label={scholarship.name} /><div className="mt-2 space-y-2"><Disclosure summary="Documents to keep ready"><BulletList items={scholarship.documents ?? []} /></Disclosure><Disclosure summary="Official source"><SourceLink href={scholarship.sourceUrl ?? scholarship.officialUrl} variant="inline">Open source website</SourceLink></Disclosure></div></div></div></article>)}</div><div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-[#eaf7f0] px-6 py-5"><div className="flex items-center gap-4"><span className="grid h-12 w-12 place-items-center rounded-xl bg-white text-[#2b9774]"><Wallet className="h-6 w-6" /></span><div><h2 className="font-semibold text-[#17634f]">Keep funding checks beside your course and admission tasks.</h2><p className="mt-1 text-sm text-ink-500">Shortlist scholarships, note deadlines, and revisit regularly to stay on track.</p></div></div><ButtonLink href="/guidance/saved" variant="secondary">See my saved scholarships <ArrowRight className="h-4 w-4" /></ButtonLink></div></div></main></div>;
+  const query = params.q?.trim().toLocaleLowerCase() ?? "";
+  const allScholarships = await getScholarships();
+  const scholarships = allScholarships.filter((scholarship) =>
+    (!query || `${scholarship.name} ${scholarship.provider ?? ""} ${scholarship.category ?? ""}`.toLocaleLowerCase().includes(query)) &&
+    (!params.stage || (scholarship.appliesToStage ?? []).includes(params.stage)),
+  );
+
+  return (
+    <div className="min-h-svh bg-[#f7f8f5]">
+      <header className="bg-[#f9e2d2]">
+        <div className="mx-auto grid min-h-[500px] min-w-0 w-full gap-10 px-5 py-10 sm:px-8 sm:py-14 lg:min-h-[570px] lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-[clamp(3rem,7vw,8rem)] lg:py-16">
+          <div className="min-w-0">
+            <Link href="/explore" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#704329] transition-colors hover:text-[#09332a]"><ArrowRight aria-hidden="true" className="h-4 w-4 rotate-180" /> Explore the library</Link>
+            <LibraryReveal>
+              <p className="mt-12 flex items-center gap-2 text-base font-semibold text-[#874926]"><BadgeIndianRupee aria-hidden="true" className="h-5 w-5" /> Scholarship register</p>
+              <h1 className="mt-5 max-w-[15ch] text-[clamp(3rem,7.8vw,8rem)] font-semibold leading-[.9] tracking-[-.075em] text-[#17201b]">Funding to explore.</h1>
+            </LibraryReveal>
+            <p className="mt-7 max-w-[55ch] text-lg leading-relaxed text-[#3f3027] sm:text-xl">Explore listed schemes and their recorded eligibility notes. Amounts, deadlines and rules can change. Verify with the official provider.</p>
+            <p className="mt-7 text-base font-semibold text-[#704329]">{scholarships.length} scheme listings</p>
+          </div>
+          <div className="min-w-0 bg-[#09332a] p-5 text-white sm:p-7 lg:p-9">
+            <Landmark aria-hidden="true" className="h-6 w-6 text-[#f2cf78]" />
+            <h2 className="mt-5 max-w-[13ch] text-3xl font-semibold leading-tight tracking-[-.04em] text-white">Check the rules for this cycle.</h2>
+            <p className="mt-4 text-base leading-relaxed text-[#d5ded8]">Eligibility, required documents and application channels can differ between schemes and years.</p>
+            <LibrarySearch action="/scholarships" query={params.q} label="Search scholarships" placeholder="Scheme or provider" className="mt-6" />
+            <a href="#scholarship-list" className="mt-6 inline-flex min-h-10 items-center gap-2 text-base font-semibold text-[#f2cf78] underline underline-offset-4">Review listed schemes <ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
+          </div>
+        </div>
+      </header>
+      <main className="min-w-0 w-full px-5 pb-24 pt-12 sm:px-8 lg:px-[clamp(3rem,7vw,8rem)] lg:pt-20">
+        <form action="/scholarships" className="grid gap-4 bg-[#e6eeea] p-5 sm:grid-cols-[1fr_auto_auto] sm:items-end sm:p-7">
+          {params.q && <input type="hidden" name="q" value={params.q} />}
+          <div className="grid gap-2"><label htmlFor="scholarship-stage" className="text-base font-semibold text-[#17201b]">Study stage</label><select id="scholarship-stage" name="stage" defaultValue={params.stage ?? ""} className="min-h-12 bg-[#f7f8f5] px-4 text-base text-[#17201b] outline-none focus-visible:ring-2 focus-visible:ring-[#09332a]"><option value="">Any listed stage</option><option value="class10">Class 10 and onward</option><option value="class12">Class 12 and onward</option><option value="undergraduate">Undergraduate study</option></select></div>
+          <button type="submit" className="min-h-12 bg-[#09332a] px-5 text-base font-semibold text-white transition-colors hover:bg-[#126048]">Filter schemes</button>
+          {(params.stage || params.q) && <Link href="/scholarships" className="inline-flex min-h-11 items-center text-base font-semibold text-[#36544a] underline underline-offset-4">Clear filters</Link>}
+        </form>
+        <section id="scholarship-list" aria-label="Scholarship listings" className="mt-16 scroll-mt-24 sm:mt-20">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="text-sm font-semibold text-[#6f887b]">The scheme register</p><h2 className="mt-2 text-3xl font-semibold tracking-[-.045em] text-[#17201b] sm:text-4xl">Listings to review</h2></div><p className="text-base font-medium text-[#36544a]">{scholarships.length} results</p></div>
+          {scholarships.length ? <ul className="grid grid-cols-1 gap-x-8 gap-y-5 xl:grid-cols-2">
+            {scholarships.map((scholarship, index) => (
+              <li key={scholarship.slug}>
+                <LibraryReveal delay={Math.min(index * 45, 270)}>
+                  <Link href={`/scholarships/${scholarship.slug}`} className="group grid min-h-[300px] grid-cols-[10px_minmax(0,1fr)] bg-white transition-transform duration-300 hover:-translate-y-1">
+                    <span aria-hidden="true" className={index % 3 === 0 ? "bg-[#f2cf78]" : index % 3 === 1 ? "bg-[#6f887b]" : "bg-[#d6eaf4]"} />
+                    <span className="flex min-w-0 flex-col justify-between gap-6 p-5 sm:p-7">
+                      <span>
+                        <span className="flex flex-wrap items-center justify-between gap-3 text-sm font-semibold text-[#547065]"><span>{scholarship.category ?? "Scholarship"}</span><ArrowRight aria-hidden="true" className="h-5 w-5 text-[#09332a] transition-transform group-hover:translate-x-1" /></span>
+                        <span className="mt-4 block max-w-[28ch] text-2xl font-semibold leading-tight tracking-[-.04em] text-[#17201b] transition-colors group-hover:text-[#126048] sm:text-3xl">{scholarship.name}</span>
+                        <span className="mt-3 block text-base leading-relaxed text-[#34463c]">{scholarship.provider ?? "Provider not currently recorded"}</span>
+                        {scholarship.eligibility && <span className="mt-3 block max-w-[70ch] text-base leading-relaxed text-[#405349]">{scholarship.eligibility}</span>}
+                      </span>
+                      <span className="flex flex-wrap items-end justify-between gap-3 bg-[#f7f8f5] p-3">
+                        <span className="text-base text-[#34463c]">{scholarship.amountNote ?? "Amount not currently recorded"}</span>
+                        {(scholarship.appliesToStage ?? []).length > 0 && <span className="bg-[#fdf3d3] px-3 py-1.5 text-sm font-semibold text-[#694e0b]">Listed for {(scholarship.appliesToStage ?? []).join(", ")}</span>}
+                      </span>
+                    </span>
+                  </Link>
+                </LibraryReveal>
+              </li>
+            ))}
+          </ul> : <div className="bg-[#e6eeea] p-7 sm:p-10"><h3 className="text-2xl font-semibold text-[#17201b]">No scholarships match those filters</h3><p className="mt-3 text-base text-[#34463c]">Try another search or clear the stage filter to see all listings.</p><Link href="/scholarships" className="mt-6 inline-flex min-h-11 items-center gap-2 text-base font-semibold text-[#09332a] underline underline-offset-4">Browse every scholarship <ArrowRight aria-hidden="true" className="h-4 w-4" /></Link></div>}
+        </section>
+      </main>
+    </div>
+  );
 }

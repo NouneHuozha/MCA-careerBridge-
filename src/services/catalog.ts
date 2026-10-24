@@ -96,6 +96,13 @@ export async function getCareerSkills(careerSlug: string): Promise<CareerSkill[]
   );
 }
 
+export async function getAllCareerSkills(): Promise<CareerSkill[]> {
+  return query<CareerSkill>(
+    () => db.select().from(careerSkills).orderBy(asc(careerSkills.skill)),
+    () => asRows<CareerSkill>(CAREER_SKILL_SEEDS),
+  );
+}
+
 /* --------------------------------- pathways -------------------------------- */
 
 export async function getPathways(filter: { stage?: string; fieldSlug?: string } = {}): Promise<Pathway[]> {
@@ -364,14 +371,14 @@ export async function searchEverything(rawQuery: string, limit = 24): Promise<Se
       type: "exam",
       title: e.shortName ? `${e.shortName} — ${e.name}` : e.name,
       subtitle: e.conductingBody ?? "Entrance examination",
-      href: `/exams#${e.slug}`,
+      href: `/exams/${e.slug}`,
     });
   for (const s of scholarshipRows)
     push(fuzzyIncludes(`${s.name} ${s.provider ?? ""} ${s.category ?? ""}`, q), {
       type: "scholarship",
       title: s.name,
       subtitle: s.provider ?? "Scholarship",
-      href: `/scholarships#${s.slug}`,
+      href: `/scholarships/${s.slug}`,
     });
   for (const o of opportunityRows)
     push(fuzzyIncludes(`${o.title} ${o.description ?? ""}`, q), {

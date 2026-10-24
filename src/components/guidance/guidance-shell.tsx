@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { LayoutGroup, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { LogoutDialog } from "@/components/auth/logout-dialog";
 
 type GlobalDestination = { href: string; label: string; icon: LucideIcon };
 const globalDestinations: GlobalDestination[] = [
@@ -41,56 +43,67 @@ function isDestinationActive(pathname: string, href: string) {
 }
 
 function DestinationLinks({ pathname, onNavigate, mobile = false }: { pathname: string; onNavigate?: () => void; mobile?: boolean }) {
+  const reduceMotion = useReducedMotion();
   return <>
     {globalDestinations.map(({ href, label, icon: Icon }) => {
       const active = isDestinationActive(pathname, href);
       return <Link key={href} href={href} onClick={onNavigate} aria-current={active ? "page" : undefined} className={mobile
-        ? `flex min-h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium ${active ? "bg-[#e8f2ec] text-[#174d42]" : "text-[#26312c] hover:bg-[#f2f6f3] hover:text-[#286b61]"}`
-        : `inline-flex min-h-[72px] items-center gap-2 border-b-2 px-1 text-sm font-medium transition-colors ${active ? "border-[#286b61] text-[#174d42]" : "border-transparent text-[#26312c] hover:text-[#286b61]"}`}>
-        <Icon aria-hidden className="h-4 w-4 shrink-0" />{label}
+        ? `cb-guidance-mobile-link flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-medium ${active ? "is-active" : ""}`
+        : `cb-guidance-nav-link inline-flex min-h-11 items-center gap-2 px-3 text-sm font-semibold ${active ? "is-active" : ""}`}>
+        {active ? <motion.span aria-hidden className="cb-guidance-nav-active" layoutId={`guidance-nav-active-${mobile ? "mobile" : "desktop"}`} transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }} /> : null}
+        <Icon aria-hidden className="relative z-[1] h-4 w-4 shrink-0" strokeWidth={1.8} /><span className="relative z-[1]">{label}</span>
       </Link>;
     })}
   </>;
 }
 
-function ProfileMenu() {
-  return <details className="group relative shrink-0">
-    <summary aria-label="Profile menu" className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg px-1.5 text-sm font-medium text-[#26312c] hover:bg-[#f4f7f4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] [&::-webkit-details-marker]:hidden">
-      <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full bg-[#e5f0eb] text-[#0d5b55]"><UserRound className="h-5 w-5" /></span>
-      <span className="hidden lg:inline">Profile</span>
-      <ChevronDown aria-hidden className="hidden h-4 w-4 transition-transform group-open:rotate-180 lg:block" />
+function ProfileMenu({ account }: { account: { name: string | null; email: string } | null }) {
+  return <details className="cb-guidance-profile group relative shrink-0">
+    <summary aria-label="Open profile menu" className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-full px-1.5 text-sm font-semibold text-[var(--g-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--g-primary)] [&::-webkit-details-marker]:hidden">
+      <span aria-hidden className="cb-guidance-profile-avatar grid h-8 w-8 place-items-center rounded-full"><UserRound className="h-4 w-4" strokeWidth={1.8} /></span>
+      <span className="hidden xl:inline">Profile</span>
+      <ChevronDown aria-hidden className="hidden h-3.5 w-3.5 transition-transform group-open:rotate-180 xl:block" />
     </summary>
-    <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border border-[#dfe5df] bg-white p-1.5 shadow-lg">
-      <Link href="/guidance/review?mode=correct" className="block rounded-md px-3 py-2.5 text-sm text-[#26312c] hover:bg-[#f1f6f2]">Review and edit profile</Link>
+    <div className="cb-guidance-profile-menu absolute right-0 top-full z-50 mt-3 w-60 p-2">
+      <div className="px-3 pb-2 pt-1">
+        <p>{account ? "YOUR ACCOUNT" : "GUEST SESSION"}</p>
+        {account ? <><span>{account.name?.trim() || account.email}</span><span>{account.email}</span></> : <span>Sign in to save your progress.</span>}
+      </div>
+      {account ? <Link href="/guidance/account" className="cb-guidance-profile-item">Account details <UserRound aria-hidden className="h-4 w-4" /></Link> : <Link href="/sign-in?next=%2Fguidance" className="cb-guidance-profile-item">Sign in / Sign up <UserRound aria-hidden className="h-4 w-4" /></Link>}
+      <Link href="/guidance/review?mode=correct" className="cb-guidance-profile-item">Review my answers <ChevronDown aria-hidden className="h-4 w-4 -rotate-90" /></Link>
+      <Link href="/guidance/explorations" className="cb-guidance-profile-item">My explorations <Compass aria-hidden className="h-4 w-4" /></Link>
+      {account ? <LogoutDialog compact /> : null}
     </div>
   </details>;
 }
 
-function GuidanceHeader() {
+function GuidanceHeader({ account }: { account: { name: string | null; email: string } | null }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [openPathname, setOpenPathname] = useState<string | null>(null);
   const mobileOpen = openPathname === pathname;
-  if ((pathname === "/guidance/review" && searchParams.get("mode") !== "correct") || pathname.startsWith("/guidance/review/")) return null;
+  if (pathname.startsWith("/guidance/review/")) return null;
 
-  return <header className="relative z-40 border-b border-[#e5e6e1] bg-white">
-    <div className="mx-auto flex w-full min-h-[62px] items-center gap-4 px-5 sm:px-8 lg:min-h-[76px] lg:gap-7 lg:px-12">
-      <Logo size="sm" />
-      <span aria-hidden className="hidden h-8 w-px bg-[#d9ddd7] lg:block" />
-      <nav aria-label="Primary" className="hidden min-w-0 flex-1 items-center justify-between gap-4 lg:flex">
-        <DestinationLinks pathname={pathname} />
-      </nav>
-      <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-2 lg:gap-4">
-        <ProfileMenu />
-        <button type="button" aria-label={mobileOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileOpen} aria-controls="mobile-guidance-menu" onClick={() => setOpenPathname(mobileOpen ? null : pathname)} className="grid h-11 w-11 place-items-center rounded-lg text-[#174d42] transition hover:bg-[#f1f6f2] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] lg:hidden">
+  return <header className="cb-guidance-header relative z-40">
+    <div className="cb-guidance-header-inner mx-auto grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 sm:px-8 lg:grid-cols-[minmax(190px,1fr)_auto_minmax(190px,1fr)] lg:px-12">
+      <Logo size="sm" className="cb-guidance-brand" />
+      <LayoutGroup id="guidance-primary-navigation">
+        <nav aria-label="Primary" className="cb-guidance-primary hidden min-w-0 items-center lg:flex">
+          <DestinationLinks pathname={pathname} />
+        </nav>
+      </LayoutGroup>
+      <div className="ml-auto flex shrink-0 items-center gap-2 lg:justify-self-end lg:gap-3">
+        <ProfileMenu account={account} />
+        <button type="button" aria-label={mobileOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileOpen} aria-controls="mobile-guidance-menu" onClick={() => setOpenPathname(mobileOpen ? null : pathname)} className="cb-guidance-menu-button grid h-10 w-10 place-items-center rounded-full text-[var(--g-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--g-primary)] lg:hidden">
           {mobileOpen ? <X aria-hidden className="h-5 w-5" /> : <Menu aria-hidden className="h-5 w-5" />}
         </button>
       </div>
     </div>
-    {mobileOpen ? <div id="mobile-guidance-menu" className="border-t border-[#e5e6e1] bg-white lg:hidden">
-      <nav aria-label="Mobile primary" className="mx-auto grid max-h-[70dvh] max-w-[1500px] gap-1 overflow-y-auto px-5 py-3 sm:px-8">
-        <DestinationLinks pathname={pathname} onNavigate={() => setOpenPathname(null)} mobile />
-      </nav>
+    {mobileOpen ? <div id="mobile-guidance-menu" className="cb-guidance-mobile-panel lg:hidden">
+      <LayoutGroup id="guidance-mobile-navigation">
+        <nav aria-label="Mobile primary" className="mx-auto grid max-h-[70dvh] gap-1 overflow-y-auto px-5 py-3 sm:px-8">
+          <DestinationLinks pathname={pathname} onNavigate={() => setOpenPathname(null)} mobile />
+        </nav>
+      </LayoutGroup>
     </div> : null}
   </header>;
 }
@@ -258,9 +271,9 @@ function ExplorationContextBar() {
 
   useEffect(() => () => optionsControllerRef.current?.abort(), []);
 
-  if (pathname === "/guidance/not-sure") return <div role="region" aria-label="Orientation context" className="border-b border-[#dfe8e1] bg-[#edf4ef]">
-    <div className="mx-auto grid max-w-[1500px] gap-2 px-5 py-3 sm:px-8 lg:min-h-[64px] lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-6 lg:px-12 lg:py-2">
-      <Link href="/guidance/possibilities" className="inline-flex min-h-9 w-fit items-center gap-2 text-sm font-medium text-[#35675b] underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[#174d42] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
+  if (pathname === "/guidance/not-sure") return <div role="region" aria-label="Orientation context" className="cb-exploration-context cb-orientation-context">
+      <div className="cb-exploration-context-inner mx-auto grid gap-2 px-5 py-1.5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:px-8 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:px-12">
+      <Link href="/guidance/possibilities" className="cb-exploration-back inline-flex min-h-9 w-fit items-center gap-2 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
         <ArrowLeft aria-hidden className="h-4 w-4" />Back to possibilities
       </Link>
       <p className="m-0 font-serif text-[1rem] leading-snug text-[#394c44] lg:text-center">Exploring possibilities<span aria-hidden className="mx-2">·</span>Orientation</p>
@@ -302,19 +315,19 @@ function ExplorationContextBar() {
   const savePending = savingSlug === directionSlug;
 
   return <>
-    <div role="region" aria-label="Exploration context" className="border-b border-[#dfe8e1] bg-[#edf4ef]">
-      <div className="mx-auto grid max-w-[1500px] gap-2 px-5 py-3 sm:px-8 lg:min-h-[72px] lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-6 lg:px-12 lg:py-2">
-        <Link href={backHref} className="inline-flex min-h-9 w-fit items-center gap-2 text-sm font-medium text-[#35675b] underline decoration-[#9ebfb2] underline-offset-4 transition hover:text-[#174d42] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
+    <div role="region" aria-label="Exploration context" className="cb-exploration-context">
+      <div className="cb-exploration-context-inner mx-auto grid gap-2 px-5 py-1.5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:px-8 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:px-12">
+        <Link href={backHref} className="cb-exploration-back inline-flex min-h-9 w-fit items-center gap-2 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61]">
           <ArrowLeft aria-hidden className="h-4 w-4" />{backLabel}
         </Link>
         <p className="m-0 font-serif text-[1rem] leading-snug text-[#394c44] lg:text-center">{contextHeading}<span aria-hidden className="mx-2">·</span>{currentContext(tail, sourceCheck)}</p>
-        {isAnotherPossibilityPage ? <span aria-hidden className="hidden lg:block" /> : <button ref={triggerRef} type="button" aria-haspopup="dialog" aria-expanded={switchOpen} onClick={openPanel} className="inline-flex min-h-10 w-fit items-center justify-center gap-2 rounded-lg bg-[#075a58] px-4 text-sm font-semibold text-white transition hover:bg-[#064a49] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] lg:ml-auto">
+        {isAnotherPossibilityPage ? <span aria-hidden className="hidden lg:block" /> : <button ref={triggerRef} type="button" aria-haspopup="dialog" aria-expanded={switchOpen} onClick={openPanel} className="cb-exploration-switch inline-flex min-h-10 w-fit items-center justify-center gap-2 px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#286b61] lg:ml-auto">
           <ArrowLeftRight aria-hidden className="h-4 w-4" />Switch exploration
         </button>}
       </div>
     </div>
 
-    {saveNotice ? <div className="mx-auto max-w-[1500px] px-5 pt-3 sm:px-8 lg:px-12">
+    {saveNotice ? <div className="cb-exploration-notice">
       {savedSlug === directionSlug ? <div role="status" aria-live="polite" className="flex items-center gap-3 rounded-lg border border-[#d7e9de] bg-[#e6f2ea] px-5 py-3 text-[#25483d]">
         <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#2d8063] text-white"><Check className="h-5 w-5" /></span>
         <p className="m-0 text-sm leading-relaxed"><strong>{direction} exploration saved.</strong> You can return to it anytime from <Link href="/guidance/explorations" className="font-semibold underline underline-offset-2">My Explorations</Link>.</p>
@@ -374,10 +387,10 @@ function ExplorationHistoryTracker() {
   return null;
 }
 
-export function GuidanceShell({ children }: { children: ReactNode }) {
-  return <div className="cb-guidance min-h-screen bg-[#fcfcfa] text-[#243b32]">
+export function GuidanceShell({ children, account }: { children: ReactNode; account: { name: string | null; email: string } | null }) {
+  return <div className="cb-guidance min-h-screen bg-[var(--g-ivory)] text-[var(--g-ink)]">
     <ExplorationHistoryTracker />
-    <GuidanceHeader />
+    <GuidanceHeader account={account} />
     <ExplorationContextBar />
     {children}
   </div>;

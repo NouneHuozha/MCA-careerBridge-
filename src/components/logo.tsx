@@ -3,10 +3,10 @@ import Link from "next/link";
 
 type LogoSize = "sm" | "md" | "lg";
 
-const sizeStyles: Record<LogoSize, { mark: string; wordmark: string }> = {
-  sm: { mark: "h-8", wordmark: "text-base" },
-  md: { mark: "h-10", wordmark: "text-[19px]" },
-  lg: { mark: "h-12", wordmark: "text-xl" },
+const sizeStyles: Record<LogoSize, { mark: string; wordmark: string; imageSizes: string }> = {
+  sm: { mark: "h-8", wordmark: "text-base", imageSizes: "44px" },
+  md: { mark: "h-10", wordmark: "text-[19px]", imageSizes: "55px" },
+  lg: { mark: "h-12", wordmark: "text-xl", imageSizes: "66px" },
 };
 
 export function Logo({
@@ -34,6 +34,7 @@ export function Logo({
         alt=""
         width={1466}
         height={1073}
+        sizes={styles.imageSizes}
         className={`block w-auto shrink-0 object-contain transition-transform duration-300 group-hover:-rotate-3 ${styles.mark}`}
       />
       <span

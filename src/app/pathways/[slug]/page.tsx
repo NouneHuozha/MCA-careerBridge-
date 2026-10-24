@@ -1,31 +1,74 @@
-import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, BookOpen, Building2, CheckCircle2, ClipboardList, Clock3, GraduationCap, Route, Scale, SearchCheck, Sparkles, Trophy } from "lucide-react";
-import { Accent, accentSurface, Badge, BulletList, ButtonLink, Callout, Disclosure, cx } from "@/components/ui";
-import { Logo } from "@/components/logo";
-import { SaveButton } from "@/components/save-button";
-import { LinkRow, NoCatalogItems } from "@/components/detail-parts";
-import { getCourses, getExams, getField, getInstitutionsForCourse, getPathway, getPathways } from "@/services/catalog";
-import { getSessionState as getProfileState } from "@/services/profile";
-import { whatIfScenarios } from "@/recommendation/engine";
+import { PathwayRouteDetail, type RouteDetailData } from "@/components/pathways/pathway-route-detail";
+import {
+  getCareers,
+  getCourses,
+  getExams,
+  getField,
+  getInstitutionsForCourse,
+  getPathway,
+  getPathways,
+} from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) { return { title: (await getPathway((await params).slug))?.title ?? "Pathway" }; }
 
-function JourneyRail() { return <aside className="hidden min-h-[calc(100dvh-4rem)] w-[285px] shrink-0 border-r border-[#dce5f3] bg-[#f1f8fa] px-7 py-8 lg:block"><Logo size="sm" /><p className="mt-10 text-lg font-semibold text-[#122a52]">Your journey</p><ol className="mt-7">{[{n: 1, title: "Understand yourself", text: "Know your interests, strengths and values", done: true }, {n: 2, title: "Explore possibilities", text: "Discover careers and study pathways", done: true }, {n: 3, title: "Find a route", text: "See a step-by-step pathway", current: true }, {n: 4, title: "Compare options", text: "Compare routes side by side" }, {n: 5, title: "Make a plan", text: "Plan your next steps with clarity" }].map((step, index, list) => <li key={step.n} className="relative flex min-h-[92px] gap-3">{index < list.length - 1 ? <span className={`absolute left-4 top-8 h-[66px] w-px ${step.current ? "bg-[#2c9b7a]" : "bg-[#b8d9d1]"}`} /> : null}<span className={cx("relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 text-sm", step.current ? "border-[#2c9b7a] bg-[#2c9b7a] text-white" : step.done ? "border-[#319879] bg-[#319879] text-white" : "border-ink-300 bg-white text-ink-500")}>{step.done ? <CheckCircle2 className="h-5 w-5" /> : step.n}</span><span className={step.current ? "text-[#116850]" : "text-ink-700"}><span className="block text-sm font-semibold">{step.title}</span><span className="mt-1 block max-w-[180px] text-xs leading-relaxed text-ink-500">{step.text}</span></span></li>)}</ol><div className="mt-10 rounded-2xl border border-[#e0e9ef] bg-white p-5"><p className="text-base font-semibold text-[#173b62]">Not sure which route fits?</p><Link href="/mentor" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#21836c]">Talk to a Mentor <ArrowRight className="h-4 w-4" /></Link></div></aside>; }
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  return { title: (await getPathway((await params).slug))?.title ?? "Pathway" };
+}
+
+const routeTypeLabels: Record<string, string> = {
+  academic: "Academic route",
+  diploma: "Diploma route",
+  vocational: "Vocational route",
+  professional: "Professional route",
+};
 
 export default async function PathwayDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const pathway = await getPathway((await params).slug); if (!pathway) notFound();
-  const [courses, exams, field, allPaths, state] = await Promise.all([getCourses({ slugs: pathway.courseSlugs ?? [] }), getExams({ slugs: pathway.examSlugs ?? [] }), pathway.fieldSlug ? getField(pathway.fieldSlug) : Promise.resolve(null), getPathways({}), getProfileState()]);
-  const lists = await Promise.all(courses.map((c) => getInstitutionsForCourse(c.slug)));
-  const institutions = [...new Map(lists.flat().map((i) => [i.code, i])).values()];
-  const scenarios = whatIfScenarios(field, state?.snapshot);
-  const routeType = pathway.routeType === "academic" ? "Degree route" : pathway.routeType === "diploma" ? "Diploma route" : pathway.routeType === "vocational" ? "Skill-first route" : "Professional route";
-  const routeAccent: Accent = pathway.routeType === "academic" ? "mint" : pathway.routeType === "diploma" ? "butter" : pathway.routeType === "vocational" ? "lavender" : "sky";
-  const routeTitle = pathway.title.split("→").slice(1).join(" → ").trim() || pathway.title;
-  const routeSteps = (pathway.steps ?? []).slice(0, 4);
-  const stepIcons = [GraduationCap, BookOpen, Building2, Trophy];
-  const cards = [{ title: "What this route can open", text: "Explore the careers and opportunities this route can lead to.", bullets: ["Wide range of career paths", "Higher studies and specialisations"], icon: Route, tone: "mint" as Accent, href: field ? `/explore/${field.slug}` : "/explore" }, { title: "Courses to explore", text: "Discover popular courses and what you’ll study.", bullets: courses.slice(0, 2).map((c) => c.name), icon: GraduationCap, tone: "butter" as Accent, href: "/courses" }, { title: "Entrance tests to check", text: "Find national and state tests that open doors to top colleges.", bullets: exams.length ? exams.slice(0, 2).map((e) => e.shortName ?? e.name) : ["JEE, CUET, IPMAT, CLAT and more", "Know eligibility and important dates"], icon: SearchCheck, tone: "lavender" as Accent, href: "/exams" }, { title: "Institutions to look into", text: "Explore colleges and universities that match your goals.", bullets: institutions.length ? institutions.slice(0, 2).map((i) => i.name) : ["Government, private and deemed universities", "Location, fees, rankings and placements"], icon: Building2, tone: "sky" as Accent, href: "/institutions" }];
-  return <div className="flex min-w-0"><JourneyRail /><main className="min-w-0 flex-1"><div className="cb-container cb-page"><div className="mb-5 text-sm text-ink-500"><Link href="/explore" className="text-[#22836c] hover:underline">Explore</Link><span className="mx-3">/</span><Link href="/pathways" className="text-[#22836c] hover:underline">Pathways</Link><span className="mx-3">/</span><span>{routeType}</span></div><header className="relative overflow-hidden rounded-2xl bg-white px-7 py-7 sm:px-10"><div className="relative z-10 max-w-3xl"><h1 className="text-[clamp(2.4rem,5vw,4.2rem)] font-semibold leading-[1.04] tracking-[-.045em] text-[#09221c]">One {routeType.toLowerCase()}. Wider options, step by step.</h1><p className="mt-4 max-w-3xl text-base text-ink-500">A possible route after {pathway.entryStage === "class10" ? "Class 10" : "Class 12"} — compare it with diploma and skill-first routes before deciding.</p><div className="mt-5 flex flex-wrap gap-3"><span className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm ${accentSurface[routeAccent]}`}><GraduationCap className="h-4 w-4" />After {pathway.entryStage === "class10" ? "Class 10" : "Class 12"}</span><span className="inline-flex items-center gap-2 rounded-full bg-[#fff8e9] px-4 py-2.5 text-sm text-ink-700"><Clock3 className="h-4 w-4" />Usually {pathway.typicalDuration ?? "3–4 years"}</span><span className="inline-flex items-center gap-2 rounded-full bg-[#f2edff] px-4 py-2.5 text-sm text-[#6043a5]"><Route className="h-4 w-4" />{routeType}</span></div></div><div className="absolute right-0 top-0 hidden h-full w-[36%] bg-[#edf8f4] lg:block"><Image src={pathway.routeType === "academic" ? "/images/pathway-degree.png" : pathway.routeType === "diploma" ? "/images/pathway-diploma.png" : "/images/pathway-skill-first.png"} alt="" fill sizes="520px" className="object-contain object-center" /></div></header><section className="mt-4 rounded-2xl border border-ink-100 bg-white p-5"><div className="grid gap-4 md:grid-cols-4">{routeSteps.length ? routeSteps.map((step, index) => { const Icon = stepIcons[index] ?? CheckCircle2; return <div key={step.label} className="relative flex gap-3 border-b border-ink-100 pb-4 last:border-0 md:border-b-0 md:border-r md:pb-0 md:pr-4 md:last:border-0"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#e7f5ef] text-[#278b70]"><Icon className="h-5 w-5" /></span><div><p className="text-sm font-semibold text-ink-900"><span className="mr-2 text-[#258d70]">{index + 1}</span>{step.label}</p><p className="mt-2 text-xs leading-relaxed text-ink-500">{step.detail}</p></div></div>; }) : <p className="text-sm text-ink-500">This pathway is being mapped. Check the linked courses and institutions below.</p>}</div></section><div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">{cards.map((card) => { const Icon = card.icon; return <section key={card.title} className={`flex min-h-[270px] flex-col rounded-2xl border p-5 ${card.tone === "mint" ? "border-[#d7ede4] bg-[#f0faf7]" : card.tone === "butter" ? "border-[#f0e5c9] bg-[#fffaf0]" : card.tone === "lavender" ? "border-[#e5ddf7] bg-[#faf8ff]" : "border-[#dbeaf4] bg-[#f4fbff]"}`}><div className="flex items-start gap-4"><span className={`grid h-14 w-14 shrink-0 place-items-center rounded-full ${accentSurface[card.tone]}`}><Icon className="h-7 w-7" /></span><h2 className="pt-1 text-lg font-semibold leading-tight text-[#12304a]">{card.title}</h2></div><p className="mt-4 text-sm leading-relaxed text-ink-600">{card.text}</p><ul className="mt-4 flex-1 space-y-2 text-sm text-ink-700">{card.bullets.map((bullet) => <li key={bullet} className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#318d73]" />{bullet}</li>)}</ul><Link href={card.href} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#20856c]">Learn more <ArrowRight className="h-4 w-4" /></Link></section>; })}</div><div className="mt-6 flex flex-wrap items-center gap-3"><ButtonLink href={`/courses?field=${pathway.fieldSlug ?? ""}`}>See courses <ArrowRight className="h-4 w-4" /></ButtonLink><ButtonLink href={`/compare?type=pathway&a=${pathway.slug}`} variant="secondary"><Scale className="h-4 w-4" />Compare another route</ButtonLink><SaveButton itemType="pathway" itemRef={pathway.slug} label={pathway.title} /></div><div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_410px]"><section className="rounded-2xl border border-[#dceee8] bg-[#f2faf6] p-5"><h2 className="text-lg font-semibold text-[#14634f]">Keep exploring this pathway</h2><p className="mt-2 text-sm text-ink-600">{pathway.description}</p>{pathway.notes ? <p className="mt-3 text-sm text-ink-600">{pathway.notes}</p> : null}<div className="mt-4 space-y-2"><Disclosure summary={`Courses & institutions (${courses.length} courses, ${institutions.length} institutions)`}><div className="space-y-3">{courses.map((c) => <LinkRow key={c.slug} href={`/courses/${c.slug}`} title={c.name} description={c.durationLabel} icon={<GraduationCap className="h-4 w-4" />} accent="lavender" action="View course" />)}{!courses.length && <NoCatalogItems href="/courses" label="Browse courses" />}</div></Disclosure><Disclosure summary="Entrance examinations"><div className="space-y-3">{exams.map((e) => <LinkRow key={e.slug} href={`/exams#${e.slug}`} title={e.shortName ?? e.name} description="Requirements and official portal" action="Check exam" />)}</div></Disclosure><Disclosure summary="What if my circumstances change?"><div className="space-y-3">{scenarios.map((s) => <Disclosure key={s.key} summary={s.question}><p>{s.answer}</p><BulletList items={s.suggestions} /></Disclosure>)}</div></Disclosure></div></section><Callout tone="forest" title="There is more than one way forward."><p>Compare degree, diploma and skill-first routes to choose what&apos;s right for you.</p><ButtonLink href={`/pathways?stage=${pathway.entryStage}`} variant="secondary" className="mt-4">Compare routes <ArrowRight className="h-4 w-4" /></ButtonLink></Callout></div></div></main></div>;
+  const pathway = await getPathway((await params).slug);
+  if (!pathway) notFound();
+
+  const [courses, exams, field, allPathways] = await Promise.all([
+    getCourses({ slugs: pathway.courseSlugs ?? [] }),
+    getExams({ slugs: pathway.examSlugs ?? [] }),
+    pathway.fieldSlug ? getField(pathway.fieldSlug) : Promise.resolve(null),
+    getPathways({}),
+  ]);
+  const [careerList, institutionLists] = await Promise.all([
+    field ? getCareers(field.slug) : Promise.resolve([]),
+    Promise.all(courses.map((course) => getInstitutionsForCourse(course.slug))),
+  ]);
+  const institutions = [...new Map(institutionLists.flat().map((institution) => [institution.code, institution])).values()];
+  const alternatives = allPathways.filter((item) => item.slug !== pathway.slug && item.entryStage === pathway.entryStage);
+  const titleParts = pathway.title.split(/\s*→\s*/);
+  const headline = titleParts.length > 1 ? titleParts[1] : pathway.title;
+  const continuation = titleParts.slice(2).join(" → ");
+  const stageLabel = pathway.entryStage === "class10" ? "After Class 10" : "After Class 12";
+
+  const route: RouteDetailData = {
+    slug: pathway.slug,
+    title: pathway.title,
+    headline,
+    continuation: continuation || undefined,
+    entryStage: pathway.entryStage === "class10" ? "class10" : "class12",
+    stageLabel,
+    routeLabel: routeTypeLabels[pathway.routeType] ?? "Study route",
+    description: pathway.description,
+    typicalDuration: pathway.typicalDuration,
+    notes: pathway.notes,
+    field: field ? { href: `/explore/${field.slug}`, label: field.name } : null,
+    steps: pathway.steps ?? [],
+    courses: courses.map((course) => ({ href: `/courses/${course.slug}`, label: course.name, detail: course.durationLabel })),
+    exams: exams.map((exam) => ({ href: `/exams/${exam.slug}`, label: exam.shortName ?? exam.name, detail: exam.conductingBody })),
+    institutions: institutions.slice(0, 8).map((institution) => ({ href: `/institutions/${institution.code}`, label: institution.name, detail: institution.district })),
+    careers: careerList.slice(0, 6).map((career) => ({ href: `/careers/${career.slug}`, label: career.title, detail: career.summary })),
+    alternatives: alternatives.map((item) => ({
+      slug: item.slug,
+      href: `/pathways/${item.slug}`,
+      label: item.title,
+      routeType: routeTypeLabels[item.routeType] ?? "Study route",
+      duration: item.typicalDuration,
+    })),
+  };
+
+  return <PathwayRouteDetail route={route} />;
 }

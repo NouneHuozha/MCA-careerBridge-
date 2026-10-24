@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { randomBytes } from "node:crypto";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lt } from "drizzle-orm";
 import { db } from "@/db";
 import {
   academicProfiles,
@@ -29,6 +29,15 @@ import { NAGALAND_DISTRICTS } from "@/data/institutions";
 const ANON_COOKIE = "cb_journey";
 export const EXPLORATION_COOKIE = "cb_exploration";
 export const EXPLORATION_HISTORY_COOKIE = "cb_exploration_history";
+const explorationCookieBase = {
+  httpOnly: true,
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+};
+const explorationCookieMaxAge = 60 * 60 * 24 * 365;
+const guestSessionRetentionMs = 60 * 60 * 24 * 1000;
+let lastGuestSessionCleanup = 0;
 
 export type ExplorationHistoryRecord = {
   directionSlug: string;
@@ -86,13 +95,23 @@ export async function getExplorationHistory(): Promise<ExplorationHistoryRecord[
 
 export async function saveExplorationHistory(records: ExplorationHistoryRecord[]) {
   const jar = await cookies();
-  jar.set(EXPLORATION_HISTORY_COOKIE, JSON.stringify(records.slice(0, 10)), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-  });
+  jar.set(EXPLORATION_HISTORY_COOKIE, JSON.stringify(records.slice(0, 10)), await getExplorationCookieOptions());
+}
+
+export async function getExplorationCookieOptions() {
+  return await getCurrentUser()
+    ? { ...explorationCookieBase, maxAge: explorationCookieMaxAge }
+    : explorationCookieBase;
+}
+
+export async function persistExplorationCookiesForAccount() {
+  if (!await getCurrentUser()) return;
+  const jar = await cookies();
+  const options = { ...explorationCookieBase, maxAge: explorationCookieMaxAge };
+  for (const name of [EXPLORATION_COOKIE, EXPLORATION_HISTORY_COOKIE]) {
+    const value = jar.get(name)?.value;
+    if (value) jar.set(name, value, options);
+  }
 }
 
 export type StudentSnapshot = {
@@ -208,10 +227,54 @@ export function buildSnapshot(stage: Stage, stageDetail: string | null, rows: Re
 
 /* ------------------------------- session I/O ------------------------------- */
 
+async function cleanupExpiredGuestSessions() {
+  const now = Date.now();
+  if (now - lastGuestSessionCleanup < 60 * 60 * 1000) return;
+  lastGuestSessionCleanup = now;
+  const cutoff = new Date(now - guestSessionRetentionMs);
+
+  try {
+    const expired = await db
+      .select({ id: counsellingSessions.id })
+      .from(counsellingSessions)
+      .where(and(isNull(counsellingSessions.userId), lt(counsellingSessions.updatedAt, cutoff)))
+      .limit(100);
+    if (!expired.length) return;
+
+    await db.transaction(async (transaction) => {
+      const stale = await transaction
+        .select({ id: counsellingSessions.id })
+        .from(counsellingSessions)
+        .where(and(
+          inArray(counsellingSessions.id, expired.map(({ id }) => id)),
+          isNull(counsellingSessions.userId),
+          lt(counsellingSessions.updatedAt, cutoff),
+        ))
+        .for("update");
+      const ids = stale.map(({ id }) => id);
+      if (!ids.length) return;
+      await transaction.delete(counsellingResponses).where(inArray(counsellingResponses.sessionId, ids));
+      await transaction.delete(counsellingSessions).where(inArray(counsellingSessions.id, ids));
+    });
+  } catch (error) {
+    console.error("[careerbridge] expired guest progress cleanup failed", error);
+  }
+}
+
 async function anonKey(create: boolean): Promise<string | null> {
   const jar = await cookies();
   const existing = jar.get(ANON_COOKIE)?.value;
-  if (existing) return existing;
+  if (existing) {
+    if (create) {
+      jar.set(ANON_COOKIE, existing, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+      });
+    }
+    return existing;
+  }
   if (!create) return null;
   const key = randomBytes(16).toString("hex");
   jar.set(ANON_COOKIE, key, {
@@ -219,13 +282,14 @@ async function anonKey(create: boolean): Promise<string | null> {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 365,
   });
   return key;
 }
 
 export async function findSession(): Promise<typeof counsellingSessions.$inferSelect | null> {
   try {
+    // shortcut: cleanup runs on active requests; schedule it if deletion must happen while idle.
+    await cleanupExpiredGuestSessions();
     const user = await getCurrentUser();
     if (user) {
       const rows = await db
@@ -238,10 +302,15 @@ export async function findSession(): Promise<typeof counsellingSessions.$inferSe
     }
     const key = await anonKey(false);
     if (!key) return null;
+    const cutoff = new Date(Date.now() - guestSessionRetentionMs);
     const rows = await db
       .select()
       .from(counsellingSessions)
-      .where(and(eq(counsellingSessions.anonymousKey, key), isNull(counsellingSessions.userId)))
+      .where(and(
+        eq(counsellingSessions.anonymousKey, key),
+        isNull(counsellingSessions.userId),
+        gte(counsellingSessions.updatedAt, cutoff),
+      ))
       .orderBy(desc(counsellingSessions.updatedAt), desc(counsellingSessions.id))
       .limit(1);
     return rows[0] ?? null;

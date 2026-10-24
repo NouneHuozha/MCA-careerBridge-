@@ -1,46 +1,74 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Compass, FileCheck2, HeartHandshake, Lightbulb, LockKeyhole, MapPin, Route, ShieldCheck, UserRound } from "lucide-react";
-import { ButtonLink, Eyebrow } from "@/components/ui";
-import { Logo } from "@/components/logo";
+import { ArrowRight, BookOpen, Compass, ShieldCheck } from "lucide-react";
+import { LibraryReveal } from "@/components/library-motion";
 
-export const metadata = { title: "About" };
+export const metadata = { title: "About CareerBridge" };
 
-const railItems = [
-  { label: "Start here", detail: "Begin your journey", href: "/start", icon: Compass },
-  { label: "Tell us about you", detail: "Your interests and strengths", href: "/start", icon: UserRound },
-  { label: "See possibilities", detail: "Careers and pathways", href: "/explore", icon: Route },
-  { label: "Make a plan", detail: "Your next steps", href: "/guidance/action-plan", icon: FileCheck2 },
-];
-
-const promises = [
-  { title: "Built for curious students", text: "Ask questions, explore paths, and discover what fits you. No pressure, just progress.", icon: Lightbulb, tone: "bg-[#edf8f4] text-[#1f8068]" },
-  { title: "Information with sources", text: "We show key information with official sources so you can trust what you see.", icon: ShieldCheck, tone: "bg-[#f1edff] text-[#7054b2]" },
-  { title: "Your choice stays yours", text: "We guide and inform—you decide what’s right for your future.", icon: UserRound, tone: "bg-[#eaf8f2] text-[#1b8068]" },
-];
-
-const beliefs = [
-  { title: "Guide, don’t decide", text: "We give you the right information, not orders.", icon: HeartHandshake },
-  { title: "Start where you are", text: "Every small step today moves you forward.", icon: MapPin },
-  { title: "Keep options open", text: "Many paths can lead to a meaningful future.", icon: Route },
-  { title: "Check official sources", text: "We link to trusted, official websites you can verify.", icon: FileCheck2 },
+const libraryLinks = [
+  { title: "Career areas", detail: "See what different fields involve and the kinds of work within them.", href: "/explore", action: "Explore areas" },
+  { title: "Study routes", detail: "Read about different ways to continue after Class 10 or Class 12.", href: "/pathways", action: "Browse pathways" },
+  { title: "Courses and places to study", detail: "Review catalogue entries and follow up with the institution.", href: "/courses", action: "Browse courses" },
+  { title: "Exams and scholarships", detail: "Understand recorded requirements, then check the official notice.", href: "/exams", action: "Browse resources" },
 ];
 
 export default function AboutPage() {
-  return <div className="min-h-screen bg-white lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
-    <aside className="hidden border-r border-[#dce9f5] bg-[#eff6ff] lg:flex lg:min-h-[calc(100vh-5rem)] lg:flex-col lg:justify-between lg:p-7 xl:p-9">
-      <div><Logo size="sm" /><p className="mt-5 max-w-[150px] text-sm leading-relaxed text-[#46627a]">Explore today.<br />A brighter tomorrow.</p><nav aria-label="About page journey" className="mt-16 space-y-4">{railItems.map(({ label, detail, href, icon: Icon }) => <Link key={label} href={href} className="group flex items-center gap-3 rounded-xl p-2 transition hover:bg-white/70"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-[#315776] shadow-sm group-hover:text-forest-700"><Icon className="h-5 w-5" /></span><span><span className="block text-sm font-semibold text-[#183b59]">{label}</span><span className="mt-1 block text-xs text-[#6b7e8e]">{detail}</span></span></Link>)}</nav></div>
-      <div><div className="relative -mx-9 mb-6 h-32 overflow-hidden bg-[#dcecf7]"><Image src="/images/nagaland-hills.jpg" alt="Nagaland landscape" fill className="object-cover opacity-80" sizes="250px" /></div><p className="text-sm leading-relaxed text-[#46627a]">For Nagaland’s<br />tomorrow.</p><p className="mt-5 text-[11px] text-[#7890a2]">Students&nbsp; · &nbsp;Communities&nbsp; · &nbsp;Opportunities</p></div>
-    </aside>
-
-    <main className="min-w-0 overflow-hidden">
-      <section className="cb-container relative pb-8 pt-12 sm:pb-10 sm:pt-16"><div aria-hidden className="pointer-events-none absolute -right-16 top-6 h-72 w-72 rounded-full bg-[#eef6ff] blur-3xl" /><div className="relative grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.95fr)]"><div><Eyebrow>About CareerBridge</Eyebrow><div className="mt-3 h-0.5 w-16 bg-[#287559]" /><h1 className="mt-7 max-w-2xl text-4xl font-semibold leading-[1.04] tracking-[-0.04em] text-[#073c32] sm:text-6xl">For students building<br className="hidden sm:block" /> their own direction.</h1><p className="mt-6 max-w-xl text-base leading-relaxed text-ink-600 sm:text-lg">CareerBridge helps students in Nagaland explore education and career possibilities with clearer information.</p></div><div className="relative min-h-[280px] overflow-hidden rounded-[45%_45%_38%_38%] bg-[#eaf5ff] sm:min-h-[380px]"><Image src="/images/nagaland-hills.jpg" alt="A bright landscape representing futures in Nagaland" fill className="object-cover scale-110" sizes="(min-width: 1024px) 45vw, 100vw" /><div className="absolute inset-0 bg-gradient-to-t from-[#d9ecf5]/20 to-transparent" /></div></div>
-        <div className="relative -mt-4 grid gap-4 md:grid-cols-3 lg:-mt-2">{promises.map(({ title, text, icon: Icon, tone }) => <article key={title} className="relative rounded-2xl border border-ink-100 bg-white p-6 shadow-[0_12px_30px_-25px_#234e4255]"><div className={`grid h-12 w-12 place-items-center rounded-full ${tone}`}><Icon className="h-6 w-6" /></div><h2 className="mt-5 max-w-[12ch] text-xl font-semibold leading-tight text-[#123f38]">{title}</h2><div className="mt-3 h-0.5 w-10 bg-[#b9d8cc]" /><p className="mt-4 text-sm leading-relaxed text-ink-600">{text}</p></article>)}</div>
+  return (
+    <div className="cb-container mx-auto max-w-[1440px] pb-16 pt-10 sm:pb-24 sm:pt-16">
+      <section className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,.65fr)] lg:items-end">
+        <div className="min-w-0">
+          <h1 className="max-w-[12ch] text-[clamp(2.25rem,8vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em] text-[#17201b]">
+            Explore before you decide.
+          </h1>
+          <p className="mt-7 max-w-[62ch] text-lg leading-relaxed text-[#34463c] sm:text-xl">
+            CareerBridge is a general library for students in Nagaland to understand career areas, study routes and education options at their own pace.
+          </p>
+          <Link href="/explore" className="cb-button cb-button-primary mt-7 px-5 py-3 text-sm">
+            Browse the Explore Library <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          </Link>
+        </div>
+        <LibraryReveal className="bg-[#09332a] p-6 text-white sm:p-8">
+          <Compass aria-hidden="true" className="h-7 w-7 text-[#f2cf78]" />
+          <h2 className="mt-6 text-2xl font-semibold leading-tight tracking-[-.04em] text-white">A place to look around, without a prescribed answer.</h2>
+          <p className="mt-4 text-sm leading-relaxed text-[#e3ece7]">
+            Browse pages are not personalized recommendations. Counselling and My Guidance are separate experiences for students who choose to use them.
+          </p>
+        </LibraryReveal>
       </section>
 
-      <section className="cb-container pb-10 pt-3 sm:pb-14"><Eyebrow>What we believe</Eyebrow><div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{beliefs.map(({ title, text, icon: Icon }) => <article key={title} className="flex gap-3 border-b border-[#e4ece9] pb-5 xl:border-b-0 xl:border-r xl:pr-5"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#eaf7f2] text-[#287559]"><Icon className="h-5 w-5" /></span><div><h2 className="font-semibold text-[#123f38]">{title}</h2><p className="mt-2 text-sm leading-relaxed text-ink-500">{text}</p></div></article>)}</div><div className="mt-9 flex flex-wrap items-center gap-5"><ButtonLink href="/start" size="lg">Start exploring <ArrowRight className="h-4 w-4" /></ButtonLink><Link href="/how-it-works" className="cb-source text-base">How it works <ArrowRight className="h-4 w-4" /></Link></div></section>
+      <section className="mt-20 grid gap-10 bg-[#dde4df] p-6 sm:p-9 lg:grid-cols-[.7fr_1.3fr]">
+        <div className="max-w-sm">
+          <p className="text-sm font-semibold text-[#09332a]">What you can explore</p>
+          <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-[-.045em]">Start with a question. Follow the connections.</h2>
+        </div>
+        <div className="space-y-2">
+          {libraryLinks.map((item) => (
+            <LibraryReveal key={item.title}>
+              <Link href={item.href} className="group grid gap-3 bg-[#f7f8f5] p-4 transition-colors hover:bg-white sm:grid-cols-[minmax(180px,.55fr)_1fr_auto] sm:items-center sm:p-5">
+                <span className="text-lg font-semibold text-[#17201b]">{item.title}</span>
+                <span className="max-w-[55ch] text-sm leading-relaxed text-[#405349]">{item.detail}</span>
+                <span className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#09332a]">
+                  {item.action}<ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </Link>
+            </LibraryReveal>
+          ))}
+        </div>
+      </section>
 
-      <section className="cb-container pb-12 sm:pb-16"><div className="grid gap-5 rounded-2xl border border-[#dceee8] bg-[#f5fbf9] p-5 sm:grid-cols-[1.1fr_0.9fr] sm:p-7"><div className="flex gap-4 sm:border-r sm:border-[#c9ddd8] sm:pr-7"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-forest-700 shadow-sm"><ShieldCheck className="h-6 w-6" /></span><div><h2 className="font-semibold text-[#123f38]">Your privacy. Our promise.</h2><p className="mt-2 text-sm leading-relaxed text-ink-500">Your information stays private and secure. We never share it without your consent.</p></div></div><div className="flex gap-4 sm:pl-2"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-forest-700 shadow-sm"><LockKeyhole className="h-6 w-6" /></span><div><h2 className="font-semibold text-[#123f38]">Information verified from official sources</h2><p className="mt-2 text-sm leading-relaxed text-ink-500">Time-sensitive details are labelled and linked so you can check them yourself.</p></div></div></div><div className="mt-8 grid gap-5 md:grid-cols-2"><article className="rounded-2xl border border-ink-200 bg-white p-6"><div className="flex items-center gap-3"><CheckCircle2 className="h-5 w-5 text-forest-700" /><h2 className="font-semibold text-[#123f38]">What CareerBridge is not</h2></div><p className="mt-3 text-sm leading-relaxed text-ink-500">It is not a prediction system, admission agent, or promise of a seat. It does not rank students or publish facts it cannot source.</p></article><article className="rounded-2xl border border-ink-200 bg-white p-6"><div className="flex items-center gap-3"><HeartHandshake className="h-5 w-5 text-forest-700" /><h2 className="font-semibold text-[#123f38]">Different backgrounds. One shared future.</h2></div><p className="mt-3 text-sm leading-relaxed text-ink-500">CareerBridge starts in Nagaland and presents degree, diploma, vocational and trade routes as legitimate options.</p></article></div></section>
-    </main>
-  </div>;
+      <section className="mt-20 grid gap-10 bg-[#dde4df] p-6 sm:p-9 lg:grid-cols-[.7fr_1.3fr]">
+        <div>
+          <p className="flex items-center gap-2 text-sm font-semibold text-[#09332a]"><ShieldCheck aria-hidden="true" className="h-5 w-5" /> Read information with care</p>
+          <h2 className="mt-4 max-w-[14ch] text-3xl font-semibold leading-tight tracking-[-.045em] text-[#17201b]">Useful information should show its limits.</h2>
+        </div>
+        <div className="space-y-5 text-base leading-relaxed text-[#263a30]">
+          <p>CareerBridge is a prototype catalogue. Some entries may be incomplete, sample information, or not recently checked.</p>
+          <p>Dates, fees, eligibility and availability can change. Follow the source links and confirm current details with the relevant school, college, exam body or scheme provider.</p>
+          <p>CareerBridge helps you explore. It does not promise admission, a job or a particular outcome, and it does not make the decision for you.</p>
+          <Link href="/how-it-works" className="inline-flex min-h-11 items-center gap-2 font-semibold text-[#09332a] underline underline-offset-4">
+            See how browsing works <BookOpen aria-hidden="true" className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
 }

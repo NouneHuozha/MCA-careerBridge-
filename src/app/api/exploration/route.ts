@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getField } from "@/services/catalog";
 import {
   EXPLORATION_COOKIE,
+  getExplorationCookieOptions,
   getExplorationHistory,
   getExplorationState,
   getSessionState,
@@ -11,14 +12,6 @@ import {
 } from "@/services/profile";
 
 export const dynamic = "force-dynamic";
-
-const cookieOptions = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-  maxAge: 60 * 60 * 24 * 365,
-};
 
 function redirectBack(request: Request, path: string, error?: string) {
   const url = new URL(path, request.url);
@@ -75,7 +68,7 @@ export async function POST(request: Request) {
   };
   const safeReturn = returnTo.startsWith("/guidance/") ? returnTo : "/guidance/possibilities";
   const response = redirectBack(request, safeReturn);
-  response.cookies.set(EXPLORATION_COOKIE, JSON.stringify(state), cookieOptions);
+  response.cookies.set(EXPLORATION_COOKIE, JSON.stringify(state), await getExplorationCookieOptions());
   return response;
 }
 
@@ -139,7 +132,7 @@ export async function PATCH(request: Request) {
     response.cookies.set(
       EXPLORATION_COOKIE,
       JSON.stringify({ directionSlug: field.slug, selectedAt: record.selectedAt, completedSteps: record.completedSteps }),
-      cookieOptions,
+      await getExplorationCookieOptions(),
     );
   }
   return response;

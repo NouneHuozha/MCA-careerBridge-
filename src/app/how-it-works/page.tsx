@@ -1,33 +1,101 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, CheckCircle2, Compass, Flag, LockKeyhole, MapPin, Route, ShieldCheck } from "lucide-react";
-import { ButtonLink, Eyebrow } from "@/components/ui";
+import { ArrowRight, BookOpen, Check, Compass, Search } from "lucide-react";
+import { LibraryReveal } from "@/components/library-motion";
 
-export const metadata = { title: "How it works" };
+export const metadata = { title: "How the Explore Library works" };
 
-const steps = [
-  { n: "1", title: "Tell us about yourself", detail: "Share your interests, strengths and what matters to you.", href: "/start", image: "/images/hero-student.png", tone: "bg-[#edf8f4]", badge: "bg-[#e4f4ed] text-[#1f8068]" },
-  { n: "2", title: "Explore possibilities", detail: "Discover careers, courses and skills that match who you are.", href: "/explore", image: "/images/possibilities-landscape.png", tone: "bg-[#eef5ff]", badge: "bg-[#e5efff] text-[#3f70b1]" },
-  { n: "3", title: "Understand different routes", detail: "Compare study options, time, skills and where each path can lead.", href: "/pathways", image: "/images/field-engineering.png", tone: "bg-[#f6f0ff]", badge: "bg-[#eee5ff] text-[#7054b2]" },
-  { n: "4", title: "Take one small next step", detail: "Save options, build a plan and get ready for what’s next.", href: "/guidance/action-plan", image: "/images/students-campus.jpg", tone: "bg-[#fff8e7]", badge: "bg-[#fff0c4] text-[#9d761d]" },
-];
-
-const journey = [
-  { label: "Explore a direction", href: "/explore", icon: Compass },
-  { label: "Learn about options", href: "/courses", icon: BookOpen },
-  { label: "Make a plan", href: "/guidance/action-plan", icon: Route },
-  { label: "Take action", href: "/start", icon: Flag },
+const stages = [
+  {
+    title: "Browse a subject",
+    body: "Start with a career area, or go directly to careers, pathways, courses, institutions, exams, scholarships or opportunities.",
+    links: [
+      { label: "Explore career areas", href: "/explore" },
+      { label: "Browse the catalogue", href: "/careers" },
+    ],
+    icon: Compass,
+  },
+  {
+    title: "Follow what interests you",
+    body: "Detail pages connect related catalogue entries, so you can move from a career idea to routes, courses, exams and institutions.",
+    links: [
+      { label: "Study pathways", href: "/pathways" },
+      { label: "Courses", href: "/courses" },
+    ],
+    icon: BookOpen,
+  },
+  {
+    title: "Check the current source",
+    body: "Use the record’s status and source links as a guide. Confirm dates, costs, eligibility and availability with the provider before acting.",
+    links: [
+      { label: "Entrance exams", href: "/exams" },
+      { label: "Scholarships", href: "/scholarships" },
+    ],
+    icon: Check,
+  },
 ];
 
 export default function HowItWorksPage() {
-  return <div className="min-h-screen bg-white">
-    <section className="border-y border-[#dceee8] bg-[#f1faf7]"><div className="cb-container flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:gap-8"><p className="shrink-0 text-lg font-semibold tracking-[-0.02em] text-[#123f38]">Your journey</p><ol className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-3 lg:justify-between">{journey.map(({ label, href, icon: Icon }, index) => <li key={label} className="flex items-center gap-3"><Link href={href} className="group flex items-center gap-3 text-sm text-ink-600 hover:text-forest-700"><span className="grid h-10 w-10 place-items-center rounded-full border border-[#c9ddd8] bg-white text-forest-700 shadow-sm transition group-hover:border-forest-400"><Icon className="h-4 w-4" /></span><span className="whitespace-nowrap">{label}</span></Link>{index < journey.length - 1 && <span aria-hidden className="hidden h-px w-8 bg-[#b9d2ca] xl:block" />}</li>)}</ol><span className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-[#deefe9] px-4 py-2 text-sm font-semibold text-[#287559] lg:self-auto"><MapPin className="h-4 w-4" />Exploring Nagaland<ArrowRight className="h-4 w-4 rotate-90" /></span></div></section>
-    <main className="relative overflow-hidden"><div aria-hidden className="pointer-events-none absolute -left-24 top-10 h-56 w-56 rounded-full bg-[#eef6ff] blur-2xl" /><div aria-hidden className="pointer-events-none absolute -right-24 top-44 h-72 w-72 rounded-full bg-[#eaf8f2] blur-3xl" />
-      <section className="cb-container relative pb-8 pt-12 sm:pt-16"><div className="mx-auto max-w-3xl text-center"><Eyebrow>How it works</Eyebrow><h1 className="mt-4 text-4xl font-semibold leading-[1.06] tracking-[-0.04em] text-[#073c32] sm:text-6xl">How CareerBridge helps<br className="hidden sm:block" /> you move forward.</h1><p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-ink-500 sm:text-lg">You do not need to know your career yet.<br className="hidden sm:block" /> We help you understand your options.</p></div>
-        <div className="relative mx-auto mt-10 max-w-6xl"><div aria-hidden className="pointer-events-none absolute left-[11%] right-[11%] top-6 hidden border-t-2 border-dashed border-[#d7e4e0] lg:block" /><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{steps.map((step) => <article key={step.n} className={`relative overflow-hidden rounded-2xl border border-white/80 ${step.tone} shadow-[0_12px_30px_-26px_#234e4255]`}><span className={`absolute right-4 top-[-10px] z-10 grid h-12 w-12 place-items-center rounded-full border-4 border-white text-lg font-semibold ${step.badge}`}>{step.n}</span><div className="relative h-40 overflow-hidden"><Image src={step.image} alt="" fill sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" className="object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" /></div><div className="p-5 text-center"><h2 className="text-lg font-semibold leading-snug text-[#123f38]">{step.title}</h2><p className="mt-2 text-sm leading-relaxed text-ink-600">{step.detail}</p><Link href={step.href} className="cb-source mt-4 justify-center text-xs">Explore this step <ArrowRight className="h-3.5 w-3.5" /></Link></div></article>)}</div></div>
-        <div className="mt-8 flex flex-wrap justify-center gap-3"><ButtonLink href="/start" size="lg">Start with a few questions <ArrowRight className="h-4 w-4" /></ButtonLink><ButtonLink href="/explore" variant="secondary" size="lg">Browse options</ButtonLink></div>
+  return (
+    <div className="cb-container mx-auto max-w-[1440px] pb-16 pt-10 sm:pb-24 sm:pt-16">
+      <header className="grid gap-8 pb-12 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(260px,.5fr)] lg:items-end">
+        <div className="min-w-0">
+          <h1 className="max-w-[13ch] text-[clamp(2.25rem,8vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em] text-[#17201b]">
+            Follow your curiosity.
+          </h1>
+          <p className="mt-7 max-w-[62ch] text-lg leading-relaxed text-[#34463c] sm:text-xl">
+            The Explore Library is for general browsing. You can read, follow links and compare options without completing a profile or choosing a career first.
+          </p>
+        </div>
+        <form action="/explore" className="min-w-0 bg-[#dde4df] p-5 sm:p-6">
+          <label htmlFor="library-search" className="flex items-center gap-2 text-sm font-semibold text-[#17201b]">
+            <Search aria-hidden="true" className="h-4 w-4 text-[#09332a]" /> Search the library
+          </label>
+          <div className="mt-3 flex gap-2">
+            <input id="library-search" name="q" type="search" placeholder="Try a subject or course" className="min-h-12 min-w-0 flex-1 border border-[#9aada3] bg-white px-3 text-sm text-[#17201b] placeholder:text-[#52635a] focus:border-[#09332a]" />
+            <button type="submit" className="cb-button cb-button-primary min-h-12 px-4 text-sm">Search</button>
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-[#405349]">Or start from a catalogue below.</p>
+        </form>
+      </header>
+
+      <section aria-label="How browsing works" className="space-y-3">
+        {stages.map(({ title, body, links, icon: Icon }) => (
+          <LibraryReveal key={title}>
+            <article className="grid gap-5 bg-[#dde4df] p-5 sm:p-8 lg:grid-cols-[minmax(200px,.55fr)_1fr_minmax(190px,.55fr)] lg:items-start">
+              <h2 className="flex items-start gap-3 text-2xl font-semibold leading-tight tracking-[-.04em] text-[#17201b] sm:text-3xl">
+                <Icon aria-hidden="true" className="mt-1 h-5 w-5 shrink-0 text-[#6f887b]" />
+                {title}
+              </h2>
+              <p className="max-w-[65ch] text-base leading-relaxed text-[#405349]">{body}</p>
+              <ul className="space-y-2">
+                {links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="group inline-flex min-h-11 items-center gap-2 font-semibold text-[#09332a] underline decoration-[#6f887b] underline-offset-4 hover:decoration-[#09332a]">
+                      {link.label}<ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          </LibraryReveal>
+        ))}
       </section>
-      <section className="cb-container pb-12 pt-4 sm:pb-16"><div className="mx-auto grid max-w-6xl gap-6 rounded-2xl border border-[#dceee8] bg-[#f5fbf9] p-5 sm:grid-cols-2 sm:p-7"><div className="flex gap-4 sm:border-r sm:border-[#c9ddd8] sm:pr-8"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-forest-700 shadow-sm"><ShieldCheck className="h-6 w-6" /></span><div><h2 className="font-semibold text-[#123f38]">Guide, don’t decide — your answers create starting points, not final answers.</h2><p className="mt-2 text-sm leading-relaxed text-ink-500">We’re here to help you explore with confidence.</p></div></div><div className="flex gap-4 sm:pl-2"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-[#3f70b1] shadow-sm"><LockKeyhole className="h-6 w-6" /></span><div><h2 className="font-semibold text-[#123f38]">We do not need your exact address.</h2><p className="mt-2 text-sm leading-relaxed text-ink-500">We keep your information private and secure.</p><Link href="/about" className="cb-source mt-2 text-sm">Learn more <ArrowRight className="h-4 w-4" /></Link></div></div></div><div className="mx-auto mt-10 grid max-w-6xl gap-5 md:grid-cols-2"><article className="rounded-2xl border border-ink-200 bg-white p-6"><div className="flex items-center gap-3"><CheckCircle2 className="h-5 w-5 text-forest-700" /><h2 className="font-semibold text-[#123f38]">Clear guidance, not a fixed answer</h2></div><p className="mt-3 text-sm leading-relaxed text-ink-500">Compare your options, ask “why this?” and change direction whenever your priorities change.</p></article><article className="rounded-2xl border border-ink-200 bg-white p-6"><div className="flex items-center gap-3"><LockKeyhole className="h-5 w-5 text-[#3f70b1]" /><h2 className="font-semibold text-[#123f38]">Facts come with context</h2></div><p className="mt-3 text-sm leading-relaxed text-ink-500">Time-sensitive fees, dates and eligibility details are shown with sources and verification status.</p></article></div></section>
-    </main>
-  </div>;
+
+      <section className="mt-14 grid gap-8 bg-[#09332a] p-6 text-white sm:p-9 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div>
+          <h2 className="max-w-[20ch] text-2xl font-semibold leading-tight tracking-[-.04em] text-white sm:text-3xl">There is no required order, and no single correct route.</h2>
+          <p className="mt-4 max-w-[65ch] text-sm leading-relaxed text-[#e3ece7]">
+            The library is a starting point. Entries can be incomplete or out of date, so confirm important details with official providers.
+          </p>
+        </div>
+        <Link href="/explore" className="cb-button inline-flex min-h-12 items-center justify-center gap-2 bg-[#f2cf78] px-5 py-3 text-sm font-semibold text-[#17201b] transition hover:bg-[#e8bc50]">
+          Open Explore <ArrowRight aria-hidden="true" className="h-4 w-4" />
+        </Link>
+      </section>
+
+      <p className="mt-7 text-sm leading-relaxed text-[#52635a]">
+        Personal counselling and saved guidance are separate from general browsing. Choose them only when you want personalized support.
+      </p>
+    </div>
+  );
 }

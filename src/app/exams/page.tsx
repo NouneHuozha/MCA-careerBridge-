@@ -1,29 +1,89 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Bell, BookOpenCheck, Building2, CheckCircle2, ClipboardCheck, ExternalLink, FileText, Globe2, GraduationCap, Search, ShieldCheck, UsersRound } from "lucide-react";
-import { BulletList, Disclosure, SourceLink, VerificationBadge } from "@/components/ui";
-import { Logo } from "@/components/logo";
-import { SaveButton } from "@/components/save-button";
+import { ArrowRight, CalendarClock, ClipboardCheck, ExternalLink } from "lucide-react";
+import { LibrarySearch } from "@/components/library-search";
+import { LibraryReveal } from "@/components/library-motion";
 import { getExams } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Entrance examinations" };
+export const metadata = { title: "Explore entrance exams" };
 
-function JourneyRail() { return <aside className="hidden min-h-[calc(100dvh-4rem)] w-[245px] shrink-0 border-r border-[#dce5f3] bg-[#eef4ff] px-7 py-8 lg:block"><Logo size="sm" /><p className="mt-10 text-lg font-semibold text-[#122a52]">Your journey</p><p className="mt-1 text-xs text-ink-500">Step by step to your brighter tomorrow</p><ol className="mt-7">{[{n: 1, icon: UsersRound, title: "Understand yourself", text: "Discover your interests, strengths and values"}, {n: 2, icon: Search, title: "Explore possibilities", text: "Explore careers, courses and fields"}, {n: 3, icon: GraduationCap, title: "Find a route", text: "Find the right path with tests, courses and options", current: true}, {n: 4, icon: ClipboardCheck, title: "Check requirements", text: "Eligibility, subjects, cut-offs and more"}, {n: 5, icon: CheckCircle2, title: "Make a plan", text: "Shortlist, compare and plan your next steps"}].map((step, index, list) => { const Icon = step.icon; return <li key={step.n} className="relative flex min-h-[94px] gap-3">{index < list.length - 1 ? <span className={`absolute left-4 top-8 h-[66px] w-px ${step.current ? "bg-[#2877df]" : "bg-ink-300"}`} /> : null}<span className={`relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 ${step.current ? "border-[#2877df] bg-[#2877df] text-white" : "border-ink-300 bg-white text-ink-500"}`}><Icon className="h-4 w-4" /></span><span className={step.current ? "text-[#123d8f]" : "text-ink-700"}><span className="block text-sm font-semibold">{step.title}</span><span className="mt-1 block max-w-[145px] text-xs leading-relaxed text-ink-500">{step.text}</span></span></li>; })}</ol><div className="relative -mx-7 mt-3 h-48 overflow-hidden"><Image src="/images/exams-landscape.png" alt="Nagaland hills" fill sizes="245px" className="object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[#eef4ff] via-transparent to-transparent" /><p className="absolute bottom-4 left-7 max-w-[150px] font-serif text-lg italic text-white drop-shadow">Stronger learners<br />A brighter Nagaland</p></div></aside>; }
-
-export default async function ExamsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function ExamsPage({ searchParams }: { searchParams: Promise<{ q?: string; stage?: string }> }) {
   const params = await searchParams;
-  const exams = await getExams();
-  const q = params.q?.trim().toLowerCase() ?? "";
-  const filtered = exams.filter((exam) => !q || `${exam.name} ${exam.shortName ?? ""} ${exam.conductingBody} ${(exam.appliesTo ?? []).join(" ")}`.toLowerCase().includes(q));
-  const priority = ["jee-main", "cuet-ug", "neet-ug", "nata"];
-  const ordered = [...filtered].sort((a, b) => (priority.indexOf(a.slug) === -1 ? 99 : priority.indexOf(a.slug)) - (priority.indexOf(b.slug) === -1 ? 99 : priority.indexOf(b.slug)));
-  return <div className="flex min-w-0"><JourneyRail /><main className="min-w-0 flex-1"><div className="cb-container cb-page">
-    <header className="relative -mx-4 overflow-hidden rounded-none border-b border-[#dbe6ed] px-6 py-10 sm:-mx-6 sm:px-10 lg:-mx-8 lg:px-12"><Image src="/images/exams-landscape.png" alt="Nagaland hills" fill sizes="1200px" className="object-cover object-center opacity-75" /><div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/25" /><div className="relative z-10 max-w-2xl"><h1 className="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1.02] tracking-[-.04em] text-[#071533]">Tests you may need</h1><p className="mt-3 text-base text-ink-600">Understand what each test opens, then check the current official notice.</p></div><p className="absolute bottom-5 right-8 hidden max-w-[185px] text-right font-serif text-lg italic text-white drop-shadow md:block">Small steps.<br />A brighter tomorrow<br />for Nagaland.</p></header>
-    <div className="mt-5 flex items-center gap-3 rounded-lg bg-[#fff5dc] px-5 py-4 text-sm text-[#9a6417]"><Bell className="h-5 w-5 shrink-0 fill-[#c8841c]" />Dates change each cycle — always check the official source.</div>
-    <div className="mt-5 flex flex-wrap items-center gap-2"><form action="/exams" className="relative w-full max-w-sm"><Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" /><input name="q" defaultValue={params.q ?? ""} placeholder="Search tests by name, exam body or course" className="w-full rounded-xl border border-ink-200 bg-white py-3 pl-11 pr-4 text-sm outline-none focus:border-forest-400" /></form>{[{label: "All", icon: Globe2}, {label: "National", icon: Globe2}, {label: "State", icon: Building2}, {label: "Institution", icon: GraduationCap}, {label: "After Class 10", icon: UsersRound}, {label: "After Class 12", icon: UsersRound}].map(({ label, icon: Icon }, index) => <Link key={label} href="/exams" className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] ${index === 0 ? "border-[#b5d1ec] bg-[#f2f8ff] text-[#1d68b2]" : "border-ink-100 bg-white text-ink-600 hover:border-forest-300"}`}><Icon className="h-4 w-4" />{label}</Link>)}</div>
-    <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">{ordered.map((exam, i) => <article key={exam.slug} id={exam.slug} className="flex h-full flex-col rounded-2xl border border-ink-100 bg-white p-4 shadow-[0_1px_4px_rgba(15,23,42,.04)]"><header className="flex items-start justify-between gap-3"><div className="flex min-w-0 items-start gap-3"><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-full ${i % 3 === 0 ? "bg-[#e1f3e8] text-[#2e9b60]" : i % 3 === 1 ? "bg-[#eee7ff] text-[#7452cc]" : "bg-[#e7f5e9] text-[#419450]"}`}><FileText className="h-6 w-6" /></span><div className="min-w-0"><h2 className="text-lg font-semibold leading-tight text-[#10204a]"><Link href={`/exams/${exam.slug}`} className="hover:text-forest-700">{exam.shortName ?? exam.name}</Link></h2><span className="mt-2 inline-flex rounded-full bg-[#e4f4e8] px-3 py-1 text-xs font-medium text-[#2b8558]">Active</span></div></div><span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-[#1763b5]"><ShieldCheck className="h-4 w-4 fill-[#1763b5] text-white" />Official<br />verified</span></header><div className="mt-5 space-y-3 text-[13px] leading-relaxed text-ink-600"><div><p className="font-semibold text-[#1763b5]">Purpose</p><p>{(exam.appliesTo ?? []).join(" ") || "Explore the official examination and admission requirements."}</p></div><div className="border-t border-ink-100 pt-3"><p className="font-semibold text-[#1763b5]">Opens doors for</p><p className="mt-1 flex gap-2"><Building2 className="mt-0.5 h-4 w-4 shrink-0 text-ink-500" />{exam.conductingBody}</p></div><div className="border-t border-ink-100 pt-3"><p className="font-semibold text-[#1763b5]">Mode</p><p className="mt-1 flex gap-2"><FileText className="mt-0.5 h-4 w-4 shrink-0 text-ink-500" />Check the current official notice</p></div></div><div className="mt-auto pt-4"><Link href={`/exams/${exam.slug}`} className="flex items-center justify-center gap-2 rounded-full bg-[#24956f] px-4 py-3 text-sm font-semibold text-white hover:bg-[#197956]">View requirements <ArrowRight className="h-4 w-4" /></Link><SourceLink href={exam.officialWebsite} variant="inline">Official source <ExternalLink className="h-4 w-4" /></SourceLink><div className="mt-3 flex items-center justify-between border-t border-ink-100 pt-3"><SaveButton itemType="exam" itemRef={exam.slug} label={exam.shortName ?? exam.name} /><VerificationBadge status={exam.verificationStatus} lastVerifiedAt={exam.lastVerifiedAt} /></div></div><div className="mt-3 space-y-2"><Disclosure summary="Eligibility & documents"><h3 className="mb-2 flex items-center gap-2 font-semibold"><ClipboardCheck className="h-4 w-4" />General requirements</h3><p>{exam.eligibility ?? "Currently unavailable."}</p><h3 className="mb-2 mt-4 font-semibold">Documents commonly requested</h3><BulletList items={exam.documents ?? []} /></Disclosure><Disclosure summary="How to start preparing"><BulletList items={exam.preparation ?? []} /></Disclosure></div></article>)}</div>
-    {!filtered.length ? <p className="mt-8 text-sm text-ink-500">No exams match that search. Try a broader term.</p> : null}
-    <section className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-[#f5f1ff] px-6 py-5"><div className="flex items-center gap-4"><Image src="/images/exams-institution.png" alt="Institution illustration" width={76} height={55} className="object-contain" /><div><h2 className="font-semibold text-[#33206e]">Looking for state-level or institute-specific tests?</h2><p className="mt-1 text-sm text-ink-500">Explore more exams and admission tests specific to Nagaland and institutions.</p></div></div><Link href="/institutions" className="inline-flex items-center gap-2 rounded-full border border-[#b8a8e6] bg-white px-5 py-3 text-sm font-semibold text-[#7654d4]">Explore more tests <ArrowRight className="h-4 w-4" /></Link></section>
-  </div></main></div>;
+  const query = params.q?.trim().toLocaleLowerCase() ?? "";
+  const allExams = await getExams();
+  const exams = allExams.filter((exam) =>
+    (!query || `${exam.name} ${exam.shortName ?? ""} ${exam.conductingBody ?? ""} ${(exam.appliesTo ?? []).join(" ")}`.toLocaleLowerCase().includes(query)) &&
+    (!params.stage || exam.levelStage === params.stage),
+  );
+
+  return (
+    <div className="min-h-svh bg-[#f7f8f5]">
+      <header className="bg-[#f2cf78]">
+        <div className="mx-auto grid min-h-[500px] min-w-0 w-full px-5 py-10 sm:px-8 sm:py-14 lg:min-h-[570px] lg:grid-cols-[1fr_.68fr] lg:items-end lg:px-[clamp(3rem,7vw,8rem)] lg:py-16">
+          <div className="flex min-w-0 flex-col justify-between">
+            <Link href="/explore" className="inline-flex min-h-10 w-fit items-center gap-2 text-sm font-semibold text-[#36544a] transition-colors hover:text-[#09332a]"><ArrowRight aria-hidden="true" className="h-4 w-4 rotate-180" /> Explore the library</Link>
+            <div className="py-12">
+              <LibraryReveal>
+                <p className="mb-5 flex items-center gap-2 text-base font-semibold text-[#36544a]"><CalendarClock aria-hidden="true" className="h-5 w-5" /> Entrance exam guide</p>
+                <h1 className="max-w-[15ch] text-[clamp(3rem,8vw,8rem)] font-semibold leading-[.9] tracking-[-.075em] text-[#17201b]">Know what comes next.</h1>
+              </LibraryReveal>
+              <p className="mt-7 max-w-[52ch] text-lg leading-relaxed text-[#263a30] sm:text-xl">Explore exam routes, who they may apply to and where to verify official requirements. Dates can change each cycle.</p>
+            </div>
+            <p className="text-base font-semibold text-[#36544a]">{exams.length} examinations listed</p>
+          </div>
+          <div className="min-w-0 bg-[#09332a] p-5 text-white sm:p-7 lg:mb-5 lg:p-9">
+            <ClipboardCheck aria-hidden="true" className="h-7 w-7 text-[#f2cf78]" />
+            <h2 className="mt-6 max-w-[14ch] text-3xl font-semibold leading-tight tracking-[-.04em] text-white">Every date needs a source.</h2>
+            <p className="mt-4 max-w-[40ch] text-base leading-relaxed text-[#d5ded8]">Use this catalogue to find the right notice. Confirm eligibility, dates, documents and fees with the exam-conducting body.</p>
+            <a href="#exam-list" className="mt-7 inline-flex min-h-11 items-center gap-2 text-base font-semibold text-[#f2cf78] underline underline-offset-4">Browse exam notices <ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
+          </div>
+        </div>
+      </header>
+      <main className="min-w-0 w-full px-5 pb-24 pt-12 sm:px-8 lg:px-[clamp(3rem,7vw,8rem)] lg:pt-20">
+        <div className="grid min-w-0 gap-12 xl:grid-cols-[minmax(260px,.55fr)_minmax(0,1.45fr)] xl:gap-20">
+          <aside className="h-fit min-w-0 bg-[#d6eaf4] p-5 sm:p-7 xl:sticky xl:top-8">
+            <h2 className="text-2xl font-semibold tracking-[-.04em] text-[#17201b]">Find your exam</h2>
+            <p className="mt-2 text-base leading-relaxed text-[#34463c]">Search by name, exam body or programme.</p>
+            <LibrarySearch action="/exams" query={params.q} label="Search entrance exams" placeholder="Exam or exam body" className="mt-5" />
+            <form action="/exams" className="mt-5 grid gap-3">
+              {params.q ? <input type="hidden" name="q" value={params.q} /> : null}
+              <label htmlFor="exam-stage" className="text-base font-semibold text-[#17201b]">Stage</label>
+              <select id="exam-stage" name="stage" defaultValue={params.stage ?? ""} className="min-h-12 bg-[#f7f8f5] px-4 text-base text-[#17201b] outline-none focus-visible:ring-2 focus-visible:ring-[#09332a]">
+                <option value="">Any stage</option><option value="after_class10">After Class 10</option><option value="after_class12">After Class 12</option>
+              </select>
+              <button type="submit" className="mt-1 min-h-12 bg-[#09332a] px-5 text-base font-semibold text-white transition-colors hover:bg-[#126048]">Apply stage</button>
+              {(params.stage || params.q) && <Link href="/exams" className="pt-1 text-base font-semibold text-[#36544a] underline underline-offset-4">Clear filters</Link>}
+            </form>
+          </aside>
+          <section id="exam-list" aria-label="Entrance examinations" className="min-w-0 scroll-mt-24">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div><p className="text-sm font-semibold text-[#6f887b]">Browse by entry point</p><h2 className="mt-2 text-3xl font-semibold tracking-[-.045em] text-[#17201b] sm:text-4xl">Exams to look into</h2></div>
+              <p className="text-base font-medium text-[#36544a]">{exams.length} results</p>
+            </div>
+            {exams.length ? <ul className="space-y-4">
+              {exams.map((exam, index) => (
+                <li key={exam.slug} className={index % 2 === 0 ? "bg-[#d6eaf4]" : "bg-[#e6eeea]"}>
+                  <LibraryReveal delay={Math.min(index * 45, 270)}>
+                    <Link id={exam.slug} href={`/exams/${exam.slug}`} className="group grid gap-4 p-5 transition-colors hover:bg-[#dde4df] sm:grid-cols-[minmax(0,1fr)_minmax(180px,.5fr)_auto] sm:items-center sm:p-7">
+                      <span className="min-w-0">
+                        <span className="inline-flex min-h-8 items-center bg-[#fdf3d3] px-3 text-sm font-semibold text-[#694e0b]">{exam.shortName ?? "Entrance exam"}</span>
+                        <span className="mt-3 block text-2xl font-semibold leading-tight tracking-[-.035em] text-[#17201b] transition-colors group-hover:text-[#126048] sm:text-3xl">{exam.name}</span>
+                        <span className="mt-2 block text-base text-[#34463c]">{exam.conductingBody ?? "Exam-conducting body not listed"}</span>
+                      </span>
+                      <span className="grid gap-2 text-base text-[#34463c]">
+                        <span className="font-semibold text-[#17201b]">{exam.levelStage === "after_class10" ? "After Class 10" : exam.levelStage === "after_class12" ? "After Class 12" : "Stage not listed"}</span>
+                        {(exam.appliesTo ?? []).length > 0 && <span>For {(exam.appliesTo ?? []).slice(0, 2).join(", ")}</span>}
+                        {exam.examDate && <span className="text-sm text-[#547065]">Listed date: {exam.examDate}</span>}
+                      </span>
+                      <span className="inline-flex min-h-11 items-center gap-2 text-base font-semibold text-[#09332a]">Review <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-1" /></span>
+                    </Link>
+                  </LibraryReveal>
+                </li>
+              ))}
+            </ul> : <div className="bg-[#e6eeea] p-7 sm:p-10"><h3 className="text-2xl font-semibold text-[#17201b]">No exams match these filters</h3><p className="mt-3 text-base text-[#34463c]">Clear the filters or try a different search.</p><Link href="/exams" className="mt-6 inline-flex min-h-11 items-center gap-2 text-base font-semibold text-[#09332a] underline underline-offset-4">Browse all exams <ExternalLink aria-hidden="true" className="h-4 w-4" /></Link></div>}
+          </section>
+        </div>
+      </main>
+    </div>
+  );
 }

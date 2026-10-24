@@ -1,39 +1,168 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, CalendarDays, CheckCircle2, ClipboardList, FileText, GraduationCap, Info, Scale, ShieldCheck, Users } from "lucide-react";
 import { notFound } from "next/navigation";
-import { Badge, ButtonLink, Callout, Eyebrow, VerificationBadge } from "@/components/ui";
+import { ArrowRight, CalendarDays, FileText, GraduationCap, ShieldCheck } from "lucide-react";
 import { SaveButton } from "@/components/save-button";
 import { ReportCatalogueIssue } from "@/components/report-catalogue-issue";
+import { VerificationBadge } from "@/components/ui";
+import {
+  LibraryBreadcrumbs,
+  LibraryDetailFrame,
+  LibraryDetailIntro,
+  LibrarySection,
+  LibrarySourceLink,
+} from "@/components/library-detail";
 import { getExam } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) { return { title: (await getExam((await params).slug))?.shortName ?? "Entrance exam" }; }
-const tabs = ["Overview", "Eligibility", "Important dates", "Syllabus", "Sources"];
 
-function ExamRail() {
-  return <aside className="relative hidden min-h-[calc(100dvh-5rem)] w-[205px] shrink-0 overflow-hidden border-r border-[#dbe9f2] bg-[#edf7fd] lg:block"><Image src="/images/possibilities-landscape.png" alt="" fill sizes="205px" className="object-cover object-[18%_65%] opacity-45" /><div className="absolute inset-0 bg-gradient-to-t from-[#e8f4fb] via-[#e8f4fb]/45 to-transparent" /><div className="absolute inset-x-7 bottom-12"><p className="font-serif text-[22px] italic leading-tight text-[#416d83]">A brighter<br />tomorrow for<br />Nagaland</p><span className="mt-5 block h-1 w-12 rounded-full bg-forest-700" /><p className="mt-12 max-w-[130px] text-sm leading-relaxed text-[#54738d]">Guiding learners towards new possibilities.</p></div></aside>;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  return { title: (await getExam((await params).slug))?.shortName ?? "Entrance exam" };
 }
+
+const dateFields = [
+  ["Application period", "applicationPeriod"],
+  ["Exam date", "examDate"],
+  ["Correction window", "correctionWindow"],
+  ["Result date", "resultDate"],
+] as const;
 
 export default async function ExamPage({ params }: { params: Promise<{ slug: string }> }) {
   const exam = await getExam((await params).slug);
   if (!exam) notFound();
-  const appliesTo = exam.appliesTo ?? [];
-  const preparation = (exam.preparation ?? []).slice(0, 3);
-  const documentLabels = ["Photograph", "Signature", "Identity document", "Academic details", "Category certificate, if applicable"] as const;
-  const examDocuments = documentLabels.map((label) => ({
-    label,
-    status: exam.documentStatus?.[label] ?? ((exam.documents ?? []).includes(label) ? "required" : "not_confirmed"),
-  }));
-  const stageLabel = exam.levelStage === "after_class10" ? "After Class 10" : exam.levelStage === "after_class12" ? "After Class 12" : "Stage not recorded";
-  return <div className="flex min-w-0"><ExamRail /><div className="min-w-0 flex-1 bg-white"><div className="cb-container cb-page mx-auto max-w-[1320px]">
-    <div className="mb-6 flex items-center gap-3 text-sm text-ink-500"><Link href="/" className="hover:text-forest-700">Home</Link><span>/</span><Link href="/exams" className="hover:text-forest-700">Learn</Link><span>/</span><Link href="/exams" className="hover:text-forest-700">Entrance exams</Link><span>/</span><span className="text-ink-800">{exam.shortName ?? exam.name}</span></div>
-    <main className="grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_330px]"><div className="min-w-0"><header className="grid gap-6 sm:grid-cols-[155px_minmax(0,1fr)]"><div className="relative flex min-h-[155px] flex-col items-center justify-center overflow-hidden rounded-2xl bg-[#eef8f3] p-4 text-center"><div className="grid h-20 w-20 place-items-center rounded-full bg-white text-[#198b6e] shadow-sm"><FileText className="h-10 w-10" /></div><p className="mt-3 text-sm font-semibold text-forest-800">{exam.shortName ?? "Entrance exam"}</p><Badge tone="forest" className="mt-2">{stageLabel}</Badge></div><div><Eyebrow>Entrance exam</Eyebrow><h1 className="mt-2 text-[clamp(2rem,4vw,4rem)] font-semibold leading-[1.06] tracking-[-.05em] text-[#071533]">{exam.shortName ? `${exam.shortName} — ${exam.name.replace(`${exam.shortName} — `, "")}` : exam.name}</h1><p className="mt-3 text-lg text-ink-500">Review the current official notification for applicable programmes, education stage, and cycle-specific dates.</p><div className="mt-5 flex flex-wrap gap-3"><span className="inline-flex items-center gap-2 rounded-full bg-[#eef3fb] px-4 py-2 text-sm font-semibold text-ink-600"><CalendarDays className="h-4 w-4 text-forest-700" />{exam.cycleLabel ? `Cycle: ${exam.cycleLabel}` : "Cycle not currently confirmed"}</span><span className="inline-flex items-center gap-2 rounded-full bg-[#eef3fb] px-4 py-2 text-sm font-semibold text-ink-600"><FileText className="h-4 w-4 text-forest-700" />{exam.conductingBody ?? "Official examination body"}</span><span className="inline-flex items-center gap-2 rounded-full bg-[#eef3fb] px-4 py-2 text-sm font-semibold text-ink-600"><Users className="h-4 w-4 text-forest-700" />{exam.levelStage === "after_class10" ? "After Class 10" : "After Class 12"}</span></div><div className="mt-6 flex flex-wrap gap-3"><ButtonLink href={`/courses?exam=${exam.slug}`}><GraduationCap className="h-4 w-4" />Find eligible courses</ButtonLink><SaveButton itemType="exam" itemRef={exam.slug} label={exam.shortName ?? exam.name} /><ButtonLink href={`/compare?type=exam&a=${exam.slug}`} variant="secondary"><Scale className="h-4 w-4" />Compare</ButtonLink></div></div></header>
-    <nav aria-label="Exam sections" className="mt-7 border-b border-ink-200"><ol className="flex gap-1 overflow-x-auto">{tabs.map((tab, index) => <li key={tab}><a href={index === 0 ? "#overview" : "#prepare"} className={`block whitespace-nowrap border-b-[3px] px-5 py-3 text-sm font-semibold ${index === 0 ? "border-[#198b6e] text-forest-700" : "border-transparent text-ink-500 hover:border-forest-300 hover:text-ink-800"}`}>{tab}</a></li>)}</ol></nav>
-    <section id="overview" className="mt-5 rounded-2xl border border-ink-200 bg-white p-6"><div className="flex items-start gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#eeeaff] text-[#7054b2]"><FileText className="h-6 w-6" /></span><div><h2 className="text-2xl font-semibold text-[#071533]">What is {exam.shortName ?? exam.name}?</h2><p className="mt-3 text-base leading-relaxed text-ink-600">{exam.name} is an entrance examination used for admission to the programmes and institutions listed below. Review the current official notification before relying on any dates or requirements.</p></div></div><div className="mt-6 grid gap-5 border-t border-ink-100 pt-5 md:grid-cols-3"><div><div className="flex items-center gap-2 font-semibold"><Users className="h-5 w-5 text-forest-700" />Who can apply?</div><p className="mt-2 text-sm leading-relaxed text-ink-500">{exam.eligibility ?? "Eligibility details are currently unavailable. Check the official notification."}</p></div><div><div className="flex items-center gap-2 font-semibold"><ShieldCheck className="h-5 w-5 text-forest-700" />Conducted by</div><p className="mt-2 text-sm leading-relaxed text-ink-500">{exam.conductingBody ?? "The official examination authority"}</p></div><div><div className="flex items-center gap-2 font-semibold"><GraduationCap className="h-5 w-5 text-forest-700" />Level</div><p className="mt-2 text-sm leading-relaxed text-ink-500">{appliesTo.join(" ") || "Participating courses and institutions"}</p></div></div></section>
-    <section className="mt-5 rounded-2xl border border-ink-200 bg-white p-6" aria-labelledby="exam-documents-heading"><div className="flex items-center gap-3"><FileText className="h-6 w-6 text-[#7054b2]" /><h2 id="exam-documents-heading" className="text-xl font-semibold">Document requirements</h2></div><ul className="mt-4 grid gap-3 sm:grid-cols-2">{examDocuments.map(({ label, status }) => <li key={label} className="flex items-center justify-between gap-2 rounded-lg bg-[#f7f9f8] px-3 py-2.5 text-sm"><span className="text-ink-700">{label}</span><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${status === "required" ? "bg-[#eaf8f2] text-forest-800" : "bg-[#fff5df] text-[#94610c]"}`}>{status === "required" ? "Required" : "Not currently confirmed"}</span></li>)}</ul><p className="mt-3 text-xs leading-relaxed text-ink-500">Document requirements are cycle-specific. A missing confirmation does not mean an item is not required.</p></section>
-    <section id="prepare" className="mt-5 rounded-2xl border border-[#dcefe7] bg-[#f2faf7] p-6"><div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-full bg-[#d8f1e6] text-forest-700"><CheckCircle2 className="h-6 w-6" /></span><div><h2 className="text-2xl font-semibold text-[#071533]">Get ready with clear tasks</h2><p className="text-sm text-ink-500">Follow these steps to move forward with confidence.</p></div></div><div className="mt-6 grid gap-5 md:grid-cols-3">{(preparation.length ? preparation : ["Check eligibility", "Note the application window", "Explore institutions"]).map((item, index) => <div key={item} className="flex gap-3 border-t border-[#cfe6dc] pt-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#d2eee2] text-sm font-semibold text-forest-800">{index + 1}</span><div><h3 className="text-sm font-semibold">{item}</h3><p className="mt-1 text-xs leading-relaxed text-ink-500">Review the latest official details and keep your documents ready.</p></div></div>)}</div></section><Callout tone="neutral"><p>Exam dates, fees and eligibility can change each cycle. Confirm all details on the official website.</p></Callout><div className="mt-5"><ReportCatalogueIssue entityType="entrance_exam" entityRef={exam.slug} entityName={exam.shortName ?? exam.name} sourceUrl={exam.officialWebsite} /></div></div>
-    <aside className="space-y-5 xl:sticky xl:top-24"><section className="rounded-2xl border border-ink-200 bg-white p-5 shadow-[0_12px_30px_-28px_#1d4f4266]"><div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-12 w-12 place-items-center rounded-full bg-[#eef3ff] text-[#2877df]"><Info className="h-6 w-6" /></span><div><h2 className="text-xl font-semibold text-[#071533]">Exam at a glance</h2><p className="text-sm text-ink-500">Key information at a glance.</p></div></div><div className="space-y-6 pt-5"><div className="flex gap-3"><CalendarDays className="h-6 w-6 shrink-0 text-[#2877df]" /><div><h3 className="text-sm font-semibold">Cycle</h3><p className="mt-1 text-sm font-semibold text-ink-700">{exam.cycleLabel || "Not currently confirmed"}</p></div></div><div className="flex gap-3 border-t border-ink-100 pt-5"><CalendarDays className="h-6 w-6 shrink-0 text-[#2877df]" /><div><h3 className="text-sm font-semibold">Application window</h3><p className="mt-1 text-sm font-semibold text-ink-700">{exam.applicationPeriod ?? "Currently unavailable"}</p><p className="mt-1 text-xs leading-relaxed text-ink-500">Exact dates may change. Check the official website for the latest updates.</p></div></div><div className="flex gap-3 border-t border-ink-100 pt-5"><ClipboardList className="h-6 w-6 shrink-0 text-[#2877df]" /><div><h3 className="text-sm font-semibold">Exam date</h3><p className="mt-1 text-sm font-semibold text-ink-700">{exam.examDate ?? "Currently unavailable"}</p><p className="mt-1 text-xs text-ink-500">Check the current notification.</p></div></div><div className="flex gap-3 border-t border-ink-100 pt-5"><CalendarDays className="h-6 w-6 shrink-0 text-[#2877df]" /><div><h3 className="text-sm font-semibold">Correction window</h3><p className="mt-1 text-sm font-semibold text-ink-700">{exam.correctionWindow || "Not currently confirmed"}</p></div></div><div className="flex gap-3 border-t border-ink-100 pt-5"><CalendarDays className="h-6 w-6 shrink-0 text-[#2877df]" /><div><h3 className="text-sm font-semibold">Result date</h3><p className="mt-1 text-sm font-semibold text-ink-700">{exam.resultDate || "Not currently confirmed"}</p></div></div><div className="flex gap-3 border-t border-ink-100 pt-5"><LinkIcon className="h-6 w-6 shrink-0 text-[#2877df]" /><div><h3 className="text-sm font-semibold">Official source</h3><a href={exam.officialWebsite ?? "#"} target="_blank" rel="noreferrer" className="cb-source mt-1 text-sm">Open official website <ArrowRight className="h-4 w-4" /></a><div className="mt-3 rounded-xl bg-[#e8f7ef] px-3 py-2 text-xs text-forest-800"><VerificationBadge status={exam.verificationStatus} lastVerifiedAt={exam.lastVerifiedAt} /></div></div></div></div></section><section className="rounded-2xl bg-[#f4f0ff] p-6"><div className="flex items-center gap-3"><BookOpen className="h-7 w-7 text-[#7054b2]" /><h2 className="text-lg font-semibold text-[#071533]">Planning for what&apos;s next?</h2></div><p className="mt-3 text-sm leading-relaxed text-ink-600">Explore courses, compare colleges and build your study plan.</p><Link href={`/courses?exam=${exam.slug}`} className="cb-source mt-5 text-sm">Explore eligible courses <ArrowRight className="h-4 w-4" /></Link></section></aside></main>
-  </div></div></div>;
+
+  const stageLabel = exam.levelStage === "after_class10"
+    ? "After Class 10"
+    : exam.levelStage === "after_class12"
+      ? "After Class 12"
+      : null;
+  const cycleDates = dateFields.filter(([, key]) => exam[key]);
+  const documents = Object.entries(exam.documentStatus ?? {});
+  const requiredDocuments = (exam.documents ?? []).filter((document) => !exam.documentStatus?.[document]);
+
+  return (
+    <LibraryDetailFrame>
+      <LibraryBreadcrumbs items={[
+        { label: "Explore", href: "/explore" },
+        { label: "Exams", href: "/exams" },
+        { label: exam.shortName ?? exam.name },
+      ]} />
+
+      <LibraryDetailIntro
+        variant="exam"
+        title={exam.shortName ?? exam.name}
+        titleClassName="max-w-[24ch] text-[clamp(1.75rem,5vw,5.25rem)] font-semibold leading-[1] tracking-[-.055em] text-[#17201b]"
+        description={`${exam.shortName ? `${exam.shortName} is an entrance examination. ` : "This entrance examination "}Review its eligibility and cycle details, then confirm current requirements in the official notification.`}
+        facts={
+          <>
+            {exam.shortName && exam.shortName !== exam.name && <span className="basis-full text-base">Official name: {exam.name}</span>}
+            {stageLabel && <span>{stageLabel}</span>}
+            {exam.conductingBody && <span>Conducted by {exam.conductingBody}</span>}
+            {exam.cycleLabel && <span>Cycle: {exam.cycleLabel}</span>}
+          </>
+        }
+        actions={
+          <>
+            <SaveButton itemType="exam" itemRef={exam.slug} label={exam.shortName ?? exam.name} tone="forest" />
+            {exam.officialWebsite && (
+              <LibrarySourceLink href={exam.officialWebsite}>Official examination website</LibrarySourceLink>
+            )}
+            <Link href="/courses" className="cb-button cb-button-secondary px-5 py-2.5 text-sm">
+              <GraduationCap className="h-4 w-4" /> Browse courses
+            </Link>
+          </>
+        }
+        aside={
+          <aside className="bg-[#09332a] p-6 text-white sm:p-7">
+            <h2 className="flex items-center gap-3 text-xl font-semibold text-white">
+              <ShieldCheck aria-hidden="true" className="h-5 w-5 text-[#f2cf78]" /> Check the current notice
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-[#e3ece7]">
+              Dates and eligibility can change each cycle. Confirm the latest notification before planning an application.
+            </p>
+            <div className="mt-5"><VerificationBadge status={exam.verificationStatus} lastVerifiedAt={exam.lastVerifiedAt} /></div>
+          </aside>
+        }
+      />
+
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(250px,.62fr)]">
+        <div className="space-y-12">
+          <LibrarySection id="eligibility" title="Who may apply">
+            <dl className="grid gap-7 sm:grid-cols-2">
+              <div><dt className="font-semibold text-[#17201b]">Eligibility</dt><dd className="mt-2 text-sm leading-relaxed text-[#405349]">{exam.eligibility || "Eligibility details are not currently listed. Check the official notification."}</dd></div>
+              <div><dt className="font-semibold text-[#17201b]">Academic conditions</dt><dd className="mt-2 text-sm leading-relaxed text-[#405349]">{exam.minimumAcademicCondition || "Academic conditions are not currently confirmed."}</dd></div>
+              <div><dt className="font-semibold text-[#17201b]">Required subjects</dt><dd className="mt-2 text-sm leading-relaxed text-[#405349]">{exam.requiredSubjects?.length ? exam.requiredSubjects.join(", ") : "No subject requirements are listed."}</dd></div>
+              <div><dt className="font-semibold text-[#17201b]">Age and attempts</dt><dd className="mt-2 text-sm leading-relaxed text-[#405349]">{exam.ageAttemptNotes || "Age limits or attempt rules are not currently listed."}</dd></div>
+            </dl>
+            {exam.appliesTo?.length ? <div className="mt-8">
+              <h3 className="font-semibold">Programmes listed</h3>
+              <ul className="mt-3 space-y-2 text-sm text-[#405349]">{exam.appliesTo.map((item) => <li key={item}>{item}</li>)}</ul>
+            </div> : null}
+          </LibrarySection>
+
+          <LibrarySection id="dates" title="Dates and application cycle" intro="Treat these dates as catalogue notes, not as a live application calendar. Confirm every date with the conducting body.">
+            <div className="mb-5 flex items-center gap-3 text-sm font-semibold text-[#17201b]"><CalendarDays aria-hidden="true" className="h-5 w-5 text-[#6f887b]" />{exam.cycleLabel || "Cycle not currently recorded"}</div>
+            {cycleDates.length ? (
+              <dl className="space-y-0">
+                {cycleDates.map(([label, key]) => <div key={key} className="grid gap-1 bg-[#dde4df] px-4 py-4 sm:grid-cols-[minmax(140px,.35fr)_1fr]"><dt className="font-semibold">{label}</dt><dd className="text-sm leading-relaxed text-[#405349]">{exam[key]}</dd></div>)}
+              </dl>
+            ) : <p className="text-sm leading-relaxed text-[#52635a]">No cycle dates are currently recorded for this exam. Check the official notification for current dates.</p>}
+          </LibrarySection>
+
+          <LibrarySection id="documents" title="Application documents">
+            {documents.length || requiredDocuments.length ? (
+              <ul className="space-y-0">
+                {documents.map(([label, status]) => (
+                  <li key={label} className="grid gap-2 bg-[#edf1ee] px-4 py-3 text-sm sm:grid-cols-[1fr_auto]">
+                    <span>{label}</span>
+                    <span className="font-semibold text-[#405349]">{status === "required" ? "Required" : "Not confirmed"}</span>
+                  </li>
+                ))}
+                {requiredDocuments.map((label) => <li key={label} className="bg-[#edf1ee] px-4 py-3 text-sm">{label} <span className="font-semibold text-[#405349]">— listed; status not confirmed</span></li>)}
+              </ul>
+            ) : <p className="text-sm text-[#52635a]">A document list is not currently available for this entry.</p>}
+            {(documents.length || requiredDocuments.length) ? <p className="mt-4 text-sm leading-relaxed text-[#52635a]">Document lists can change by cycle. An unconfirmed item should not be treated as optional.</p> : null}
+          </LibrarySection>
+
+          {exam.preparation?.length ? (
+            <LibrarySection title="Preparation notes">
+              <ol className="space-y-4">
+                {exam.preparation.map((item, index) => <li key={item} className="flex gap-4 bg-[#dde4df] px-4 py-4"><span className="font-semibold text-[#09332a]">{index + 1}</span><span className="text-sm leading-relaxed text-[#263a30]">{item}</span></li>)}
+              </ol>
+            </LibrarySection>
+          ) : null}
+        </div>
+
+        <aside className="space-y-12">
+          <LibrarySection title="Programmes and courses">
+            {exam.appliesTo?.length ? (
+              <>
+                <ul className="space-y-3 text-sm leading-relaxed text-[#405349]">
+                  {exam.appliesTo.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+                <Link href="/courses" className="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-[#09332a] underline underline-offset-4">
+                  Browse course listings <GraduationCap aria-hidden="true" className="h-4 w-4" />
+                </Link>
+              </>
+            ) : (
+              <Link href="/courses" className="inline-flex min-h-11 items-center gap-2 font-semibold text-[#09332a] underline underline-offset-4">
+                Browse course listings <GraduationCap aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            )}
+          </LibrarySection>
+          <LibrarySection title="Official source">
+            <LibrarySourceLink href={exam.officialWebsite}>Open the official website</LibrarySourceLink>
+            {!exam.officialWebsite && <p className="mt-3 text-sm leading-relaxed text-[#52635a]">No official website is recorded here. Search for the current notice from the conducting body.</p>}
+          </LibrarySection>
+        </aside>
+      </div>
+
+      <div className="mt-14">
+        <ReportCatalogueIssue entityType="entrance_exam" entityRef={exam.slug} entityName={exam.shortName ?? exam.name} sourceUrl={exam.officialWebsite} />
+      </div>
+      <p className="mt-6 flex items-start gap-3 bg-[#dde4df] px-5 py-4 text-sm leading-relaxed text-[#263a30]">
+        <FileText aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-[#09332a]" />
+        Exam dates, fees and eligibility can change each cycle. Confirm current details on the official notification before applying.
+      </p>
+    </LibraryDetailFrame>
+  );
 }
-function LinkIcon({ className }: { className?: string }) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden><path d="M10 13a5 5 0 0 0 7.54.54l2-2a5 5 0 0 0-7.07-7.07l-1.15 1.15" /><path d="M14 11a5 5 0 0 0-7.54-.54l-2 2a5 5 0 0 0 7.07 7.07l1.15-1.15" /></svg>; }

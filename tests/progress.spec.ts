@@ -4,6 +4,39 @@ const answers: [string, string[]][] = [
   ['strengths', ['problem-solving']], ['work_style', ['mixed']], ['goals', ['technology']], ['values', ['learning']],
   ['location_pref', ['within-nagaland']], ['budget', ['low']],
 ];
+test('guest progress lasts for the browser session and transfers on sign-up', async ({ page, browser }) => {
+  for (const [questionKey, values] of answers.slice(0, 3)) {
+    expect((await page.request.post('/api/counselling', { data: { stage: 'class10', questionKey, values } })).ok()).toBe(true);
+  }
+  expect((await page.context().cookies()).find((cookie) => cookie.name === 'cb_journey')?.expires).toBe(-1);
+
+  const freshContext = await browser.newContext({
+    baseURL: process.env.CAREERBRIDGE_TEST_URL ?? 'http://localhost:3000',
+  });
+  try {
+    const freshProfile = await (await freshContext.request.get('/api/profile')).json();
+    expect(freshProfile.started).toBe(false);
+  } finally {
+    await freshContext.close();
+  }
+
+  const email = `cb-guest-session-${Date.now()}@example.test`;
+  const password = 'TestOnly-Strong-2026!';
+  expect((await page.request.post('/api/auth/sign-up', {
+    form: { fullName: 'Guest Session Test', email, password, confirm: password, next: '/profile' },
+  })).ok()).toBe(true);
+  const profile = await (await page.request.get('/api/profile')).json();
+  expect(profile.signedIn).toBe(true);
+  expect(profile.snapshot.interests).toContain('technology');
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await expect(page.getByRole('link', { name: 'My account', exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  await expect(page.locator('#home-mobile-nav').getByRole('link', { name: 'My account', exact: true })).toBeVisible();
+});
+
 test('completed counselling goes directly to review, confirmation, and possibilities', async ({ page }) => {
   for (const [questionKey, values] of answers) {
     const response = await page.request.post('/api/counselling', { data: { action: 'answer', stage: 'class10', questionKey, values } });

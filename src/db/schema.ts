@@ -74,7 +74,7 @@ export const users = pgTable(
   },
   (t) => [
     uniqueIndex("users_email_idx").on(t.email),
-    index("users_external_idx").on(t.externalId),
+    uniqueIndex("users_external_id_unique_idx").on(t.externalId),
   ],
 );
 
@@ -95,6 +95,21 @@ export const authSessions = pgTable(
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("auth_sessions_token_idx").on(t.token)],
+);
+
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").notNull(),
+    tokenHash: varchar("token_hash", { length: 64 }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("password_reset_tokens_hash_idx").on(t.tokenHash),
+    index("password_reset_tokens_user_idx").on(t.userId),
+  ],
 );
 
 export const studentProfiles = pgTable(

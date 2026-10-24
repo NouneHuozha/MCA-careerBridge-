@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { signInWithPassword, signUpWithPassword } from "@/auth";
-import { getSessionState, persistSnapshot, startSession } from "@/services/profile";
+import { isPasswordResetConfigured, requestPasswordReset, resetPassword, signInWithPassword, signUpWithPassword } from "@/auth";
+import { getSessionState, persistExplorationCookiesForAccount, persistSnapshot, startSession } from "@/services/profile";
 import { safeReturnPath } from "@/lib/return-path";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +12,7 @@ async function keepJourneyWithAccount() {
       await startSession(journey.stage, journey.stageDetail);
       await persistSnapshot(journey.snapshot);
     }
+    await persistExplorationCookiesForAccount();
   } catch (error) {
     console.error("[careerbridge] journey handoff unavailable", error);
   }
@@ -45,6 +46,25 @@ export async function POST(request: Request, context: { params: Promise<{ action
   const signInPath = adminDestination ? "/admin/login" : "/sign-in";
 
   try {
+    if (action === "forgot-password") {
+      if (!isPasswordResetConfigured()) return redirectTo(request, "/forgot-password?error=unavailable");
+      if (!email || email.length > 191) return redirectTo(request, "/forgot-password?error=invalid");
+      await requestPasswordReset(email);
+      return redirectTo(request, "/forgot-password?sent=1");
+    }
+
+    if (action === "reset-password") {
+      const token = String(form.get("token") ?? "");
+      const confirm = String(form.get("confirm") ?? "");
+      if (password !== confirm) {
+        return redirectTo(request, `/reset-password?error=${encodeURIComponent("Both passwords need to match.")}&token=${encodeURIComponent(token)}`);
+      }
+      if (!await resetPassword(token, password)) {
+        return redirectTo(request, "/reset-password?error=expired");
+      }
+      return redirectTo(request, "/sign-in?reset=1");
+    }
+
     if (action === "sign-in") {
       const result = await signInWithPassword({ email, password, requiredRole: adminDestination ? "admin" : undefined });
       if (!result.ok) return redirectTo(request, `${signInPath}?error=${encodeURIComponent(result.error)}&next=${encodeURIComponent(next)}`);
@@ -69,6 +89,14 @@ export async function POST(request: Request, context: { params: Promise<{ action
     console.error("[careerbridge] auth action failed", error);
     if (action === "sign-in") {
       return redirectTo(request, `${signInPath}?error=${encodeURIComponent("We couldn't complete that just now. Please try again.")}&next=${encodeURIComponent(next)}`);
+    }
+    if (action === "forgot-password") {
+      console.error("[careerbridge] password reset request failed", error);
+      return redirectTo(request, "/forgot-password?error=send");
+    }
+    if (action === "reset-password") {
+      console.error("[careerbridge] password reset failed", error);
+      return redirectTo(request, "/reset-password?error=unavailable");
     }
     return redirectTo(
       request,

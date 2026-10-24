@@ -1,19 +1,102 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Bookmark, Clock3, Globe2, Heart, Laptop, MapPin, Pencil, Sprout, Tag, Users } from "lucide-react";
-import { Badge, ButtonLink, FilterDisclosure, SourceLink, VerificationBadge } from "@/components/ui";
-import { SaveButton } from "@/components/save-button";
+import { ArrowRight, Compass } from "lucide-react";
+import { LibrarySearch } from "@/components/library-search";
+import { LibraryReveal } from "@/components/library-motion";
+import { OpportunityTypeFilters } from "@/components/opportunity-type-filters";
 import { getFields, getOpportunities } from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Skills & opportunities" };
-const types: Record<string, string> = { learning: "Course", project: "Project", internship: "Experience", competition: "Competition", certification: "Course", entry_role: "Experience" };
-const artwork = ["/images/course-computing.png", "/images/field-engineering.png", "/images/field-healthcare.png", "/images/mentor-hero.png"];
-function JourneyRail() { return <aside className="hidden min-h-[calc(100dvh-4rem)] w-[285px] shrink-0 border-r border-[#dce9e5] bg-[#f1faf7] px-7 py-8 lg:block"><p className="text-xl font-semibold text-[#102f2a]">Your journey</p><ol className="mt-9">{[{n: 1, title: "Understand yourself", text: "Discover your interests and strengths", done: true }, {n: 2, title: "Explore possibilities", text: "See what’s out there", done: true }, {n: 3, title: "Find a route", text: "Explore options and compare", done: true }, {n: 4, title: "Build skills", text: "Learn by doing and build confidence", current: true }, {n: 5, title: "Make a plan", text: "Bring it all together" }].map((step, index, list) => <li key={step.n} className="relative flex min-h-[88px] gap-3">{index < list.length - 1 ? <span className={`absolute left-4 top-8 h-[68px] w-px ${step.current ? "bg-[#2a9777]" : "bg-[#5bb496]"}`} /> : null}<span className={`relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 ${step.current ? "border-[#198b6e] bg-[#dff3eb] text-[#198b6e]" : step.done ? "border-[#42a88c] bg-[#42a88c] text-white" : "border-[#aebfc0] bg-white text-transparent"}`}>{step.current ? <span className="h-3 w-3 rounded-full bg-[#198b6e]" /> : step.done ? "✓" : step.n}</span><span className={step.current ? "rounded-lg bg-[#e3f4ed] px-2 py-1 text-[#12664f]" : "px-2 py-1 text-ink-700"}><span className="block text-sm font-semibold">{step.title}</span><span className="mt-1 block max-w-[180px] text-xs leading-relaxed text-ink-500">{step.text}</span></span></li>)}</ol></aside>; }
-function CategoryIcon({ index }: { index: number }) { return index % 4 === 0 ? <Laptop className="h-4 w-4" /> : index % 4 === 1 ? <Tag className="h-4 w-4" /> : index % 4 === 2 ? <Heart className="h-4 w-4" /> : <Pencil className="h-4 w-4" />; }
-export default async function OpportunitiesPage({ searchParams }: { searchParams: Promise<{ field?: string }> }) {
-  const { field: selectedField } = await searchParams;
-  const [opportunities, fields] = await Promise.all([getOpportunities(selectedField ? { fieldSlug: selectedField } : {}), getFields()]);
-  const filterChips = [{ label: "Online", icon: <Globe2 className="h-4 w-4" /> }, { label: "Local", icon: <MapPin className="h-4 w-4" /> }, { label: "Free", icon: <Tag className="h-4 w-4" /> }, { label: "Technology", icon: <Laptop className="h-4 w-4" /> }, { label: "Health", icon: <Heart className="h-4 w-4" /> }, { label: "Creative", icon: <Pencil className="h-4 w-4" /> }];
-  return <div className="flex min-w-0"><JourneyRail /><main className="min-w-0 flex-1"><div className="cb-container cb-page mx-auto max-w-[1320px]"><header><h1 className="text-[clamp(2.4rem,5vw,4.2rem)] font-semibold leading-[1.02] tracking-[-.05em] text-[#092b25]">Small steps you can take now.</h1><p className="mt-3 text-base text-ink-500">Build skills, try something practical, and keep learning while you explore.</p></header><nav className="mt-7 flex flex-wrap gap-3" aria-label="Opportunity categories">{filterChips.map((chip) => <span key={chip.label} className="inline-flex items-center gap-2 rounded-full border border-ink-100 bg-white px-5 py-2.5 text-sm text-ink-700 shadow-[0_1px_2px_rgba(15,23,42,.03)]">{chip.icon}{chip.label}</span>)}</nav><div className="mt-5"><FilterDisclosure label={selectedField ? `Field: ${fields.find((f) => f.slug === selectedField)?.name ?? selectedField}` : "Filter by field"} count={selectedField ? 1 : 0}><div className="flex flex-wrap gap-2"><ButtonLink href="/opportunities" variant="secondary" size="sm">All fields</ButtonLink>{fields.map((field) => <Link key={field.slug} href={`/opportunities?field=${field.slug}`} className={`cb-choice ${selectedField === field.slug ? "border-forest-600 bg-mint" : ""}`}>{field.name}</Link>)}</div></FilterDisclosure></div><section className="mt-6 grid gap-4 xl:grid-cols-4">{opportunities.map((opportunity, index) => <article key={opportunity.slug} className="flex min-h-[430px] flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04)]"><div className="flex items-center justify-between gap-3"><Badge tone={index % 3 === 1 ? "amber" : index % 3 === 2 ? "lavender" : "green"}>{types[opportunity.type] ?? opportunity.type}</Badge><span className="flex items-center gap-1 text-xs text-ink-500"><Clock3 className="h-4 w-4" />{index % 3 === 0 ? "2–4 hours" : index % 3 === 1 ? "4–6 hours" : "6–10 hours"}</span></div><div className="relative mt-3 h-28 overflow-hidden rounded-xl bg-[#eff8f4]"><Image src={artwork[index % artwork.length]} alt="" fill sizes="300px" className="object-cover object-center" /><div className="absolute left-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-white/80 text-[#24886f]"><CategoryIcon index={index} /></div></div><h2 className="mt-4 text-lg font-semibold leading-tight text-[#0b4435]">{opportunity.title}</h2><p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink-600">{opportunity.description}</p><div className="mt-auto"><div className="mt-4 flex items-center gap-2 text-xs text-ink-500"><Users className="h-4 w-4 text-[#2b9675]" /><span>{opportunity.provider}</span>{opportunity.url ? <span className="text-[#2b9675]">●</span> : null}<span>Free</span></div><div className="mt-4"><ButtonLink href={`/opportunities/${opportunity.slug}`} className="w-full justify-center">See opportunity <ArrowRight className="h-4 w-4" /></ButtonLink><div className="mt-2"><SaveButton itemType="opportunity" itemRef={opportunity.slug} label={opportunity.title} className="w-full justify-center" /></div></div></div></article>)}</section>{!opportunities.length ? <div className="mt-6 rounded-2xl border border-ink-100 bg-white p-6">Nothing is listed for this field yet. <Link href="/opportunities" className="cb-source">Browse all opportunities <ArrowRight className="h-4 w-4" /></Link></div> : null}<section className="mt-6 flex items-center justify-between gap-5 overflow-hidden rounded-2xl border border-[#d5eee3] bg-[#ecfaf5] px-6 py-5"><div className="flex items-center gap-5"><div className="relative h-20 w-24 shrink-0"><Image src="/images/mentor-hero.png" alt="" fill sizes="96px" className="object-cover object-top" /></div><div><h2 className="text-lg font-semibold text-[#12624e]">Not sure what fits?</h2><p className="mt-1 text-sm text-ink-600">Chat with a Mentor to get personalised ideas based on your interests and goals.</p></div></div><ButtonLink href="/mentor" className="hidden shrink-0 sm:inline-flex">Ask Mentor <ArrowRight className="h-4 w-4" /></ButtonLink></section></div></main></div>;
+export const metadata = { title: "Explore skills and opportunities" };
+
+export default async function OpportunitiesPage({ searchParams }: { searchParams: Promise<{ q?: string; type?: string; field?: string }> }) {
+  const params = await searchParams;
+  const query = params.q?.trim().toLocaleLowerCase() ?? "";
+  const [allOpportunities, fields] = await Promise.all([getOpportunities(), getFields()]);
+  const opportunities = allOpportunities.filter((item) =>
+    (!query || `${item.title} ${item.provider ?? ""} ${item.description ?? ""} ${(item.skillTags ?? []).join(" ")}`.toLocaleLowerCase().includes(query)) &&
+    (!params.type || item.type === params.type) &&
+    (!params.field || (item.fieldSlugs ?? []).includes(params.field)),
+  );
+  const types = [...new Set(allOpportunities.map((item) => item.type))].sort();
+  const fieldBySlug = new Map(fields.map((field) => [field.slug, field.name]));
+  const typeAccents: Record<string, string> = {
+    certification: "border-[#6f887b]",
+    internship: "border-[#6aa6c8]",
+    learning: "border-[#ca9878]",
+    project: "border-[#c99d20]",
+  };
+
+  return (
+    <div className="min-h-svh bg-[#f7f8f5]">
+      <header className="bg-[#f7f8f5]">
+        <div className="mx-auto grid min-h-[530px] min-w-0 w-full gap-10 px-5 py-10 sm:px-8 sm:py-14 lg:min-h-[600px] lg:grid-cols-[1.2fr_.8fr] lg:items-center lg:px-[clamp(3rem,7vw,8rem)] lg:py-16">
+          <div className="min-w-0">
+            <LibraryReveal>
+              <h1 className="max-w-[15ch] text-[clamp(3rem,7.5vw,7.6rem)] font-semibold leading-[.9] tracking-[-.075em] text-[#17201b]">Try a new direction.</h1>
+            </LibraryReveal>
+            <p className="mt-7 max-w-[55ch] text-lg leading-relaxed text-[#34463c] sm:text-xl">Find learning programmes, projects and other ways to build experience. Check current availability and terms with each provider.</p>
+            <p className="mt-7 text-base font-semibold text-[#36544a]">{opportunities.length} ways to explore in this catalogue</p>
+          </div>
+          <div className="min-w-0 bg-[#d6eaf4] p-5 sm:p-7 lg:p-9">
+            <Compass aria-hidden="true" className="h-6 w-6 text-[#874926]" />
+            <h2 className="mt-5 max-w-[14ch] text-3xl font-semibold leading-tight tracking-[-.04em] text-[#17201b]">A small experiment can teach you a lot.</h2>
+            <p className="mt-4 text-base leading-relaxed text-[#3f3027]">Try a project, course or competition to discover what you enjoy practising.</p>
+            <LibrarySearch action="/opportunities" query={params.q} label="Search skills and opportunities" placeholder="Skill or activity" className="mt-6" />
+            <a href="#opportunity-list" className="mt-6 inline-flex min-h-10 items-center gap-2 text-base font-semibold text-[#704329] underline underline-offset-4">See what you can try <ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
+          </div>
+        </div>
+      </header>
+      <main className="min-w-0 w-full px-5 pb-24 pt-12 sm:px-8 lg:px-[clamp(3rem,7vw,8rem)] lg:pt-20">
+        <div className="grid min-w-0 gap-12 xl:grid-cols-[minmax(260px,.58fr)_minmax(0,1.42fr)] xl:gap-20">
+          <aside className="h-fit min-w-0 bg-[#e6eeea] p-5 sm:p-7 xl:sticky xl:top-8">
+            <h2 className="text-2xl font-semibold tracking-[-.04em] text-[#17201b]">Choose a way to try</h2>
+            <form action="/opportunities" className="mt-5 grid gap-3">
+              {params.q && <input type="hidden" name="q" value={params.q} />}
+              {params.type && <input type="hidden" name="type" value={params.type} />}
+              <label htmlFor="opportunity-field" className="mt-2 text-base font-semibold text-[#17201b]">Area of interest</label>
+              <select id="opportunity-field" name="field" defaultValue={params.field ?? ""} className="min-h-12 min-w-0 bg-[#f7f8f5] px-3 text-base text-[#17201b] outline-none focus-visible:ring-2 focus-visible:ring-[#09332a]"><option value="">All areas</option>{fields.map((field) => <option key={field.slug} value={field.slug}>{field.name}</option>)}</select>
+              <button type="submit" className="mt-2 min-h-12 bg-[#09332a] px-4 text-base font-semibold text-white transition-colors hover:bg-[#126048]">Apply filters</button>
+              {(params.type || params.field || params.q) && <Link href="/opportunities" className="pt-1 text-base font-semibold text-[#36544a] underline underline-offset-4">Clear filters</Link>}
+            </form>
+          </aside>
+          <section id="opportunity-list" aria-label="Skills and opportunities" className="min-w-0 scroll-mt-24">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><h2 className="text-3xl font-semibold tracking-[-.045em] text-[#17201b] sm:text-4xl">Open opportunities</h2><p className="text-base font-medium text-[#36544a]">{opportunities.length} results</p></div>
+            <div className="mb-8">
+              <OpportunityTypeFilters types={types} activeType={params.type} query={params.q} field={params.field} />
+            </div>
+            {opportunities.length ? <ul className="space-y-4">
+              {opportunities.map((item, index) => (
+                <li key={item.slug} className={`${index % 2 === 0 ? "bg-[#e6eeea]" : "bg-[#e3edf3]"} border-l-4 ${typeAccents[item.type] ?? "border-[#6f887b]"}`}>
+                  <LibraryReveal delay={Math.min(index * 45, 270)}>
+                    <details className="group/opportunity">
+                      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-4 gap-y-3 p-5 transition-colors hover:bg-[#dde4df] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#09332a] sm:flex-nowrap sm:p-7">
+                        <span className="w-full min-w-0 sm:flex-1">
+                          <h3 className="text-[clamp(1rem,5vw,1.5rem)] font-semibold leading-tight tracking-[-.035em] text-[#17201b]">{item.title}</h3>
+                          <span className="mt-3 block text-base leading-relaxed text-[#34463c]">{[item.type.replaceAll("_", " "), item.provider, item.costNote].filter(Boolean).join(" · ")}</span>
+                        </span>
+                        <span className="ml-auto shrink-0 text-base font-semibold text-[#09332a]">
+                          <span className="group-open/opportunity:hidden">Details</span>
+                          <span className="hidden group-open/opportunity:inline">Close</span>
+                        </span>
+                      </summary>
+                      <div className="grid gap-5 px-5 pb-6 sm:grid-cols-[minmax(0,1fr)_minmax(200px,.55fr)_auto] sm:items-end sm:px-7 sm:pb-7">
+                        <p className="max-w-[68ch] text-base leading-relaxed text-[#263a30]">{item.description || "Description is not currently listed. Check the provider's information for current details."}</p>
+                        <div className="grid gap-3 text-base text-[#263a30]">
+                          {(item.skillTags ?? []).length > 0 && <p><span className="font-semibold">Skills mentioned:</span> {(item.skillTags ?? []).slice(0, 3).join(", ")}</p>}
+                          {item.fieldSlugs?.length ? <p className="text-sm text-[#41594d]">{item.fieldSlugs.map((slug) => fieldBySlug.get(slug)).filter(Boolean).join(", ")}</p> : null}
+                        </div>
+                        <Link href={`/opportunities/${item.slug}`} className="inline-flex min-h-11 items-center gap-2 text-base font-semibold text-[#09332a] underline underline-offset-4">
+                          View details <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                        </Link>
+                      </div>
+                    </details>
+                  </LibraryReveal>
+                </li>
+              ))}
+            </ul> : <div className="bg-[#e6eeea] p-7 sm:p-10"><h3 className="text-2xl font-semibold text-[#17201b]">No opportunities match those filters</h3><p className="mt-3 text-base text-[#34463c]">Try another type, area or search term.</p><Link href="/opportunities" className="mt-6 inline-flex min-h-11 items-center gap-2 text-base font-semibold text-[#09332a] underline underline-offset-4">Browse all opportunities <ArrowRight aria-hidden="true" className="h-4 w-4" /></Link></div>}
+          </section>
+        </div>
+      </main>
+    </div>
+  );
 }

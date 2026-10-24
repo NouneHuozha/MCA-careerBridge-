@@ -272,7 +272,7 @@ test('field and pathway details reveal one topic at a time', async ({ page }) =>
   await page.goto('/explore/technology#pathways');
   await expect(page.getByRole('tab', { name: 'Study routes', exact: true })).toHaveAttribute('aria-selected', 'true');
   await page.goto('/pathways/class10-iti-trade');
-  await expect(page.getByRole('heading', { name: 'Your route, one step at a time' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Understand this route one step at a time.' })).toBeVisible();
   await page.screenshot({ path: 'artifacts/pathway-desktop.png', fullPage: false });
   await noOverflow(page);
 });

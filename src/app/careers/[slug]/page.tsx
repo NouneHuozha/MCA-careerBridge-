@@ -1,32 +1,216 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, BookOpen, BriefcaseBusiness, Building2, CheckCircle2, GraduationCap, Lightbulb, Route, Scale, ShieldCheck } from "lucide-react";
-import { Badge, BulletList, ButtonLink, Callout, Disclosure, StepList, cx } from "@/components/ui";
-import { Logo } from "@/components/logo";
+import { ArrowRight, BookOpen, Building2, BriefcaseBusiness, GraduationCap, Lightbulb, Route } from "lucide-react";
 import { SaveButton } from "@/components/save-button";
-import { DetailTabs } from "@/components/detail-tabs";
-import { LinkRow, NextStepPanel, NoCatalogItems } from "@/components/detail-parts";
-import { getCareer, getCareerSkills, getCareers, getCourses, getExams, getField, getInstitutionsForCourse, getPathways } from "@/services/catalog";
-import { getSessionState } from "@/services/profile";
-import { whatIfScenarios } from "@/recommendation/engine";
+import {
+  LibraryBreadcrumbs,
+  LibraryDetailFrame,
+  LibraryDetailIntro,
+  LibraryRecordLink,
+  LibrarySection,
+} from "@/components/library-detail";
+import { LibraryReveal } from "@/components/library-motion";
+import {
+  getCareer,
+  getCareerSkills,
+  getCareers,
+  getCourses,
+  getExams,
+  getField,
+  getInstitutionsForCourse,
+  getPathways,
+} from "@/services/catalog";
 
 export const dynamic = "force-dynamic";
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) { return { title: (await getCareer((await params).slug))?.title ?? "Career" }; }
 
-function JourneyRail() { return <aside className="hidden min-h-[calc(100dvh-4rem)] w-[285px] shrink-0 border-r border-[#dce5f3] bg-[#effaf8] px-7 py-8 lg:block"><Logo size="sm" /><p className="mt-10 text-lg font-semibold text-[#122a52]">Your journey</p><ol className="mt-7">{[{n: 1, title: "Understand yourself", text: "Who you are"}, {n: 2, title: "Explore possibilities", text: "Explore careers and paths", current: true}, {n: 3, title: "Find a route", text: "Study options and skills"}, {n: 4, title: "Compare options", text: "Find the best fit"}, {n: 5, title: "Make a plan", text: "Take action"}].map((step, index, list) => <li key={step.n} className="relative flex min-h-[92px] gap-3">{index < list.length - 1 ? <span className={`absolute left-4 top-8 h-[66px] w-px ${step.current ? "bg-[#2a9e7d]" : "bg-[#b7d7ce]"}`} /> : null}<span className={cx("relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 text-sm", step.current ? "border-[#2a9e7d] bg-[#2a9e7d] text-white" : "border-ink-300 bg-white text-ink-700")}>{step.n}</span><span className={step.current ? "text-[#116850]" : "text-ink-700"}><span className="block text-sm font-semibold">{step.title}</span><span className="mt-1 block text-xs text-ink-500">{step.text}</span></span></li>)}</ol><div className="relative -mx-7 mt-3 h-56 overflow-hidden"><Image src="/images/career-detail-rail-reference.png" alt="Curious minds build a better tomorrow" fill sizes="285px" className="object-cover object-top" /></div></aside>; }
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  return { title: (await getCareer((await params).slug))?.title ?? "Career" };
+}
 
 export default async function CareerPage({ params }: { params: Promise<{ slug: string }> }) {
-  const career = await getCareer((await params).slug); if (!career) notFound();
-  const [field, skills, courses, exams, allPaths, related, state] = await Promise.all([getField(career.fieldSlug), getCareerSkills(career.slug), getCourses({ slugs: career.courseSlugs ?? [] }), getExams({ slugs: career.examSlugs ?? [] }), getPathways({}), getCareers(career.fieldSlug), getSessionState()]);
-  const paths = allPaths.filter((p) => (career.pathwaySlugs ?? []).includes(p.slug));
-  const linkedInstitutions = await Promise.all(courses.map((c) => getInstitutionsForCourse(c.slug)));
-  const institutions = [...new Map(linkedInstitutions.flat().map((i) => [i.code, i])).values()];
-  const scenarios = whatIfScenarios(field, state?.snapshot);
-  const skillItems = skills.length ? skills.map((s) => s.skill) : field?.skills ?? [];
-  const overview = <div className="space-y-5"><div className="grid gap-4 lg:grid-cols-4"><section className="rounded-2xl border border-[#d9eee7] bg-[#f1fbf8] p-5"><h2 className="flex items-center gap-3 text-lg font-semibold text-[#155b4d]"><BriefcaseBusiness className="h-5 w-5" />What the work looks like</h2><p className="mt-4 text-sm leading-relaxed text-ink-600">{career.summary}</p><ul className="mt-4 space-y-2 text-sm text-ink-700">{(career.whatItInvolves ?? []).slice(0, 4).map((item) => <li key={item} className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#3b9b78]" />{item}</li>)}</ul></section><section className="rounded-2xl border border-[#e6ddf5] bg-[#fbf8ff] p-5"><h2 className="flex items-center gap-3 text-lg font-semibold text-[#26366b]"><BookOpen className="h-5 w-5" />Helpful subjects</h2><div className="mt-5 space-y-2">{(career.subjects ?? []).slice(0, 4).map((subject) => <div key={subject} className="rounded-xl bg-white/70 px-3 py-2 text-sm font-medium text-ink-800">{subject}</div>)}</div></section><section className="rounded-2xl border border-[#f0e4bf] bg-[#fffaf0] p-5"><h2 className="flex items-center gap-3 text-lg font-semibold text-[#664d16]"><Building2 className="h-5 w-5" />Where people work</h2><ul className="mt-5 space-y-3 text-sm text-ink-700">{(career.workContexts ?? []).slice(0, 5).map((item) => <li key={item} className="flex gap-2"><span>♧</span>{item}</li>)}</ul></section><section className="rounded-2xl border border-[#dbe8f3] bg-[#f4fbff] p-5"><h2 className="flex items-center gap-3 text-lg font-semibold text-[#245b75]"><Lightbulb className="h-5 w-5" />Skills to start building</h2><ul className="mt-5 space-y-3 text-sm text-ink-700">{skillItems.slice(0, 5).map((item) => <li key={item} className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#4187a9]" />{item}</li>)}</ul><Link href={`/opportunities?field=${career.fieldSlug}`} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#207d67]">View all skills <ArrowRight className="h-4 w-4" /></Link></section></div><div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px]"><section className="rounded-2xl border border-[#dceee8] bg-[#f5fbf8] p-5"><h2 className="text-lg font-semibold text-[#155b4d]">A typical path <span className="font-normal text-ink-500">(one of many)</span></h2><div className="mt-4 grid gap-3 md:grid-cols-3">{(paths.length ? paths.slice(0, 3) : [{ title: "Explore a route", typicalDuration: career.entryEducation }, { title: "Build skills", typicalDuration: "Courses and practice" }, { title: "Projects & experience", typicalDuration: "Portfolio and work" }]).map((step, index) => <div key={step.title} className="rounded-xl bg-white p-4"><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-lg bg-[#e4f4ed] text-[#2c9174]">{index === 0 ? <GraduationCap className="h-5 w-5" /> : index === 1 ? <Building2 className="h-5 w-5" /> : <BriefcaseBusiness className="h-5 w-5" />}</span><span className="font-semibold text-ink-800">{step.title}</span></div><p className="mt-2 text-xs leading-relaxed text-ink-500">{step.typicalDuration ?? "Explore options that fit you best."}</p></div>)}</div><p className="mt-4 text-xs text-ink-500">ⓘ There are many ways to get here. Explore options that fit you best.</p></section><NextStepPanel title="Why this is only a starting point — explore before deciding." text="Every path has different subjects, time, cost and opportunities. Explore more routes and compare what fits you." href={`/pathways?field=${career.fieldSlug}`} cta="Explore study routes" mentorQuestion={`What should I consider before exploring ${career.title}?`} /></div></div>;
-  const skillContent = <section className="cb-panel"><h2 className="cb-panel-title"><Lightbulb />Start building, little by little.</h2>{skills.length ? <div className="space-y-3">{skills.map((s) => <Disclosure key={s.id} summary={s.skill} hint="How to practise"><p>{s.howToBuild ?? "Look for a small project that lets you practise this skill."}</p></Disclosure>)}</div> : <BulletList items={field?.skills ?? []} />}<ButtonLink href={`/opportunities?field=${career.fieldSlug}`} className="mt-6">Find learning opportunities<ArrowRight aria-hidden className="h-4 w-4" /></ButtonLink></section>;
-  const study = <div className="space-y-4"><section className="cb-panel"><h2 className="cb-panel-title"><Route />Routes into this work</h2><p className="cb-measure mb-5 text-sm leading-relaxed text-ink-600">{career.entryEducation ?? "Entry requirements depend on the role."}</p><div className="space-y-3">{paths.map((p) => <LinkRow key={p.slug} href={`/pathways/${p.slug}`} title={p.title} description={p.typicalDuration} icon={<Route className="h-4 w-4" />} accent="butter" action="View route" />)}{!paths.length && <NoCatalogItems href="/pathways" label="Browse pathways" />}</div></section><Disclosure summary={`Courses (${courses.length})`}><div className="space-y-3">{courses.map((c) => <LinkRow key={c.slug} href={`/courses/${c.slug}`} title={c.name} description={c.durationLabel} icon={<GraduationCap className="h-4 w-4" />} accent="lavender" />)}</div></Disclosure><Disclosure summary={`Institutions in Nagaland (${institutions.length})`}><div className="space-y-3">{institutions.map((i) => <LinkRow key={i.code} href={`/institutions/${i.code}`} title={i.name} description={i.district} icon={<Building2 className="h-4 w-4" />} accent="sky" />)}</div></Disclosure><Disclosure summary="Entrance examinations"><div className="space-y-3">{exams.map((e) => <LinkRow key={e.slug} href={`/exams#${e.slug}`} title={e.shortName ?? e.name} description="Requirements and official portal" action="Check exam" />)}</div></Disclosure></div>;
-  const reflect = <div className="space-y-3"><Disclosure summary="Why might this NOT be right for me?" tone="amber"><BulletList items={career.challenges ?? []} /></Disclosure><Disclosure summary="Questions to ask myself"><BulletList items={career.questionsToConsider ?? []} /></Disclosure><Disclosure summary="Are there other routes in?"><BulletList items={career.alternativeRoutes ?? []} /></Disclosure><Disclosure summary="What if my circumstances change?"><div className="space-y-3">{scenarios.map((s) => <Disclosure key={s.key} summary={s.question}><p className="mb-3">{s.answer}</p><BulletList items={s.suggestions} /></Disclosure>)}</div></Disclosure><section className="cb-panel"><h2 className="cb-panel-title"><Scale />Compare related work</h2><div className="space-y-3">{related.filter((c) => c.slug !== career.slug).map((c) => <LinkRow key={c.slug} href={`/compare?type=career&a=${career.slug}&b=${c.slug}`} title={c.title} description={c.summary} icon={<Scale className="h-4 w-4" />} accent="lavender" action="Compare" />)}</div></section></div>;
-  return <div className="flex min-w-0"><JourneyRail /><main className="min-w-0 flex-1"><div className="cb-container cb-page"><div className="mb-5 text-sm text-ink-500"><Link href="/explore" className="hover:text-forest-700">Explore</Link><span className="mx-3">›</span><span>{field?.name ?? "Career"}</span><span className="mx-3">›</span><span className="text-ink-800">{career.title}</span></div><header className="relative overflow-hidden rounded-2xl border border-[#dceee8] bg-white px-7 py-7 sm:px-9"><div className="relative z-10 max-w-2xl"><p className="text-sm font-semibold uppercase tracking-[.18em] text-[#23856b]">{field?.name ?? "Explore a career"}</p><h1 className="mt-3 text-[clamp(2.4rem,5vw,4.4rem)] font-semibold leading-[.98] tracking-[-.05em] text-[#081a17]">{career.title}</h1><p className="mt-4 max-w-2xl text-base text-ink-600">{career.summary}</p><div className="mt-5 flex flex-wrap gap-3"><ButtonLink href={`/pathways?field=${career.fieldSlug}`}>Explore study routes <ArrowRight className="h-4 w-4" /></ButtonLink><SaveButton itemType="career" itemRef={career.slug} label={career.title} /><ButtonLink href={`/compare?type=career&a=${career.slug}`} variant="secondary"><Scale className="h-4 w-4" />Compare careers</ButtonLink></div></div><Image src="/images/career-detail-hero-reference.png" alt="Career illustration" width={785} height={345} className="absolute right-0 top-0 hidden h-full w-[44%] object-cover object-left opacity-90 lg:block" /></header><div className="mt-5"><DetailTabs tabs={[{ id: "overview", label: "The work", content: overview }, { id: "skills", label: "Skills to build", content: skillContent }, { id: "pathways", label: "How to get there", content: study }, { id: "reflect", label: "Is it for me?", content: reflect }]} /></div></div></main></div>;
+  const career = await getCareer((await params).slug);
+  if (!career) notFound();
+
+  const [field, skills, courses, exams, allPaths, relatedCareers] = await Promise.all([
+    getField(career.fieldSlug),
+    getCareerSkills(career.slug),
+    getCourses({ slugs: career.courseSlugs ?? [] }),
+    getExams({ slugs: career.examSlugs ?? [] }),
+    getPathways({}),
+    getCareers(career.fieldSlug),
+  ]);
+  const paths = allPaths.filter((path) => (career.pathwaySlugs ?? []).includes(path.slug));
+  const related = relatedCareers.filter(
+    (item) => item.slug !== career.slug && (career.relatedCareers ?? []).includes(item.slug),
+  );
+  const linkedInstitutions = await Promise.all(courses.map((course) => getInstitutionsForCourse(course.slug)));
+  const institutions = [...new Map(linkedInstitutions.flat().map((item) => [item.code, item])).values()];
+  const skillItems = skills.length ? skills.map((item) => item.skill) : field?.skills ?? [];
+
+  return (
+    <LibraryDetailFrame>
+      <LibraryBreadcrumbs items={[
+        { label: "Explore", href: "/explore" },
+        { label: "Careers", href: "/careers" },
+        { label: career.title },
+      ]} />
+
+      <LibraryDetailIntro
+        variant="career"
+        title={career.title}
+        description={career.summary}
+        facts={
+          <>
+            {field && <span>Career area: <Link className="font-semibold underline underline-offset-4" href={`/explore/${field.slug}`}>{field.name}</Link></span>}
+            {career.entryEducation && <span>Education: {career.entryEducation}</span>}
+          </>
+        }
+        actions={
+              <SaveButton itemType="career" itemRef={career.slug} label={career.title} tone="forest" />
+        }
+        aside={
+          <aside className="bg-[#09332a] p-6 text-white sm:p-7">
+            <h2 className="text-xl font-semibold leading-tight tracking-[-.03em] text-white">A closer look at the work</h2>
+            <p className="mt-4 text-base leading-relaxed text-[#e3ece7]">
+              Careers can vary by employer, training and experience. Use this overview to explore the work, then check the routes connected to it.
+            </p>
+            {career.workContexts?.length ? (
+              <ul className="mt-5 space-y-2 text-base text-white">
+                {career.workContexts.slice(0, 4).map((context) => <li key={context}>{context}</li>)}
+              </ul>
+            ) : null}
+          </aside>
+        }
+      />
+
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(250px,.62fr)]">
+        <div className="space-y-12">
+          <LibrarySection
+            title="What the work can involve"
+            intro="Day-to-day responsibilities differ across roles and workplaces. These examples describe the catalogue entry, not a guarantee of a specific job."
+          >
+            {career.whatItInvolves?.length ? (
+              <ul className="grid gap-x-10 gap-y-4 sm:grid-cols-2">
+                {career.whatItInvolves.map((item) => (
+                  <li key={item} className="flex gap-3 text-base leading-relaxed text-[#263a30]">
+                    <BriefcaseBusiness aria-hidden="true" className="mt-1 h-5 w-5 shrink-0 text-[#6f887b]" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="text-[#52635a]">A task description has not been added to this catalogue entry yet.</p>}
+          </LibrarySection>
+
+          <LibrarySection title="Subjects and skills to explore">
+            <div className="grid gap-10 sm:grid-cols-2">
+              <div>
+                <h3 className="flex items-center gap-3 text-lg font-semibold text-[#17201b]">
+                  <BookOpen aria-hidden="true" className="h-5 w-5 text-[#6f887b]" /> Helpful subjects
+                </h3>
+                {career.subjects?.length ? (
+                  <ul className="mt-4 space-y-3">
+                    {career.subjects.map((subject) => <li key={subject} className="bg-[#dde4df] px-4 py-3 text-base text-[#17201b]">{subject}</li>)}
+                  </ul>
+                ) : <p className="mt-4 text-base text-[#52635a]">No subject notes are listed yet.</p>}
+              </div>
+              <div>
+                <h3 className="flex items-center gap-3 text-lg font-semibold text-[#17201b]">
+                  <Lightbulb aria-hidden="true" className="h-5 w-5 text-[#6f887b]" /> Skills to build
+                </h3>
+                {skillItems.length ? (
+                  <ul className="mt-4 space-y-3">
+                    {skillItems.map((skill) => <li key={skill} className="bg-[#edf1ee] px-4 py-3 text-base leading-relaxed text-[#263a30]">{skill}</li>)}
+                  </ul>
+                ) : <p className="mt-4 text-base text-[#52635a]">No skills are listed for this entry yet.</p>}
+              </div>
+            </div>
+            {skills.some((item) => item.howToBuild) && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold text-[#17201b]">Ways to practise</h3>
+                <ul className="mt-3 space-y-3">
+                  {skills.filter((item) => item.howToBuild).map((item) => (
+                    <li key={item.id} className="grid gap-1 bg-[#f0f3f1] px-4 py-3 sm:grid-cols-[minmax(150px,.35fr)_1fr]">
+                      <span className="text-base font-medium text-[#17201b]">{item.skill}</span>
+                      <span className="text-base leading-relaxed text-[#405349]">{item.howToBuild}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </LibrarySection>
+
+          <LibrarySection
+            title="Routes and study options"
+            intro="There can be more than one way to work towards a role. Compare the linked routes and course details before deciding."
+          >
+            {paths.length ? paths.map((path) => (
+              <LibraryRecordLink key={path.slug} href={`/pathways/${path.slug}`} title={path.title} detail={path.typicalDuration} action="View pathway" />
+            )            ) : <p className="text-base text-[#52635a]">No pathways are linked to this career entry yet.</p>}
+            {courses.length > 0 && <div className="mt-8">
+              <h3 className="text-lg font-semibold text-[#17201b]">Related courses</h3>
+              {courses.map((course) => <LibraryRecordLink key={course.slug} href={`/courses/${course.slug}`} title={course.name} detail={course.durationLabel} action="View course" />)}
+            </div>}
+          </LibrarySection>
+        </div>
+
+        <aside className="space-y-12">
+          <LibrarySection title="Questions worth asking">
+            {career.questionsToConsider?.length ? (
+              <ul className="space-y-4">
+                {career.questionsToConsider.map((question) => <li key={question} className="border-l-4 border-[#6f887b] pl-4 text-base leading-relaxed text-[#263a30]">{question}</li>)}
+              </ul>
+            ) : <p className="text-base text-[#52635a]">No reflection prompts are listed for this career yet.</p>}
+            {career.challenges?.length ? <div className="mt-8">
+              <h3 className="text-lg font-semibold">Things to consider</h3>
+              <ul className="mt-3 space-y-3 text-base leading-relaxed text-[#405349]">
+                {career.challenges.map((challenge) => <li key={challenge}>{challenge}</li>)}
+              </ul>
+            </div> : null}
+            {career.alternativeRoutes?.length ? <div className="mt-8">
+              <h3 className="text-lg font-semibold">Alternative routes</h3>
+              <ul className="mt-3 space-y-3 text-base leading-relaxed text-[#405349]">
+                {career.alternativeRoutes.map((route) => <li key={route}>{route}</li>)}
+              </ul>
+            </div> : null}
+          </LibrarySection>
+
+          {related.length > 0 && (
+            <LibrarySection title="Related careers" intro="Compare related roles to see how their work and routes may differ.">
+              {related.map((item) => (
+                <LibraryRecordLink key={item.slug} href={`/careers/${item.slug}`} title={item.title} detail={item.summary} action="Explore career" />
+              ))}
+              {related[0] && (
+                <Link href={`/compare?type=career&a=${career.slug}&b=${related[0].slug}`} className="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-[#09332a] underline underline-offset-4">
+                  Compare these careers <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </Link>
+              )}
+            </LibrarySection>
+          )}
+
+          {exams.length > 0 && (
+            <LibrarySection title="Entrance exams to research">
+              {exams.map((exam) => <LibraryRecordLink key={exam.slug} href={`/exams/${exam.slug}`} title={exam.shortName ?? exam.name} detail={exam.conductingBody} action="View exam" />)}
+            </LibrarySection>
+          )}
+
+          {institutions.length > 0 && (
+            <LibrarySection title="Institutions connected to related courses">
+              {institutions.slice(0, 6).map((institution) => (
+                <LibraryRecordLink key={institution.code} href={`/institutions/${institution.code}`} title={institution.name} detail={institution.district} action="View institution" />
+              ))}
+              {institutions.length > 6 && (
+                <Link href="/institutions" className="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-[#09332a] underline underline-offset-4">
+                  Browse all institutions <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </Link>
+              )}
+            </LibrarySection>
+          )}
+        </aside>
+      </div>
+
+      <LibraryReveal className="mt-14 bg-[#dde4df] p-5 sm:p-7">
+        <p className="max-w-[55ch] text-base leading-relaxed text-[#263a30]">Career descriptions are general information for exploration. They do not promise a job, salary or admission outcome. Confirm course and entry details with the relevant institution.</p>
+      </LibraryReveal>
+    </LibraryDetailFrame>
+  );
 }

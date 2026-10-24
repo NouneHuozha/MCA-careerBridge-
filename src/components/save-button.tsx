@@ -27,9 +27,9 @@ export function SavedProvider({ signedIn, children }: { signedIn: boolean; child
   return <SavedContext.Provider value={{ keys, ready, signedIn, update }}>{children}</SavedContext.Provider>;
 }
 
-export function SaveButton({ itemType, itemRef, label, initiallySaved = false, className, saveText = "Save for later", savedText = "Saved" }: {
+export function SaveButton({ itemType, itemRef, label, initiallySaved = false, className, saveText = "Save for later", savedText = "Saved", tone = "default" }: {
   itemType: "field" | "career" | "course" | "institution" | "pathway" | "scholarship" | "exam" | "opportunity";
-  itemRef: string; label: string; initiallySaved?: boolean; className?: string; saveText?: string; savedText?: string;
+  itemRef: string; label: string; initiallySaved?: boolean; className?: string; saveText?: string; savedText?: string; tone?: "default" | "forest";
 }) {
   const context = useContext(SavedContext);
   const router = useRouter();
@@ -40,6 +40,13 @@ export function SaveButton({ itemType, itemRef, label, initiallySaved = false, c
   const [notice, setNotice] = useState<string | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [pending, setPending] = useState(false);
+  const buttonTone = tone === "forest"
+    ? saved
+      ? "border-[#9aada3] bg-[#dde4df] text-[#09332a] hover:border-[#6f887b]"
+      : "border-[#09332a] bg-[#09332a] text-white hover:border-[#155247] hover:bg-[#155247]"
+    : saved
+      ? "border-forest-500 bg-mint text-forest-800"
+      : "border-lavender-ink/30 bg-lavender text-lavender-ink hover:border-lavender-ink/60";
 
   async function toggle() {
     if (pending) return;
@@ -57,7 +64,7 @@ export function SaveButton({ itemType, itemRef, label, initiallySaved = false, c
     finally { setPending(false); }
   }
   return <span className={cx("inline-flex flex-col items-start gap-2", className)}>
-    <button type="button" onClick={toggle} disabled={pending || (context?.signedIn && !context.ready)} aria-pressed={saved} aria-label={`${saved ? "Unsave" : "Save"} ${label}`} className={cx("cb-button border px-4 py-2 text-sm", saved ? "border-forest-500 bg-mint text-forest-800" : "border-lavender-ink/30 bg-lavender text-lavender-ink hover:border-lavender-ink/60")}>
+    <button type="button" onClick={toggle} disabled={pending || (context?.signedIn && !context.ready)} aria-pressed={saved} aria-label={`${saved ? "Unsave" : "Save"} ${label}`} className={cx("cb-button border px-4 py-2 text-sm disabled:cursor-wait disabled:opacity-60", buttonTone)}>
       {pending ? <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" /> : saved ? <BookmarkCheck aria-hidden className="h-4 w-4" /> : <Bookmark aria-hidden className="h-4 w-4" />}
       {pending ? "Saving…" : saved ? savedText : saveText}
     </button>

@@ -13,5 +13,9 @@ The numeric prefixes are labels, not unique migration IDs: there are two indepen
 7. `0005_entrance_exam_review_details.sql`
 8. `0006_scholarship_detail_review.sql`
 9. `0007_source_conflict_resolution.sql`
+10. `0008_password_reset_tokens.sql`
+11. `0009_google_external_id_unique.sql`
 
 Before applying to production, take a database backup and verify the target schema and applied-migration record. For future migrations, use a unique, monotonically increasing identifier and add the filename to this list; adopting an automated migration runner should include a one-time reconciliation of already-applied SQL.
+
+Before applying `0009_google_external_id_unique.sql`, check for duplicate non-null `users.external_id` values; the unique index will fail rather than remove or merge account data if duplicates exist.

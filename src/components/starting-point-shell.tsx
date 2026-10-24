@@ -52,7 +52,7 @@ export function StartingPointShell({ children, stage, studentName, studentEmail,
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-4">
           <Link href="/guidance/action-plan" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-[#33453f] transition hover:bg-[#f5f7f8] sm:px-3" aria-label="Open your journey plan"><History aria-hidden className="h-5 w-5" /><span className="hidden sm:inline">History</span></Link>
           <span aria-hidden className="hidden h-8 w-px bg-[#e5e9eb] sm:block" />
-          <Link href="/" title="Your progress is saved as you go. Return to the homepage." className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-[#33453f] transition hover:bg-[#f5f7f8] sm:px-3"><Bookmark aria-hidden className="h-5 w-5" /><span className="hidden sm:inline">Save and return</span></Link>
+          <Link href="/" title={signedIn ? "Your progress is saved to your account." : "Your progress lasts for this browser session and is deleted after 24 hours of inactivity."} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-[#33453f] transition hover:bg-[#f5f7f8] sm:px-3"><Bookmark aria-hidden className="h-5 w-5" /><span className="hidden sm:inline">{signedIn ? "Save and return" : "Return home"}</span></Link>
           <span aria-hidden className="hidden h-8 w-px bg-[#e5e9eb] sm:block" />
           <details className="group relative">
             <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg px-1.5 transition hover:bg-[#f5f7f8] sm:gap-3 sm:px-2">
@@ -60,7 +60,7 @@ export function StartingPointShell({ children, stage, studentName, studentEmail,
               <span className="hidden min-w-0 text-left sm:block"><span className="block max-w-28 truncate text-sm font-medium text-[#273c35]">{signedIn ? studentName?.trim().split(/\s+/)[0] || "Student" : "Guest"}</span><span className="block text-xs text-[#6d7d78]">{stageName} · early exploration</span></span>
               <ChevronDown aria-hidden className="h-4 w-4 text-[#536660] transition group-open:rotate-180" />
             </summary>
-            <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-56 rounded-xl border border-[#dfe7e4] bg-white p-2 shadow-lg shadow-[#18342d]/10"><p className="px-3 py-2 text-xs text-[#71817c]">{signedIn ? studentEmail : "Your progress is saved on this device."}</p><Link href={signedIn ? "/guidance/review" : "/sign-in"} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-[#29483d] hover:bg-[#f3f8f5]">{signedIn ? "Review my profile" : "Sign in to keep progress"}</Link></div>
+            <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-56 rounded-xl border border-[#dfe7e4] bg-white p-2 shadow-lg shadow-[#18342d]/10"><p className="px-3 py-2 text-xs text-[#71817c]">{signedIn ? studentEmail : "Guest progress is deleted after 24 hours of inactivity."}</p><Link href={signedIn ? "/guidance/review" : "/sign-in"} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-[#29483d] hover:bg-[#f3f8f5]">{signedIn ? "Review my profile" : "Sign in or sign up to keep progress"}</Link></div>
           </details>
         </div>
       </div>

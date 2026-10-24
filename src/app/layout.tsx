@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Inter, Playfair_Display } from "next/font/google";
+import { DM_Sans, Lora } from "next/font/google";
 import { getCurrentUser } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", display: "swap" });
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap" });
+const lora = Lora({ subsets: ["latin"], variable: "--font-lora", display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -14,9 +14,10 @@ export const metadata: Metadata = {
     template: "%s · CareerBridge",
   },
   description: "CareerBridge helps students in Nagaland understand themselves, explore career fields, education pathways, courses, institutions and opportunities. Guide, don't decide.",
+  icons: { icon: "/images/logo.png" },
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
-  return <html lang="en" className={`${inter.variable} ${playfair.variable}`}><body className="flex min-h-screen flex-col bg-canvas text-ink-700 antialiased"><a href="#main" className="cb-skip-link">Skip to main content</a><AppShell user={user ? { name: user.name, email: user.email } : null}>{children}</AppShell></body></html>;
+  return <html lang="en" className={`${dmSans.variable} ${lora.variable}`}><body className="flex min-h-[100svh] flex-col bg-canvas text-ink-700 antialiased"><a href="#main" className="cb-skip-link">Skip to main content</a><AppShell user={user ? { name: user.name, email: user.email } : null}>{children}</AppShell></body></html>;
 }
